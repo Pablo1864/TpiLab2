@@ -1,0 +1,14 @@
+html
+     head
+         title=titulo
+     body
+         div.container
+             input(type='text' placeholder='nombre' id='nombre')
+             input(type='text' placeholder='apellido' id='apellido')
+             input(type='number' placeholder='dni' id='dni')
+             input(type='text' placeholder='telefóno' id='telefono')
+             button(id='btn_registroPaciente') Registrar
+             each paciente in pacientes
+                  p=`${paciente.idPaciente} -- ${paciente.nombre} -- ${paciente.apellido}`
+script(src='funciones.js')
+
