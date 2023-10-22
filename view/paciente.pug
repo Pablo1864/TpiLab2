@@ -1,14 +1,36 @@
-html
-     head
-         title=titulo
-     body
-         div.container
-             input(type='text' placeholder='nombre' id='nombre')
-             input(type='text' placeholder='apellido' id='apellido')
-             input(type='number' placeholder='dni' id='dni')
-             input(type='text' placeholder='telefóno' id='telefono')
-             button(id='btn_registroPaciente') Registrar
-             each paciente in pacientes
-                  p=`${paciente.idPaciente} -- ${paciente.nombre} -- ${paciente.apellido}`
+html(lang="es")
+        head
+            meta(charset="UTF-8")
+            meta(name="viewport", content="width=device-width, initial-scale=1.0")
+            title=titulo
+            link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0")
+            link(rel="stylesheet", href="style.css")
+        body
+            div.container
+                div.formRegistro
+                    h1 REGISTRO DE PACIENTE
+                    input(type='text' placeholder='nombre' id='nombre' class='input')
+                    input(type='text' placeholder='apellido' id='apellido' class='input')
+                    input(type='number' placeholder='dni' id='dni' class='input')
+                    input(type='number' placeholder='telefono' id='telefono' class='input')
+                    select(name="sexo" id='sexo' class='input')
+                        option(value="") seleccione sexo
+                        option(value="femenino") femenino
+                        option(value="masculino") masculino 
+                        option(value="otro") otro
+                    label(for="fechaNac" id='labFechaNac') Fecha de nacimiento:      
+                    input(type='date' placeholder='fecha Nacimiento' id='fechaNac' class='input')
+                    input(type='text' placeholder='email' id='email' class='input')
+                    input(type='text' placeholder='provincia' id='provincia' class='input')
+                    input(type='text' placeholder='localidad' id='localidad' class='input')
+                    input(type='text' placeholder='domicilio' id='domicilio' class='input')
+                    input(type='text' placeholder='obraSocial' id='obraSocial' class='input')
+                    input(type='text' placeholder='numero Afiliado' id='numeroAfiliado' class='input')
+                    button(id='btn_registroPaciente')  Registrar
+                div.delete
+                    - if (pacientes && pacientes.length)
+                        each paciente in pacientes
+                            p= `${paciente.idPaciente} - ${paciente.nombre} - ${paciente.apellido}`
+                            span(class="borrarPaciente material-symbols-outlined" id=paciente.idPaciente) delete
 script(src='funciones.js')
 

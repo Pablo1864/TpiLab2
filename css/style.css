@@ -1,0 +1,40 @@
+body{
+    background-color:gainsboro;
+}
+div.container{
+margin-top:90px;
+display: block;
+
+}
+div.formRegistro{
+margin: auto;
+width: 500px;
+}
+
+h1{
+color:#04417C;
+font-weight: bold;
+}
+
+.input{
+box-sizing: border-box;
+width: 400px;
+border:3px solid #04417C ;
+height:40px;
+margin-top:5px;
+}
+
+#btn_registroPaciente{
+    width: 400px;
+    height: 40px;
+    background-color: #04417C;
+    color:white;
+    font-weight: bold;
+    margin-top: 20px;
+}
+#labFechaNac{
+    display:flex;
+   margin-top:6px;
+   margin-bottom:0px;
+   padding-bottom:0px;
+}
