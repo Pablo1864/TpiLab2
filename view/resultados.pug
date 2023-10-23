@@ -1,0 +1,40 @@
+extends layout.pug 
+block content 
+    include includes/nav
+    .form-order(action="")
+        h3.text-center.m-3 Cargar Resultados
+        .input-group
+            label.form-label.me-3(for="orderIn") orden:
+            input.form-control#orderIn(type="number")
+            button.btn.btn-primary#buscarOrder(type='button') buscar
+        .input-group 
+        -if (orden)
+            for value, key in orden
+                .row.g-0 
+                    .col-4 
+                        p #{key}:      
+                    .col-8 
+                        p #{value}
+        -else 
+            p user not found
+    
+    form.p-2(action="")
+        table.table.table-striped
+            thead
+                tr
+                    th.table-primary(scope='col') Nombre 
+                    th.table-primary(scope='col') Requerimiento
+                    th.table-primary(scope='col') Tipo de muestra
+                    th.table-primary(scope='col') Hs. demora
+                    th.table-primary(scope='col') Posee muestra
+                    th.table-primary(scope='col') Resultado
+                    th.table-primary(scope='col')
+            tbody 
+                tr
+                    th 1
+                    for v in [2,3,4,5,6,7]
+                        td=v
+                tr
+                    th 1
+                    for v in [2,3,4,5,6,7]
+                        td=v

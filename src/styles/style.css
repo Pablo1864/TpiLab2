@@ -10,6 +10,10 @@ header{
     z-index: -1;
 }
 
-.Form-order{
-    padding: 2% 12%;
+.form-order{
+    padding: 3% 22%;
+}
+
+.form-order label{
+    margin-block: auto;
 }
