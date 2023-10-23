@@ -1,5 +1,5 @@
 import express from 'express'
-import {agregarPaciente,obtenerPacientes,borrarPaciente } from './src/mysql.conexion.js';
+import {agregarPaciente,obtenerPacientes,borrarPaciente, buscarOrdenPorID } from './src/mysql.conexion.js';
 
 const app= express();
 let todosPacientes
@@ -17,6 +17,11 @@ app.set('view engine','pug');
 app.use(express.static('./view'));
 app.use(express.static('./src'));
 app.use(express.static('./css'));
+/*
+app.get('/', (req, res) =>{
+    res.render('Resultados');
+})*/
+
 
 //ruta inicial renderiza a paciente.pug
 app.get('/', function(req,res){
@@ -74,4 +79,34 @@ app.get('/delete/:id', function(req, res){
     res.redirect('/')
     
 
+})
+
+app.get('/resultados', (req, res)=>{
+    res.render('resultados', {
+        orden: {
+            'numero de orden': null ,
+            'estado': null ,
+            'diagnostico': null ,
+            'matricula de medico': null ,
+            'paciente': null ,
+        }
+    })
+})
+
+//RUTA PARA BUSCAR ORDEN
+app.get('/buscar/:id', async (req, res) =>{
+    let id = req.params.id;
+    let orden = await buscarOrdenPorID(id);
+    if (orden.length > 0){
+        res.render('resultados', {
+            orden: {
+                'numero de orden': orden[0].nroOrden,
+                'estado': orden[0].estado,
+                'diagnostico': orden[0].diagnostico,
+                'matricula de medico': orden[0].matriculaMedico,
+                'paciente': orden[0].idPaciente
+            } 
+        })
+    }
+    
 })

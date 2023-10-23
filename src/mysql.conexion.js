@@ -4,9 +4,9 @@ let todosPacientes;
 const conexion= mysql.createConnection(
     {
         user:'root',
-        host:'127.0.0.1',
+        host:'localhost',
         password:'',
-        database:'labanalisis'
+        database:'lab'
     }
 )
 
@@ -50,4 +50,29 @@ const borrarPaciente =id =>{
     conexion.query(sql)
 }
 
-export{conectar,agregarPaciente,obtenerPacientes,borrarPaciente}
+//BUSCAR PACIENTE BY ID
+const buscarPacientePorId = id =>{
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT * FROM pacientes WHERE idPaciente=${id}`;
+        conexion.query(sql, (err, res, field) => {
+            //in process..
+        })
+    })
+}
+
+//BUSCAR ORDER BY ID
+const buscarOrdenPorID = id =>{
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT * FROM ordenes WHERE nroOrden=${id}`;
+        conexion.query(sql, (err, res, field) => {
+            if (res){
+                resolve(res)
+            } else {
+                reject(err);
+            }
+        });
+    })
+    
+}
+
+export{conectar,agregarPaciente,obtenerPacientes,borrarPaciente, buscarOrdenPorID}
