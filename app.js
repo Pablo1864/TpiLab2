@@ -18,6 +18,15 @@ app.use(express.static('./view'));
 app.use(express.static('./src'));
 app.use(express.static('./css'));
 
+app.get('/', (req, res) =>{
+    res.render('index');
+})
+
+app.get('/registrarOrden', (req, res) =>{
+    res.render('registrarOrden');
+})
+
+
 //ruta inicial renderiza a paciente.pug
 app.get('/', function(req,res){
    
@@ -28,7 +37,7 @@ app.get('/', function(req,res){
        
     //res.send('se inicio la aplicación')
 
-});
+}); 
 
 //RUTA PARA AGREGAR PACIENTE, uso funcion agregarPaciente /:fechaNac
 app.get('/agregar/:nombre/:apellido/:dni/:telefono/:sexo/:fechaNac/:email/:provincia/:localidad/:domicilio/:obraSocial/:numeroAfiliado', function(req, res)

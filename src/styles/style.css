@@ -1,0 +1,15 @@
+header{
+    background-image: url(/img/img_home.jpg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #cccccc;
+    position: absolute;
+    top: 85px;
+    height: 500px;
+    z-index: -1;
+}
+
+.Form-order{
+    padding: 2% 12%;
+}
