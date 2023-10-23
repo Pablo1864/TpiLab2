@@ -1,4 +1,4 @@
-body{
+#Paciente{
     background-color:gainsboro;
 }
 div.container{
@@ -37,4 +37,9 @@ margin-top:5px;
    margin-top:6px;
    margin-bottom:0px;
    padding-bottom:0px;
+}
+
+#titulo{
+    color:black;
+    font-weight: bold;
 }

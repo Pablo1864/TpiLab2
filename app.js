@@ -21,14 +21,24 @@ app.use(express.static('./css'));
 //ruta inicial renderiza a paciente.pug
 app.get('/', function(req,res){
    
-    todosPacientes=obtenerPacientes();
-    res.render('paciente', {
-        titulo:'Laboratorio de analisis',
-        pacientes:todosPacientes});
+    res.render('home')
+
+    // todosPacientes=obtenerPacientes();
+    // res.render('paciente', {
+    //     titulo:'Laboratorio de analisis',
+    //     pacientes:todosPacientes});
        
     //res.send('se inicio la aplicación')
-
+    
 });
+
+app.get('/paciente',function(req, res){
+    res.render('paciente')
+})
+
+app.get('/paciente',function(req, res){
+    res.render('paciente')
+})
 
 //RUTA PARA AGREGAR PACIENTE, uso funcion agregarPaciente /:fechaNac
 app.get('/agregar/:nombre/:apellido/:dni/:telefono/:sexo/:fechaNac/:email/:provincia/:localidad/:domicilio/:obraSocial/:numeroAfiliado', function(req, res)
