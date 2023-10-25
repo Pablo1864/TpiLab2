@@ -1,7 +1,5 @@
-
 const btnRegistroPaciente=document.querySelector('#btn_registroPaciente');
 const iconosEliminar=document.getElementsByClassName('borrarPaciente');
-const btnBuscarOrden = document.querySelector('#buscarOrder');
 
 //parametros por url 
 btnRegistroPaciente.addEventListener('click', function(){
@@ -21,8 +19,10 @@ btnRegistroPaciente.addEventListener('click', function(){
    
     const select = document.getElementById('sexo');
     const sexo = select.options[select.selectedIndex].value;
-    window.location.href=`agregar/${nombre.value}/${apellido.value}/${dni.value}/${telefono.value}/${sexo}/${fechaNac.value}/${email.value}/${provincia.value}/${localidad.value}/${domicilio.value}/${obraSocial.value}/${numeroAfiliado.value}`
-   
+    window.location.href=`registrarPaciente/${nombre.value}/${apellido.value}/${dni.value}/${telefono.value}/${sexo}/${fechaNac.value}/${email.value}/${provincia.value}/${localidad.value}/${domicilio.value}/${obraSocial.value}/${numeroAfiliado.value}`
+
+   // window.location.href=`agregar/${nombre.value}/${apellido.value}/${dni.value}/${telefono.value}/${sexo}/${fechaNac.value}/${email.value}/${provincia.value}/${localidad.value}/${domicilio.value}/${obraSocial.value}/${numeroAfiliado.value}`
+
 })
 
 for(let i of iconosEliminar ){
@@ -32,13 +32,3 @@ for(let i of iconosEliminar ){
         window.location.href=`delete/${id}`}
     )
 }
-
-
-
-btnBuscarOrden.addEventListener('click', function(){
-    const orderId = document.getElementById('orderIn');
-    console.log('asdfsa')
-    console.log(btnBuscarOrden);
-    console.log(orderId.value);
-    //window.location.href=`buscar/${orderId.value}`;
-})

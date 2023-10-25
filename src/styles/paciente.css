@@ -1,14 +1,25 @@
+html {
+    height: 100%;
+}
+body {
+    min-height: 100%;
+}
+
+/* 
+
 #Paciente{
     background-color:gainsboro;
-}
+} */
 div.container{
-margin-top:90px;
 display: block;
 
 }
 div.formRegistro{
 margin: auto;
 width: 500px;
+}
+div.container>div.formRegistro{
+    margin-top:90px;
 }
 
 h1{

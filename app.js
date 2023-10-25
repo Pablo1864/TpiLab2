@@ -17,23 +17,18 @@ app.set('view engine','pug');
 app.use(express.static('./view'));
 app.use(express.static('./src'));
 app.use(express.static('./css'));
-/*
-app.get('/', (req, res) =>{
-    res.render('Resultados');
-})*/
+app.use(express.static('./src/styles'));
+//app.use(express.static('./routes'));
+
 
 
 //ruta inicial renderiza a paciente.pug
 app.get('/', function(req,res){
    
-    res.render('home')
-
-    // todosPacientes=obtenerPacientes();
-    // res.render('paciente', {
-    //     titulo:'Laboratorio de analisis',
-    //     pacientes:todosPacientes});
-       
-    //res.send('se inicio la aplicación')
+    todosPacientes=obtenerPacientes();
+    res.render('paciente', {
+        titulo:'Laboratorio de analisis',
+        pacientes:todosPacientes});
     
 });
 
@@ -41,8 +36,8 @@ app.get('/paciente',function(req, res){
     res.render('paciente')
 })
 
-app.get('/paciente',function(req, res){
-    res.render('paciente')
+app.get('/registrarPaciente',function(req, res){
+    res.render('registrarPaciente')
 })
 
 //RUTA PARA AGREGAR PACIENTE, uso funcion agregarPaciente /:fechaNac
@@ -61,24 +56,38 @@ app.get('/agregar/:nombre/:apellido/:dni/:telefono/:sexo/:fechaNac/:email/:provi
     let obraSocial = req.params.obraSocial;
     let numeroAfiliado = req.params.numeroAfiliado;
 
-
-
-
     agregarPaciente(nombre,apellido,dni,telefono,sexo,fechaNac,email, provincia, localidad, domicilio,obraSocial,numeroAfiliado);
 
     console.log(nombre, apellido,dni,telefono,sexo,fechaNac, email, provincia, localidad, domicilio,obraSocial,numeroAfiliado);
 
     res.redirect('/')
     //renderiza a app
-    
+
 });
+
+app.get('/registrarPaciente/:nombre/:apellido/:dni/:telefono/:sexo/:fechaNac/:email/:provincia/:localidad/:domicilio/:obraSocial/:numeroAfiliado', (req, res) => {
+    //const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado } = req.params;
+
+    agregarPaciente(nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado);
+
+    res.redirect('/');
+});
+
+
+
+//RUTA PARA BUSCAR PACIENTE  
+app.get('/buscarPaciente',function(req, res){
+    res.render('buscadorPaciente')
+})
+
+
+
 //RUTA PARA ELIMINAR PACIENTE
 app.get('/delete/:id', function(req, res){
     let id= req.params.id;
     borrarPaciente(id);
     res.redirect('/')
     
-
 })
 
 app.get('/resultados', (req, res)=>{

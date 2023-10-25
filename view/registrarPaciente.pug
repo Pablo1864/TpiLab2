@@ -1,0 +1,41 @@
+doctype html
+html(lang="es")
+  include includes/linkStyles.pug
+  head
+    link(rel="stylesheet", href="formRegistroPaciente.css")
+    include includes/nav.pug
+    div#ContainerAll 
+      div#ContainerForm 
+        h1#titulo REGISTRO DE PACIENTE
+        section#contact
+          .content
+            #form
+              form#contactForm(action='')
+                span Nombre
+                input(type='text' id='name' placeholder='nombre' tabindex='1')
+                span Apellido
+                input(type='text' id='apellido' placeholder='apellido' tabindex='2')
+                span DNI
+                input(type='text' id='dni' placeholder='dni' tabindex='3')
+                span Teléfono
+                input(type='text' id='telefono' placeholder='teléfono' tabindex='4')
+                span Email
+                input(type='text' id='email' placeholder='email' tabindex='5')
+                span Provincia
+                input(type='text' id='provincia' placeholder='provincia' tabindex='6')
+                span Localidad
+                input(type='text' id='localidad' placeholder='localidad' tabindex='7')
+                span Domicilio
+                input(type='text' id='domicilio' placeholder='domicilio' tabindex='8')
+                span Obra Social
+                input(type='text' id='obraSocial' placeholder='obra social' tabindex='9')
+                span Nro Afiliado
+                input(type='text' id='nroAfiliado' placeholder='nro afiliado' tabindex='10')
+                span Sexo
+                select(name="sexo" id='sexo')
+                          option(value="") seleccione sexo
+                          option(value="femenino") femenino
+                          option(value="masculino") masculino 
+                          option(value="otro") otro
+                input.submit(type='submit' name='submit' value='Registrar' id='btn_registroPaciente' tabindex='11')
+script(src='js/funciones.js')
