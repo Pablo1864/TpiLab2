@@ -1,74 +1,83 @@
-import express from 'express'
-import {agregarPaciente,obtenerPacientes,borrarPaciente, buscarOrdenPorID, buscarPacientePorId, buscarExamenPorIdOrden } from './src/mysql.conexion.js';
+import express from 'express';
+import bodyParser from 'body-parser'; // Importa body-parser
+import { agregarPaciente, obtenerPacientes, borrarPaciente, buscarOrdenPorID, insertarExamen } from './src/mysql.conexion.js';
 
-const app= express();
-let todosPacientes
+const app = express();
 
-app.listen('3000',function(){
-    console.log('la app se inicio en el puerto 3000')
+// Configura body-parser para analizar los datos del formulario
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.listen(3000, function () {
+    console.log('La aplicación se inició en el puerto 3000');
 });
 
-//configuración pug
-app.set('views','./view');
-app.set('view engine','pug');
+app.set('views', './view');
+app.set('view engine', 'pug');
 
-
-//configuración de archivos estaticos
 app.use(express.static('./view'));
 app.use(express.static('./src'));
 app.use(express.static('./css'));
-/*
-app.get('/', (req, res) =>{
-    res.render('Resultados');
-})*/
+app.use(express.static('./src/styles'));
+//app.use(express.static('./routes'));
+
 
 
 //ruta inicial renderiza a paciente.pug
 app.get('/', function(req,res){
-
-    //res.render('home')
-
-    todosPacientes = obtenerPacientes();
+   
+    todosPacientes=obtenerPacientes();
     res.render('paciente', {
-        titulo: 'Laboratorio de analisis',
-        pacientes: todosPacientes
-    });
-
-    //res.send('se inicio la aplicación')
-
+        titulo:'Laboratorio de analisis',
+        pacientes:todosPacientes});
+    
 });
 
 app.get('/paciente',function(req, res){
     res.render('paciente')
 })
 
-//RUTA PARA AGREGAR PACIENTE, uso funcion agregarPaciente /:fechaNac
-app.get('/agregar/:nombre/:apellido/:dni/:telefono/:sexo/:fechaNac/:email/:provincia/:localidad/:domicilio/:obraSocial/:numeroAfiliado', function(req, res)
-{
-    let nombre= req.params.nombre;
-    let apellido=req.params.apellido;
-    let dni = req.params.dni;
-    let telefono = req.params.telefono;
-    let sexo = req.params.sexo;
-    let fechaNac = req.params.fechaNac;
-    let email = req.params.email;
-    let provincia = req.params.provincia;
-    let localidad = req.params.localidad;
-    let domicilio = req.params.domicilio;
-    let obraSocial = req.params.obraSocial;
-    let numeroAfiliado = req.params.numeroAfiliado;
-
-
-
-
-    agregarPaciente(nombre,apellido,dni,telefono,sexo,fechaNac,email, provincia, localidad, domicilio,obraSocial,numeroAfiliado);
-
-    console.log(nombre, apellido,dni,telefono,sexo,fechaNac, email, provincia, localidad, domicilio,obraSocial,numeroAfiliado);
-
-    res.redirect('/')
-    //renderiza a app
-    
+app.get('/paciente', function (req, res) {
+    res.render('paciente');
 });
+
+app.get('/agregar/:nombre/:apellido/:dni/:telefono/:sexo/:fechaNac/:email/:provincia/:localidad/:domicilio/:obraSocial/:numeroAfiliado', function (req, res) {
+    const nombre = req.params.nombre;
+    const apellido = req.params.apellido;
+    const dni = req.params.dni;
+    const telefono = req.params.telefono;
+    const sexo = req.params.sexo;
+    const fechaNac = req.params.fechaNac;
+    const email = req.params.email;
+    const provincia = req.params.provincia;
+    const localidad = req.params.localidad;
+    const domicilio = req.params.domicilio;
+    const obraSocial = req.params.obraSocial;
+    const numeroAfiliado = req.params.numeroAfiliado;
+
+    agregarPaciente(nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado);
+
+    res.redirect('/');
+    //renderiza a app
+
+});
+
+app.get('/registrarPaciente/:nombre/:apellido/:dni/:telefono/:sexo/:fechaNac/:email/:provincia/:localidad/:domicilio/:obraSocial/:numeroAfiliado', (req, res) => {
+    //const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado } = req.params;
+
+    agregarPaciente(nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado);
+
+    res.redirect('/');
+});
+
+
+
+//RUTA PARA BUSCAR PACIENTE  
+app.get('/buscarPaciente',function(req, res){
+    res.render('buscadorPaciente')
+})
+
+
+
 //RUTA PARA ELIMINAR PACIENTE
 app.get('/delete/:id', function(req, res){
     let id= req.params.id;
@@ -118,14 +127,43 @@ app.get('/resultados/buscar/:id', async (req, res) =>{
     } else {
 
         res.render('resultados', {
-            datos_paciente: {
-                'Paciente': null ,
-                'Nombre y Apellido': null ,
-                'Fecha nacimiento': null ,
-                'Nro.Telefono': null ,
-            },
-            estado: 'SinResultadosOError'//para definir que no se encontro ninguna orden
-        })
+            orden: {
+                'numero de orden': orden[0].nroOrden,
+                'estado': orden[0].estado,
+                'diagnostico': orden[0].diagnostico,
+                'matricula de medico': orden[0].matriculaMedico,
+                'paciente': orden[0].idPaciente
+            }
+        });
     }
-    
-}) 
+});
+
+app.get('/gestion-examenes', function (req, res) {
+    res.render('examenes.pug');
+});
+
+app.post('/nuevo-examen', (req, res) => {
+    // Recuperar los datos del formulario
+    const nuevoExamen = {
+        nombreExamen: req.body.nombreExamen,
+        fechaModif: req.body.fechaModif,
+        requerimiento: req.body.requerimiento,
+        idDeterminante: req.body.idDeterminante,
+        diasDemora: req.body.diasDemora,
+        tipoAnalisis: req.body.tipoAnalisis,
+        estado: req.body.estado,
+        fechaCreacion: req.body.fechaCreacion,
+    };
+
+    // Llama a la función para insertar el examen en la base de datos
+    insertarExamen(nuevoExamen, (error, results) => {
+        if (error) {
+            console.error('Error al insertar el examen:', error);
+            res.redirect('/gestion-examenes?error=1'); // Redirige a la página de gestión de exámenes con un indicador de error
+        } else {
+            console.log('Examen insertado con éxito');
+            res.redirect('/gestion-examenes');
+        }
+    });
+});
+

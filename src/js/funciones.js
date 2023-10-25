@@ -1,4 +1,3 @@
-
 const btnRegistroPaciente=document.querySelector('#btn_registroPaciente');
 const iconosEliminar=document.getElementsByClassName('borrarPaciente');
 
@@ -20,8 +19,10 @@ btnRegistroPaciente.addEventListener('click', function(){
    
     const select = document.getElementById('sexo');
     const sexo = select.options[select.selectedIndex].value;
-    window.location.href=`agregar/${nombre.value}/${apellido.value}/${dni.value}/${telefono.value}/${sexo}/${fechaNac.value}/${email.value}/${provincia.value}/${localidad.value}/${domicilio.value}/${obraSocial.value}/${numeroAfiliado.value}`
-   
+    window.location.href=`registrarPaciente/${nombre.value}/${apellido.value}/${dni.value}/${telefono.value}/${sexo}/${fechaNac.value}/${email.value}/${provincia.value}/${localidad.value}/${domicilio.value}/${obraSocial.value}/${numeroAfiliado.value}`
+
+   // window.location.href=`agregar/${nombre.value}/${apellido.value}/${dni.value}/${telefono.value}/${sexo}/${fechaNac.value}/${email.value}/${provincia.value}/${localidad.value}/${domicilio.value}/${obraSocial.value}/${numeroAfiliado.value}`
+
 })
 
 for(let i of iconosEliminar ){

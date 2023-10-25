@@ -1,0 +1,78 @@
+@import url(https://fonts.googleapis.com/css?family=Bree+Serif);
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+* {
+  margin: 0;
+  padding: 0  
+}
+#ContainerAll {
+    background-color: rgb(253, 253, 253);
+/* background: url(img/descarga.jpeg);
+background-repeat: no-repeat;
+/*Centramos el fondo al centro*/
+/* background-position: center; */
+/*Y le decimos que siempre ocupe el ancho y el alto con esto*/
+/* background-size: cover; */ 
+}
+#ContainerAll {
+  color: #040000;
+  display: block;
+}
+div#ContainerForm {
+    margin: auto;
+    width: 500px;
+}
+#contact {
+  overflow: auto;
+}
+h1#titulo{
+    padding-bottom:10px;
+    padding-top: 30px;
+}
+#contact #form {
+  width:410px;
+  float:left;
+}
+#contact #form h2 {
+  font: 48px 'Bree Serif', Georgia, serif;
+}
+#contact #form span {
+  font-weight: bold; 
+  display:block;
+  float:left;
+  width:100px;
+  padding-top:5px;
+  font: 14px/16px'Bree Serif', Georgia, serif;
+}
+
+
+#contact #form input {
+  float:left;
+  width:255px;
+  border: 1px solid #00060b;
+  color:#0f0e0e;
+  padding:10px 10px 10px 30px;
+  font: 11px/20px'Open Sans', Verdana, Helvetica, sans-serif;
+  margin-bottom:10px;
+}
+select{
+    float:left;
+    width:255px;
+    height: 30px;
+    border:1px solid #00060b;
+    font: 11px/20px'Open Sans', Verdana, Helvetica, sans-serif;
+    color:rgb(80, 98, 62)
+}
+
+#contact #form input.submit {
+  cursor: pointer;
+  width:200px;
+  height:30px;
+  float:right;
+  padding:5px 0px 5px 0px;
+  margin:30px 50px 20px 30px;
+  background-color: #FFC300 ;
+  color:rgb(5, 0, 0);
+  font-weight: bold;
+  font: 14px/16px'Bree Serif', Georgia, serif;
+}

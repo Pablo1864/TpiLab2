@@ -1,0 +1,11 @@
+li.nav-item>a.nav-link{
+    color: rgb(13, 13, 13);
+    font-weight: bold;
+    }
+nav.navbar.navbar-expand-lg.navbar{
+        background-color:#FFC300 
+    }
+    li.nav-item>a.nav-link:hover{
+        color: rgb(253, 251, 251);
+        font-weight: bold;
+        }

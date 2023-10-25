@@ -28,4 +28,13 @@ router.get('/delete/:id', (req, res) => {
     res.redirect('/');
 });
 
+
+router.get('/registrarPaciente/:nombre/:apellido/:dni/:telefono/:sexo/:fechaNac/:email/:provincia/:localidad/:domicilio/:obraSocial/:numeroAfiliado', (req, res) => {
+    const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado } = req.params;
+
+    agregarPaciente(nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado);
+
+    res.redirect('/');
+});
+
 export default router;
