@@ -55,10 +55,16 @@ const buscarPacientePorId = id =>{
     return new Promise((resolve, reject) => {
         const sql = `SELECT * FROM pacientes WHERE idPaciente=${id}`;
         conexion.query(sql, (err, res, field) => {
-            //in process..
+            if (res){
+                resolve(res)
+            } else {
+                reject(err);
+            }
         })
     })
 }
+
+
 
 //BUSCAR ORDER BY ID
 const buscarOrdenPorID = id =>{
@@ -75,4 +81,18 @@ const buscarOrdenPorID = id =>{
     
 }
 
-export{conectar,agregarPaciente,obtenerPacientes,borrarPaciente, buscarOrdenPorID}
+//BUSCAR EXAMENES BY ID DE ORDER
+const buscarExamenPorIdOrden = id =>{
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT * FROM ordenes_examenes NATURAL JOIN examenes WHERE nroOrden=${id}`;
+        conexion.query(sql, (err, res, field) => {
+            if (res){
+                resolve(res);
+            } else {
+                reject(err);
+            }
+        })
+    })
+}
+
+export{conectar,agregarPaciente,obtenerPacientes,borrarPaciente, buscarOrdenPorID, buscarPacientePorId, buscarExamenPorIdOrden}

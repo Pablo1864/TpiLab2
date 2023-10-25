@@ -2,24 +2,32 @@ extends layout.pug
 block content 
     include includes/nav
     .form-order(action="")
-        h3.text-center.m-3 Cargar Resultados
-        .input-group
-            label.form-label.me-3(for="orderIn") orden:
-            input.form-control#orderIn(type="number")
-            button.btn.btn-primary#buscarOrder(type='button') buscar
-        .input-group 
-        -if (orden)
-            for value, key in orden
-                .row.g-0 
-                    .col-4 
-                        p #{key}:      
-                    .col-8 
+        h2.text-center.m-3 Cargar Resultados
+
+        -if (order)
+            h6.text-center Orden n°#{order['nro Orden']}
+        -else if(estado == 'SinResultadosOError') 
+            h6.text-center no se encontro la orden
+
+        .row.my-2 
+            .col-4.text-end    
+                label.form-label.pt-1(for="orderIn") orden:
+            .col
+                .input-group
+                    input.form-control#orderIn(type="number")
+                    button.btn.btn-primary#buscarOrder(type='button') buscar
+
+        -if (datos_paciente)
+            for value, key in datos_paciente
+                .row.my-2 
+                    .col-4.text-end  
+                        p.pt-1 #{key}:      
+                    .col 
                         p #{value}
-        -else 
-            p user not found
     
     form.p-2(action="")
-        table.table.table-striped
+        table.table.table-striped.table-hover.caption-top
+            caption lista de examenes de la orden 
             thead
                 tr
                     th.table-primary(scope='col') Nombre 
@@ -29,12 +37,15 @@ block content
                     th.table-primary(scope='col') Posee muestra
                     th.table-primary(scope='col') Resultado
                     th.table-primary(scope='col')
-            tbody 
-                tr
-                    th 1
-                    for v in [2,3,4,5,6,7]
-                        td=v
-                tr
-                    th 1
-                    for v in [2,3,4,5,6,7]
-                        td=v
+            tbody#tbodyData
+                -if (examenes)
+                    tr
+                        for examen in [examenes[0].nombre,examenes[0].requerimiento, examenes[0].tipoAnalisis, examenes[0].diasDemora]  
+                            td=examen
+                        td
+                            .form-check.form-switch
+                                input.form-check-input.checkboxes(type='checkbox' role='switch' id=order['nro Orden']+'_'+examenes[0].idExamenes)
+                                label.form-check-label(for=order['nro Orden']+'_'+examenes[0].idExamenes) si
+                        td  
+                            button(role='button' type='button') asdf
+                                  

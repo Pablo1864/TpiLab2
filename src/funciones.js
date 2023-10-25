@@ -1,7 +1,6 @@
 
 const btnRegistroPaciente=document.querySelector('#btn_registroPaciente');
 const iconosEliminar=document.getElementsByClassName('borrarPaciente');
-const btnBuscarOrden = document.querySelector('#buscarOrder');
 
 //parametros por url 
 btnRegistroPaciente.addEventListener('click', function(){
@@ -32,13 +31,3 @@ for(let i of iconosEliminar ){
         window.location.href=`delete/${id}`}
     )
 }
-
-
-
-btnBuscarOrden.addEventListener('click', function(){
-    const orderId = document.getElementById('orderIn');
-    console.log('asdfsa')
-    console.log(btnBuscarOrden);
-    console.log(orderId.value);
-    //window.location.href=`buscar/${orderId.value}`;
-})
