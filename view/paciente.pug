@@ -11,8 +11,8 @@ html(lang="es")
                     h1 REGISTRO DE PACIENTE
                     input(type='text' placeholder='nombre' id='nombre' class='input')
                     input(type='text' placeholder='apellido' id='apellido' class='input')
-                    input(type='number' placeholder='dni' id='dni' class='input')
-                    input(type='number' placeholder='telefono' id='telefono' class='input')
+                    input(type='text' placeholder='dni' id='dni' class='input' maxlength='11')
+                    input(type='text' placeholder='telefono' id='telefono' class='input' maxlength='24')
                     select(name="sexo" id='sexo' class='input')
                         option(value="") seleccione sexo
                         option(value="femenino") femenino
@@ -25,7 +25,7 @@ html(lang="es")
                     input(type='text' placeholder='localidad' id='localidad' class='input')
                     input(type='text' placeholder='domicilio' id='domicilio' class='input')
                     input(type='text' placeholder='obraSocial' id='obraSocial' class='input')
-                    input(type='text' placeholder='numero Afiliado' id='numeroAfiliado' class='input')
+                    input(type='text' placeholder='numero Afiliado' id='numeroAfiliado' class='input' maxlength='24')
                     button(id='btn_registroPaciente')  Registrar
                 div.delete
                     - if (pacientes && pacientes.length)

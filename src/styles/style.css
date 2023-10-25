@@ -1,4 +1,4 @@
-header{
+header {
     background-image: url(/img/img_home.jpg);
     background-size: cover;
     background-position: center;
@@ -10,10 +10,15 @@ header{
     z-index: -1;
 }
 
-.form-order{
+.formRegistro {
     padding: 3% 22%;
 }
 
-.form-order label{
-    margin-block: auto;
+.formRegistro label,
+.formRegistro input {
+    display: block;
+    /* Cambiar a bloque para que estén uno debajo del otro */
+    margin-bottom: 10px;
+    width: 100%;
+    /* Establecer el ancho al 100% */
 }
