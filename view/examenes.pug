@@ -1,0 +1,60 @@
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title=titulo
+    link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0")
+    link(rel="stylesheet", href="style.css")
+  body#Paciente
+    div.container
+      div.formRegistro
+        h1 Gestión de Exámenes
+
+        h2 Ingreso de Nuevos Exámenes
+        form.formRegistro(action="/nuevo-examen", method="POST")
+           
+          input(type="text", name="nombreExamen", required, class="input", value="Nombre del Examen")
+        
+          input(type="date", name="fechaModif", required, class="input", value="Fecha de Modificación")
+         
+          input(type="text", name="requerimiento", class="input", value="Requerimiento")
+       
+          input(type="text", name="idDeterminante", required, class="input", value="ID del Determinante")
+          
+          input(type="text", name="diasDemora", required, class="input", value="Horas de demor")
+          
+          input(type="text", name="tipoAnalisis", class="input", value="Tipo de Análisis")
+         
+          input(type="text", name="estado", class="input", value="Estado")
+          
+          input(type="date", name="fechaCreacion", required, class="input", value="Fecha de Creación")
+          
+          button(type="submit", class="input") Ingresar Examen
+      div.delete
+
+
+     
+    //- h2 Actualización de Exámenes
+    //- form.formRegistro(action="/actualizar-examen", method="POST")
+    //-   label(for="idExamen") ID del Examen a Actualizar:
+    //-   input(type="text", name="idExamen", required, class="input")
+    //-   label(for="nuevoNombreExamen") Nuevo Nombre del Examen:
+    //-   input(type="text", name="nuevoNombreExamen", class="input")
+    //-   label(for="nuevaFechaModif") Nueva Fecha de Modificación:
+    //-   input(type="date", name="nuevaFechaModif", class="input")
+    //-   label(for="nuevoRequerimiento") Nuevo Requerimiento:
+    //-   input(type="text", name="nuevoRequerimiento", class="input")
+    //-   label(for="nuevoIdDeterminante") Nuevo ID del Determinante:
+    //-   input(type="text", name="nuevoIdDeterminante", class="input")
+    //-   label(for="nuevoDiasDemora") Nuevos Días de Demora:
+    //-   input(type="number", name="nuevoDiasDemora", class="input")
+    //-   label(for="nuevoTipoAnalisis") Nuevo Tipo de Análisis:
+    //-   input(type="text", name="nuevoTipoAnalisis", class="input")
+    //-   label(for="nuevoEstado") Nuevo Estado:
+    //-   input(type="text", name="nuevoEstado", class="input")
+    //-   label(for="nuevaFechaCreacion") Nueva Fecha de Creación:
+    //-   input(type="date", name="nuevaFechaCreacion", class="input")
+    //-   label(for="activo") Activo:
+    //-   input(type="checkbox", name="activo", class="input")
+    //-   button(type="submit", class="input") Actualizar Examen
+
