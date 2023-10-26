@@ -1,6 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser'; // Importa body-parser
-import { agregarPaciente, obtenerPacientes, borrarPaciente, buscarOrdenPorID, insertarExamen } from './src/mysql.conexion.js';
+import { agregarPaciente, obtenerPacientes, obtenerPacienteFiltrado,borrarPaciente, buscarOrdenPorID, insertarExamen } from './src/mysql.conexion.js';
 
 const app = express();
 
@@ -14,79 +14,68 @@ app.listen(3000, function () {
 app.set('views', './view');
 app.set('view engine', 'pug');
 
-app.use(express.static('./view'));
-app.use(express.static('./src'));
-app.use(express.static('./css'));
-app.use(express.static('./src/styles'));
-//app.use(express.static('./routes'));
+// app.use(express.static('./view'));
+// app.use(express.static('./src'));
+// app.use(express.static('./css'));
+// app.use(express.static('./src/styles'));
+// app.use(express.static('./src/js'));
 
-
+app.use(express.static('./public'));
 
 //ruta inicial renderiza a paciente.pug
 app.get('/', function(req,res){
    
-    todosPacientes=obtenerPacientes();
+  const todosPacientes=obtenerPacientes();
     res.render('paciente', {
         titulo:'Laboratorio de analisis',
         pacientes:todosPacientes});
     
 });
 
-app.get('/paciente',function(req, res){
-    res.render('paciente')
+app.get('/registrarPaciente',function(req, res){
+    res.render('registrarPaciente')
 })
 
 app.get('/paciente', function (req, res) {
     res.render('paciente');
 });
 
-app.get('/agregar/:nombre/:apellido/:dni/:telefono/:sexo/:fechaNac/:email/:provincia/:localidad/:domicilio/:obraSocial/:numeroAfiliado', function (req, res) {
-    const nombre = req.params.nombre;
-    const apellido = req.params.apellido;
-    const dni = req.params.dni;
-    const telefono = req.params.telefono;
-    const sexo = req.params.sexo;
-    const fechaNac = req.params.fechaNac;
-    const email = req.params.email;
-    const provincia = req.params.provincia;
-    const localidad = req.params.localidad;
-    const domicilio = req.params.domicilio;
-    const obraSocial = req.params.obraSocial;
-    const numeroAfiliado = req.params.numeroAfiliado;
+app.get('/registrarPaciente/:nombre/:apellido/:dni/:telefono/:sexo/:fechaNac/:email/:provincia/:localidad/:domicilio/:obraSocial/:numeroAfiliado', function (req, res) {
+    const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado } = req.params;
 
     agregarPaciente(nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado);
-
-    res.redirect('/');
-    //renderiza a app
-
-});
-
-app.get('/registrarPaciente/:nombre/:apellido/:dni/:telefono/:sexo/:fechaNac/:email/:provincia/:localidad/:domicilio/:obraSocial/:numeroAfiliado', (req, res) => {
-    //const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado } = req.params;
-
-    agregarPaciente(nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado);
-
     res.redirect('/');
 });
-
 
 
 //RUTA PARA BUSCAR PACIENTE  
 app.get('/buscarPaciente',function(req, res){
-    res.render('buscadorPaciente')
+    const todosPacientes=obtenerPacientes();
+    if (todosPacientes && todosPacientes.length)
+       {todosPacientes.forEach(paciente => {
+        console.log(paciente.apellido)
+       });
+    }
+    res.render('buscarPaciente', {pacientes:todosPacientes})
 })
 
-
+app.get('/buscarPaciente/:datoBuscado',function(req, res){
+    const datoBuscado= req.params.datoBuscado;
+    if (datoBuscado && datoBuscado !== '')
+    {
+    const pacienteBuscado= obtenerPacienteFiltrado(datoBuscado); 
+    if(pacienteBuscado){ res.render('buscarPaciente', {pacientes:pacienteBuscado})}
+    else{console.log('no se encontro el paciente')}
+    }
+    })
 
 //RUTA PARA ELIMINAR PACIENTE
 app.get('/delete/:id', function(req, res){
     let id= req.params.id;
     borrarPaciente(id);
     res.redirect('/')
-    
 
 })
-
 
 app.get('/resultados', (req, res)=>{
     res.render('resultados', {

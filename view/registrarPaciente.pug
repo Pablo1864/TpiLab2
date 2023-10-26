@@ -1,5 +1,4 @@
-doctype html
-html(lang="es")
+html
   include includes/linkStyles.pug
   head
     link(rel="stylesheet", href="formRegistroPaciente.css")
@@ -8,34 +7,46 @@ html(lang="es")
       div#ContainerForm 
         h1#titulo REGISTRO DE PACIENTE
         section#contact
-          .content
-            #form
-              form#contactForm(action='')
+          .content#form
+            div#contactForm
                 span Nombre
-                input(type='text' id='name' placeholder='nombre' tabindex='1')
+                input(type='text' id='nombre' placeholder='nombre' tabindex='1')
                 span Apellido
                 input(type='text' id='apellido' placeholder='apellido' tabindex='2')
                 span DNI
-                input(type='text' id='dni' placeholder='dni' tabindex='3')
+                input(type='number' id='dni' placeholder='dni' tabindex='3' 
+                oninput='javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);'
+                maxlength="10")
                 span Teléfono
-                input(type='text' id='telefono' placeholder='teléfono' tabindex='4')
+                input(type='number' id='telefono' placeholder='teléfono' tabindex='4'
+                oninput='javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);'
+                maxlength="15")
                 span Email
                 input(type='text' id='email' placeholder='email' tabindex='5')
+                span Fecha de Nacimiento
+                input(type='date' id='fechaNac' tabindex='6')
                 span Provincia
-                input(type='text' id='provincia' placeholder='provincia' tabindex='6')
+                input(type='text' id='provincia' placeholder='provincia' tabindex='7')
                 span Localidad
-                input(type='text' id='localidad' placeholder='localidad' tabindex='7')
+                input(type='text' id='localidad' placeholder='localidad' tabindex='8')
                 span Domicilio
-                input(type='text' id='domicilio' placeholder='domicilio' tabindex='8')
+                input(type='text' id='domicilio' placeholder='domicilio' tabindex='9')
                 span Obra Social
-                input(type='text' id='obraSocial' placeholder='obra social' tabindex='9')
+                input(type='text' id='obraSocial' placeholder='obra social' tabindex='10')
                 span Nro Afiliado
-                input(type='text' id='nroAfiliado' placeholder='nro afiliado' tabindex='10')
+                input(type='number' id='numeroAfiliado' placeholder='nro afiliado' tabindex='11'
+                oninput='javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);'
+                maxlength="12")
                 span Sexo
                 select(name="sexo" id='sexo')
                           option(value="") seleccione sexo
                           option(value="femenino") femenino
                           option(value="masculino") masculino 
                           option(value="otro") otro
-                input.submit(type='submit' name='submit' value='Registrar' id='btn_registroPaciente' tabindex='11')
+                button.submit(id='btn_registroPaciente')  Registrar
+                - if (pacientes && pacientes.length)
+                        each paciente in pacientes
+                            p= `${paciente.idPaciente} - ${paciente.nombre} - ${paciente.apellido}`
+                            span(class="borrarPaciente material-symbols-outlined" id=paciente.idPaciente) delete          
 script(src='js/funciones.js')
+              

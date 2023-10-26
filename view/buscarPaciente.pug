@@ -1,0 +1,24 @@
+html 
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        title Laboratorio de Analisis
+        link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0")
+        include includes/linkStyles.pug
+         
+    body 
+        include includes/nav.pug
+        div.container.mt-5
+            h1 BUSCADOR
+            input#pacienteBuscado.form-control.my-2(type="text")
+            button#btnBuscarPaciente.btn.btn-info.mb-2 Buscar 
+        div 
+            //- - if (pacientes && pacientes.length>0)
+            //-          p= `${pacientes.idPaciente} - ${pacientes.nombre} - ${pacientes.apellido}- ${pacientes.dni}- ${pacientes.email}`
+            //-          span(class="borrarPaciente material-symbols-outlined" id=pacientes.idPaciente) delete 
+            //- - else{ console.log('no hay paciente')}         
+            - if (pacientes && pacientes.length)
+                        each paciente in pacientes
+                            p= `${paciente.idPaciente} - ${paciente.nombre} - ${paciente.apellido}- ${paciente.dni}- ${paciente.email}`
+                            span(class="borrarPaciente material-symbols-outlined" id=paciente.idPaciente) delete                          
+script(src='../js/buscarPaciente.js')

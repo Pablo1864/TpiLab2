@@ -1,6 +1,6 @@
 import mysql from 'mysql';
 let todosPacientes;
-
+let paciente;
 const conexion = mysql.createConnection(
     {
         user: 'root',
@@ -32,7 +32,7 @@ VALUES (${null},"${nombre}","${apellido}",${dni},"${fechaNacimiento}","${provinc
 
 //OBTENER PACIENTES
 const obtenerPacientes = () => {
-    const sql = 'SELECT idPaciente, nombre, apellido, fechaNacimiento FROM pacientes'
+    const sql = 'SELECT idPaciente, nombre, apellido, email, dni FROM pacientes'
     conexion.query(sql, function (err, result, field) {
         if (result) {
             todosPacientes = result;
@@ -42,7 +42,21 @@ const obtenerPacientes = () => {
     return todosPacientes //array de objetos
 
 }
+//OBTENER PACIENTE FILTRADO
+const obtenerPacienteFiltrado = datoBuscado => {
+    const sql = `SELECT * FROM pacientes WHERE dni LIKE ${datoBuscado}`
+    conexion.query(sql, function (err, result, field) {
+        if (result){
+            paciente=result
+        } 
+        
+        else {
+             console.log(err);
+        }
+    })
+    return paciente //array de objetos
 
+}
 
 //BORRAR PACIENTE
 const borrarPaciente = id => {
@@ -105,4 +119,4 @@ const insertarExamen = (nuevoExamen, callback) => {
     });
 };
 
-export { conectar, agregarPaciente, obtenerPacientes, borrarPaciente, buscarOrdenPorID, insertarExamen , buscarPacientePorId, buscarExamenPorIdOrden}
+export { conectar,obtenerPacienteFiltrado, agregarPaciente, obtenerPacientes, borrarPaciente, buscarOrdenPorID, insertarExamen , buscarPacientePorId, buscarExamenPorIdOrden}

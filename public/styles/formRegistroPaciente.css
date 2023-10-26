@@ -64,7 +64,7 @@ select{
     color:rgb(80, 98, 62)
 }
 
-#contact #form input.submit {
+#contact #form button.submit {
   cursor: pointer;
   width:200px;
   height:30px;
