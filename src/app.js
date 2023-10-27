@@ -1,7 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser'; // Importa body-parser
-import { agregarPaciente, obtenerPacientes, obtenerPacienteFiltrado,borrarPaciente, buscarOrdenPorID, insertarExamen } from './src/mysql.conexion.js';
-
+import { Paciente } from '../src/modelos/paciente.js';
 const app = express();
 
 // Configura body-parser para analizar los datos del formulario
@@ -10,6 +9,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.listen(3000, function () {
     console.log('La aplicación se inició en el puerto 3000');
 });
+
 
 app.set('views', './view');
 app.set('view engine', 'pug');
@@ -25,7 +25,7 @@ app.use(express.static('./public'));
 //ruta inicial renderiza a paciente.pug
 app.get('/', function(req,res){
    
-  const todosPacientes=obtenerPacientes();
+  const todosPacientes=Paciente.obtenerPacientes();
     res.render('paciente', {
         titulo:'Laboratorio de analisis',
         pacientes:todosPacientes});
@@ -63,7 +63,7 @@ app.get('/buscarPaciente/:datoBuscado',function(req, res){
     const datoBuscado= req.params.datoBuscado;
     if (datoBuscado && datoBuscado !== '')
     {
-    const pacienteBuscado= obtenerPacienteFiltrado(datoBuscado); 
+    const pacienteBuscado= Paciente.obtenerPacienteFiltrado(datoBuscado); 
     if(pacienteBuscado){ res.render('buscarPaciente', {pacientes:pacienteBuscado})}
     else{console.log('no se encontro el paciente')}
     }
