@@ -1,6 +1,9 @@
 import express from 'express';
 import bodyParser from 'body-parser'; // Importa body-parser
-import { Paciente } from '../src/modelos/paciente.js';
+import { Paciente } from './modelos/paciente.mjs'
+import { Orden } from './modelos/orden.mjs'; 
+import { Examen } from './modelos/examen.mjs';
+
 const app = express();
 
 // Configura body-parser para analizar los datos del formulario
@@ -14,18 +17,12 @@ app.listen(3000, function () {
 app.set('views', './view');
 app.set('view engine', 'pug');
 
-// app.use(express.static('./view'));
-// app.use(express.static('./src'));
-// app.use(express.static('./css'));
-// app.use(express.static('./src/styles'));
-// app.use(express.static('./src/js'));
-
 app.use(express.static('./public'));
 
 //ruta inicial renderiza a paciente.pug
-app.get('/', function(req,res){
+app.get('/', async function(req,res){
    
-  const todosPacientes=Paciente.obtenerPacientes();
+    const todosPacientes = await Paciente.obtenerPacientes();
     res.render('paciente', {
         titulo:'Laboratorio de analisis',
         pacientes:todosPacientes});
@@ -43,14 +40,14 @@ app.get('/paciente', function (req, res) {
 app.get('/registrarPaciente/:nombre/:apellido/:dni/:telefono/:sexo/:fechaNac/:email/:provincia/:localidad/:domicilio/:obraSocial/:numeroAfiliado', function (req, res) {
     const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado } = req.params;
 
-    agregarPaciente(nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado);
+    Paciente.agregarPaciente(nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado);
     res.redirect('/');
 });
 
 
 //RUTA PARA BUSCAR PACIENTE  
 app.get('/buscarPaciente',function(req, res){
-    const todosPacientes=obtenerPacientes();
+    const todosPacientes= Paciente.obtenerPacientes();
     if (todosPacientes && todosPacientes.length)
        {todosPacientes.forEach(paciente => {
         console.log(paciente.apellido)
@@ -72,19 +69,13 @@ app.get('/buscarPaciente/:datoBuscado',function(req, res){
 //RUTA PARA ELIMINAR PACIENTE
 app.get('/delete/:id', function(req, res){
     let id= req.params.id;
-    borrarPaciente(id);
+    Paciente.borrarPaciente(id);
     res.redirect('/')
 
 })
 
 app.get('/resultados', (req, res)=>{
     res.render('resultados', {
-        datos_paciente: {
-            'Paciente': null ,
-            'Nombre y Apellido': null ,
-            'Fecha nacimiento': null ,
-            'Nro.Telefono': null ,
-        },
         estado: 'noHuboBusqueda'
     })
 })
@@ -93,19 +84,16 @@ app.get('/resultados', (req, res)=>{
 app.get('/resultados/buscar/:id', async (req, res) =>{
     let id = req.params.id;
 
-    let orden = await buscarOrdenPorID(id); //recupero la orden
-
+    let orden = await Orden.buscarOrdenPorID(id); //recupero la orden
+    try {
     if (orden.length > 0){
 
         let paciente = await buscarPacientePorId(orden[0].idPaciente); //recupero el paciente con el idPaciente en orden
         let examenes = await buscarExamenPorIdOrden(id); //recupero los examenes segun el nroOrden
+        let muestras = await buscarMuestrasPorNroOrden(id);
         res.render('resultados', {
-            datos_paciente: {
-                'Paciente': paciente[0].idPaciente,
-                'Nombre y Apellido': paciente[0].nombre + " " + paciente[0].apellido,
-                'Fecha nacimiento': paciente[0].fechaNacimiento,
-                'Nro.Telefono': paciente[0].telefono,
-            },
+            datos_paciente: paciente,
+            muestras:muestras,
             examenes: examenes,
             order: {
                 'nro Orden': orden[0].nroOrden
@@ -116,16 +104,30 @@ app.get('/resultados/buscar/:id', async (req, res) =>{
     } else {
 
         res.render('resultados', {
-            orden: {
-                'numero de orden': orden[0].nroOrden,
-                'estado': orden[0].estado,
-                'diagnostico': orden[0].diagnostico,
-                'matricula de medico': orden[0].matriculaMedico,
-                'paciente': orden[0].idPaciente
-            }
+           
+            estado: 'SinResultadosOError'
         });
     }
+} catch (err) {
+    console.log(err);
+    res.status(500).json({ error: 'Internal Server Error'});
+}
 });
+
+app.put('/resultados/muestra/:id', async(req, res)=>{
+    const id = req.params.id;
+    const data = req.body;
+    try {
+        const muestraActualizado = await updateEstadoMuestraById(data.estado, id);
+
+        res.render('resultados', {
+            
+        })
+    }catch (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error'});
+    }
+})
 
 app.get('/gestion-examenes', function (req, res) {
     res.render('examenes.pug');
@@ -145,7 +147,7 @@ app.post('/nuevo-examen', (req, res) => {
     };
 
     // Llama a la función para insertar el examen en la base de datos
-    insertarExamen(nuevoExamen, (error, results) => {
+    Examen.insertarExamen(nuevoExamen, (error, results) => {
         if (error) {
             console.error('Error al insertar el examen:', error);
             res.redirect('/gestion-examenes?error=1'); // Redirige a la página de gestión de exámenes con un indicador de error

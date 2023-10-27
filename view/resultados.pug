@@ -1,51 +1,81 @@
-extends layout.pug 
-block content 
-    include includes/nav
-    .form-order(action="")
-        h2.text-center.m-3 Cargar Resultados
+html(lang="es")
+    include includes/nav.pug
+    include includes/linkStyles.pug
+        head
+            meta(charset="UTF-8")
+            meta(name="viewport", content="width=device-width, initial-scale=1.0")
+            title cargar resultados
+            link(rel="stylesheet", href="/styles/style.css")
+        body(onload='iniciar()') 
+            .container
+                .form-order(action="")
+                    h2.text-center.m-3 Cargar Resultados
 
-        -if (order)
-            h6.text-center Orden n°#{order['nro Orden']}
-        -else if(estado == 'SinResultadosOError') 
-            h6.text-center no se encontro la orden
+                    -if (order)
+                        h6.text-center Orden n°#{order['nro Orden']}
+                    -else if(estado == 'SinResultadosOError') 
+                        h6.text-center ¡no se encontro la orden!
 
-        .row.my-2 
-            .col-4.text-end    
-                label.form-label.pt-1(for="orderIn") orden:
-            .col
-                .input-group
-                    input.form-control#orderIn(type="number")
-                    button.btn.btn-primary#buscarOrder(type='button') buscar
+                    .row.my-2 
+                        .col-4.text-end    
+                            label.form-label.pt-1(for="orderIn") orden:
+                        .col
+                            .input-group
+                                input.form-control#orderIn(type="number")
+                                button.btn.btn-primary#buscarOrder(type='button') buscar
 
-        -if (datos_paciente)
-            for value, key in datos_paciente
-                .row.my-2 
-                    .col-4.text-end  
-                        p.pt-1 #{key}:      
-                    .col 
-                        p #{value}
-    
-    form.p-2(action="")
-        table.table.table-striped.table-hover.caption-top
-            caption lista de examenes de la orden 
-            thead
-                tr
-                    th.table-primary(scope='col') Nombre 
-                    th.table-primary(scope='col') Requerimiento
-                    th.table-primary(scope='col') Tipo de muestra
-                    th.table-primary(scope='col') Hs. demora
-                    th.table-primary(scope='col') Posee muestra
-                    th.table-primary(scope='col') Resultado
-                    th.table-primary(scope='col')
-            tbody#tbodyData
-                -if (examenes)
-                    tr
-                        for examen in [examenes[0].nombre,examenes[0].requerimiento, examenes[0].tipoAnalisis, examenes[0].diasDemora]  
-                            td=examen
-                        td
-                            .form-check.form-switch
-                                input.form-check-input.checkboxes(type='checkbox' role='switch' id=order['nro Orden']+'_'+examenes[0].idExamenes)
-                                label.form-check-label(for=order['nro Orden']+'_'+examenes[0].idExamenes) si
-                        td  
-                            button(role='button' type='button') asdf
-                                  
+                    for n, i in ['Paciente:', 'Nombre y Apellido:', 'Fecha Nacimiento:', 'Nro.Telefono:']
+                            .row.my-2 
+                                .col-4.text-end  
+                                    p.pt-1=n
+                                .col
+                                    -if (datos_paciente)               
+                                        -if (i == 0)
+                                            p #{datos_paciente[0].idPaciente}
+                                        -else if (i == 1)
+                                            p #{datos_paciente[0].nombre + " " + datos_paciente[0].apellido}
+                                        -else if (i == 2)
+                                            p #{datos_paciente[0].fechaNacimiento}
+                                        -else if (i == 3)
+                                            p #{datos_paciente[0].telefono}
+                                        -else 
+                                            p
+                                
+                
+                form.p-2(action="")
+                    table.table.table-striped.table-hover.caption-top
+                        caption lista de examenes de la orden 
+                        thead
+                            tr
+                                th.table-primary(scope='col') Nombre 
+                                th.table-primary(scope='col') Requerimiento
+                                th.table-primary(scope='col') Tipo de muestra
+                                th.table-primary(scope='col') Hs. demora
+                                th.table-primary(scope='col') Posee muestra
+                                th.table-primary(scope='col') Resultado
+                                th.table-primary(scope='col')
+                        tbody#tbodyData
+                            -if (examenes)
+                                for exa in examenes
+                                    tr
+                                        for examen in [exa.nombre, exa.requerimiento, exa.tipoAnalisis, exa.diasDemora]  
+                                            td=examen
+                                        td
+                                            .form-check.form-switch
+                                                for muestra in muestras 
+                                                    if (muestra.idExamenes == exa.idExamenes && muestra.estado == 1)
+                                                        input.form-check-input.checkboxes(checked type='checkbox' role='switch' id=exa.idExamenes )
+                                                        label.form-check-label(for=exa.idExamenes class=exa.idExamenes) si
+                                                    else if(muestra.idExamenes == exa.idExamenes)
+                                                        input.form-check-input.checkboxes(type='checkbox' role='switch' id=exa.idExamenes)
+                                                        label.form-check-label(for=exa.idExamenes class=exa.idExamenes) no                                               
+                                        td.p-0.text-center
+                                            button(role='button' type='button').btn.btn-outline-secondary subir
+                                        td.p-0.text-center
+                                            button(role='button' type='button').btn.btn-outline-secondary editar
+                if (examenes && muestras && order) 
+                    script. 
+                        const sDataExamenes = !{JSON.stringify(examenes)} 
+                        const sDataOrder = !{JSON.stringify(order)}
+                        const sDataMuestras = !{JSON.stringify(muestras)}
+                script(type='text/javascript' src='/resultados_funciones.js')                  
