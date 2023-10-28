@@ -7,12 +7,6 @@
 }
 #ContainerAll {
     background-color: rgb(253, 253, 253);
-/* background: url(img/descarga.jpeg);
-background-repeat: no-repeat;
-/*Centramos el fondo al centro*/
-/* background-position: center; */
-/*Y le decimos que siempre ocupe el ancho y el alto con esto*/
-/* background-size: cover; */ 
 }
 #ContainerAll {
   color: #040000;
@@ -55,14 +49,15 @@ h1#titulo{
   font: 11px/20px'Open Sans', Verdana, Helvetica, sans-serif;
   margin-bottom:10px;
 }
-select{
+#contact #form select{
     float:left;
     width:255px;
     height: 30px;
     border:1px solid #00060b;
     font: 11px/20px'Open Sans', Verdana, Helvetica, sans-serif;
-    color:rgb(80, 98, 62)
-}
+    color:rgb(80, 98, 62);
+    margin-bottom: 5px;
+} 
 
 #contact #form button.submit {
   cursor: pointer;

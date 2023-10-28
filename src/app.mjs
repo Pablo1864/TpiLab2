@@ -7,7 +7,8 @@ import { Examen } from './modelos/examen.mjs';
 const app = express();
 
 // Configura body-parser para analizar los datos del formulario
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
 app.listen(3000, function () {
     console.log('La aplicación se inició en el puerto 3000');
@@ -37,11 +38,15 @@ app.get('/paciente', function (req, res) {
     res.render('paciente');
 });
 
-app.get('/registrarPaciente/:nombre/:apellido/:dni/:telefono/:sexo/:fechaNac/:email/:provincia/:localidad/:domicilio/:obraSocial/:numeroAfiliado', function (req, res) {
-    const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado } = req.params;
 
-    Paciente.agregarPaciente(nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado);
-    res.redirect('/');
+app.post('/ProcesandoDatos', async function (req, res) {
+
+    console.log(req.body);
+    const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado } = req.body;
+
+    const data= await Paciente.agregarPaciente(nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado);
+    
+   res.redirect('/registrarPaciente');
 });
 
 
@@ -146,8 +151,8 @@ app.post('/nuevo-examen', (req, res) => {
         fechaCreacion: req.body.fechaCreacion,
     };
 
-    // Llama a la función para insertar el examen en la base de datos
-    Examen.insertarExamen(nuevoExamen, (error, results) => {
+// Llama a la función para insertar el examen en la base de datos
+Examen.insertarExamen(nuevoExamen, (error, results) => {
         if (error) {
             console.error('Error al insertar el examen:', error);
             res.redirect('/gestion-examenes?error=1'); // Redirige a la página de gestión de exámenes con un indicador de error
