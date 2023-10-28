@@ -46,8 +46,8 @@ app.get('/registrarPaciente/:nombre/:apellido/:dni/:telefono/:sexo/:fechaNac/:em
 
 
 //RUTA PARA BUSCAR PACIENTE  
-app.get('/buscarPaciente',function(req, res){
-    const todosPacientes= Paciente.obtenerPacientes();
+app.get('/buscarPaciente',async function(req, res){
+    const todosPacientes= await Paciente.obtenerPacientes();
     if (todosPacientes && todosPacientes.length)
        {todosPacientes.forEach(paciente => {
         console.log(paciente.apellido)
@@ -56,11 +56,11 @@ app.get('/buscarPaciente',function(req, res){
     res.render('buscarPaciente', {pacientes:todosPacientes})
 })
 
-app.get('/buscarPaciente/:datoBuscado',function(req, res){
+app.get('/buscarPaciente/:datoBuscado',async function(req, res){
     const datoBuscado= req.params.datoBuscado;
     if (datoBuscado && datoBuscado !== '')
     {
-    const pacienteBuscado= Paciente.obtenerPacienteFiltrado(datoBuscado); 
+    const pacienteBuscado= await Paciente.obtenerPacienteFiltrado(datoBuscado); 
     if(pacienteBuscado){ res.render('buscarPaciente', {pacientes:pacienteBuscado})}
     else{console.log('no se encontro el paciente')}
     }
