@@ -1,12 +1,13 @@
-html(lang="es")
-    include includes/nav.pug
-    include includes/linkStyles.pug
-        head
-            meta(charset="UTF-8")
-            meta(name="viewport", content="width=device-width, initial-scale=1.0")
-            title cargar resultados
-            link(rel="stylesheet", href="/styles/style.css")
-        body(onload='iniciar()') 
+doctype html
+html(lang='es')
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        title cargar resultados
+        include includes/linkStyles.pug
+        link(rel="stylesheet", href="../styles/style.css")
+    body(onload='iniciar()') 
+            include includes/nav.pug
             .container
                 .form-order(action="")
                     h2.text-center.m-3 Cargar Resultados
@@ -78,4 +79,4 @@ html(lang="es")
                         const sDataExamenes = !{JSON.stringify(examenes)} 
                         const sDataOrder = !{JSON.stringify(order)}
                         const sDataMuestras = !{JSON.stringify(muestras)}
-                script(type='text/javascript' src='/resultados_funciones.js')                  
+                script(type='text/javascript' src='../js/resultados_funciones.js')                  

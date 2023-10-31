@@ -1,0 +1,19 @@
+.error{
+    background-color: #ffd5d5;
+    border-color: red;
+    border-width: 2px;
+}
+
+.correct {
+    background-color: #eeffd5;
+    border-color: green;
+    border-width: 2px;
+}
+
+/* #table_patients tbody td:first-child {
+    display: none;
+}
+
+#table_patients thead th:first-child {
+    display: none;
+} */

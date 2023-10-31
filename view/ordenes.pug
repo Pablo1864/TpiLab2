@@ -1,0 +1,102 @@
+doctype html
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        title Registrar orden
+        include includes/linkStyles.pug
+        //link(rel="stylesheet" href="https://cdn.datatables.net/v/dt/jqc-1.12.4/dt-1.13.6/b-2.4.2/sl-1.7.0/datatables.min.css")
+        link(rel="stylesheet", href="../styles/ordenesStyle.css")
+        script(src="https://code.jquery.com/jquery-3.7.1.min.js" type='text/javascript')
+        link(rel='stylesheet' href='https://cdn.datatables.net/v/dt/dt-1.13.6/b-2.4.2/r-2.5.0/sc-2.2.0/sl-1.7.0/sr-1.3.0/datatables.min.css')
+        script(src='https://cdn.datatables.net/v/dt/dt-1.13.6/b-2.4.2/r-2.5.0/sc-2.2.0/sl-1.7.0/sr-1.3.0/datatables.min.js')
+
+        //script(src="https://cdn.datatables.net/v/dt/jqc-1.12.4/dt-1.13.6/b-2.4.2/sl-1.7.0/datatables.min.js" type='text/javascript')
+    body 
+        include includes/nav.pug
+        .container
+            .row.p-3.m-4.bg-secondary-subtle#div_btn
+
+                form.p-3.pb-0.col-12
+
+                    h3.text-center Ingresar nueva orden
+                    h4.text-center Buscar paciente:
+                    #search.mb-3 
+                        label.form-label(for='pacienteID') Paciente: 
+                        input.form-control#pacienteID(type='text' aria-describedby='pacienteHelp')
+                        .form-text#pacienteHelp ingresar dni, apellido o mail del paciente
+                        button(onclick='buscarPaciente()' type='button').btn.btn-secondary.m-1 Buscar
+                
+                .col.mb-3.p-3
+                    table#table_patients.table.table-striped.table-secondary
+                        thead 
+                            tr 
+                                th
+                                th Nombre y apellido
+                                th Sexo
+                                th Fecha de nacimiento
+                                th Provincia y localidad
+                                th Domicilio
+                                th Nro.Telefono
+                                th Email
+                                th Obra social
+                                th Nro. Afiliado
+                        tbody
+
+
+                //    .row.my-2 
+                //        for n, i in ['Nombre y apellido', 'Sexo', 'Fecha nacimiento', 'Provincia/Localidad', 'Domicilio', 'Nro.Telefono', 'Email', 'Obra Social', 'Nro.Afiliado']
+                //            .col-6 
+                //                p=n+':'
+                //            .col
+                //                p(id='p_'+i)
+
+            .row.p-3.m-4.bg-secondary-subtle
+
+                form#form_medico.p-3.pb-0.col-12
+
+                    h4.text-center Ingresar informacion del medico solicitante:
+                    .mb-3 
+                        label.form-label(for='diagnosticoMedico') Diagnostico: 
+                        input.form-control#diagnosticoMedico(type='text')
+                    .mb-3
+                        label.form-label(for="nombreMedico") Nombre:
+                        input.form-control#nombreMedico(type="text") 
+                    .mb-3
+                        label.form-label(for="matriculaMedico") Matricula
+                        input.form-control#matriculaMedico(type="number")
+
+            .row.p-3.m-4.bg-secondary-subtle
+                form#form_examenes.p-3.pb-0.col-12
+                    h4 Ingreso de examenes a realizar 
+                    .mb-3
+                        label.form-label(for='idExamen') Examen: 
+                        input.form-control#idExamen(type='text' aria-describedby='examenHelp')
+                        .form-text#pacienteHelp ingresar nombre o ID de examen
+                        button(onclick='buscarExamenes()' type='button').btn.btn-secondary.m-1 Buscar
+                        //button(onclick='') Agregar examen;
+                .col.mb-3.p-3
+                    table#table_examenes.table.table-striped.table-secondary
+                        thead 
+                            tr 
+                                th
+                                th Nombres:
+                                th Requerimientos:
+                                th Tipo de muestra:
+                                th Hs. demora aprox.:
+                        tbody
+
+                    h5 Examenes a realizar para la orden actual:
+                    table#table_agregados.table.table-striped.table-primary
+                        thead 
+                            tr 
+                                th 
+                                th Nombres:
+                                th Requerimientos:
+                                th Tipo de muestra:
+                                th Hs. demora aprox.:
+                                //th Eliminar
+                        tbody#tbody_agregados    
+                button.btn.btn-lg.btn-primary.m-auto(onclick='crearOrden()') Crear orden 
+            
+        script(type='text/javascript' src="../js/ordenes.js") 

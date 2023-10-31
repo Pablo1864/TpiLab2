@@ -39,6 +39,32 @@ export class Paciente {
         });
     }
 
+    static async obtenerPacientePorMail(mail){
+        return new Promise((resolve, reject)=>{
+            const sql = 'SELECT * FROM pacientes WHERE email LIKE ?';
+            conexion.query(sql, [mail], (err, res, field) =>{
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(res);
+                }
+            });
+        })
+    }
+
+    static async obtenerPacientesPorApellido(apellido){
+        return new Promise((resolve, reject) => {
+            const sql = 'SELECT * FROM pacientes WHERE apellido LIKE ?';
+            conexion.query(sql, ['%'+apellido+'%'], (err, res, fields) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(res);
+                }
+            });
+        });
+    }
+
     static async borrarPaciente(id){
         return new Promise((resolve, reject) => {
             const sql = `DELETE FROM pacientes WHERE idPaciente=${id}`
