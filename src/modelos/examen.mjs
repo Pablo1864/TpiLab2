@@ -1,12 +1,12 @@
 import conexion from '../mysql.conexion.mjs';
 
-export class Examen{
+export class Examen {
 
-    static async buscarExamenPorID(id){
+    static async buscarExamenPorID(id) {
         return new Promise((resolve, reject) => {
             const sql = 'SELECT * FROM examenes WHERE idExamenes = ?';
             conexion.query(sql, [id], (err, res, field) => {
-                if (res){
+                if (res) {
                     resolve(res);
                 } else {
                     reject(err);
@@ -15,11 +15,11 @@ export class Examen{
         })
     }
 
-    static async buscarExamenPorNombre(nombre){
+    static async buscarExamenPorNombre(nombre) {
         return new Promise((resolve, reject) => {
             const sql = 'SELECT * FROM examenes WHERE nombre LIKE ?';
-            conexion.query(sql, ['%'+nombre+'%'], (err, res, field) => {
-                if (res){
+            conexion.query(sql, ['%' + nombre + '%'], (err, res, field) => {
+                if (res) {
                     resolve(res);
                 } else {
                     reject(err);
@@ -29,11 +29,11 @@ export class Examen{
     }
 
     //Trae un join entre ordenes y examenes por nroOrden 
-    static async buscarExamenxOrdenPorIdOrden(id){
+    static async buscarExamenxOrdenPorIdOrden(id) {
         return new Promise((resolve, reject) => {
             const sql = `SELECT * FROM ordenes_examenes NATURAL JOIN examenes WHERE nroOrden=${id}`;
             conexion.query(sql, (err, res, field) => {
-                if (res){
+                if (res) {
                     resolve(res);
                 } else {
                     reject(err);
@@ -42,7 +42,7 @@ export class Examen{
         })
     }
 
-    static async insertarExamen(nuevoExamen, callback){
+    static async insertarExamen(nuevoExamen, callback) {
         conexion.query('INSERT INTO examenes SET ?', nuevoExamen, (error, results, fields) => {
             if (error) {
                 console.error('Error al insertar el examen:', error);
@@ -52,4 +52,18 @@ export class Examen{
             callback(error, results);
         });
     };
+
+    static async obtenerTodosLosExamenes() {
+        return new Promise((resolve, reject) => {
+            const sql = 'SELECT * FROM exams'; // Cambia esto según el nombre de tu tabla.
+
+            conexion.query(sql, (err, results, fields) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            });
+        });
+    }
 }
