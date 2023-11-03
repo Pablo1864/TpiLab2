@@ -1,10 +1,23 @@
 import conexion from '../mysql.conexion.mjs';
 
-export class Examen {
+export class Examen{
+
+    static async buscarExamenesActivo(){
+        return new Promise((resolve, reject) => {
+            const sql = 'SELECT * FROM examenes WHERE habilitado = 1';
+            conexion.query(sql, (err, res, field) => {
+                if (res){
+                    resolve(res);
+                } else {
+                    reject(err);
+                }
+            });
+        })
+    }
 
     static async buscarExamenPorID(id) {
         return new Promise((resolve, reject) => {
-            const sql = 'SELECT * FROM examenes WHERE idExamenes = ?';
+            const sql = 'SELECT * FROM examenes WHERE idExamenes = ? AND habilitado = 1';
             conexion.query(sql, [id], (err, res, field) => {
                 if (res) {
                     resolve(res);
@@ -17,9 +30,9 @@ export class Examen {
 
     static async buscarExamenPorNombre(nombre) {
         return new Promise((resolve, reject) => {
-            const sql = 'SELECT * FROM examenes WHERE nombre LIKE ?';
-            conexion.query(sql, ['%' + nombre + '%'], (err, res, field) => {
-                if (res) {
+            const sql = 'SELECT * FROM examenes WHERE (nombre LIKE ? OR otrosNombres LIKE ?) AND habilitado = 1';
+            conexion.query(sql, ['%'+nombre+'%', '%'+nombre+'%'], (err, res, field) => {
+                if (res){
                     resolve(res);
                 } else {
                     reject(err);

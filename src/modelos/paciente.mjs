@@ -39,6 +39,19 @@ export class Paciente {
         });
     }
 
+    static async obtenerPacientesTodos(){
+        return new Promise((resolve, reject)=>{
+            const sql = 'SELECT * FROM pacientes';
+            conexion.query(sql, (err, res, field) =>{
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(res);
+                }
+            });
+        })
+    }
+
     static async obtenerPacientePorMail(mail){
         return new Promise((resolve, reject)=>{
             const sql = 'SELECT * FROM pacientes WHERE email LIKE ?';

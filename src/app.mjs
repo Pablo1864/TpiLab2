@@ -171,27 +171,41 @@ app.get('/ordenes/buscarPorDni/:dni', async (req, res) => {
     }
 });
 
-app.post(('/ordenes/crearOrden/:id'), async (req, res) => {
-    const idPaciente = req.params.id;
-    const dataMedico = req.body;
-    console.log(dataMedico);
+app.get('/ordenes/buscarTodos', async (req, res) => {
     try {
-        const resp = await Orden.crearOrden(idPaciente, dataMedico.diagnostico, dataMedico.nombreMedico, dataMedico.matricula);
-        console.log(resp);
-        if (resp) {
-            res.render('ordenes_examenes', {
-                respuesta: resp,
-            });
-        } else {
-            res.json('Something went wrong!');
-        }
-    } catch (err) {
+        const pacientes = await Paciente.obtenerPacientesTodos();
+        res.json(pacientes);
+    } catch (err){
+        res.status(500).json({error: 'Internal Server Error'})
+    }
+});
+
+app.post(('/ordenes/crearOrden'), async (req, res) =>{
+    const dataOrden = req.body;
+
+    try {
+        const resp = await Orden.crearOrden(dataOrden.idPaciente, dataOrden.diagnostico, dataOrden.nombreMedico, dataOrden.matricula);
+        res.json(resp);
+
+
+    } catch(err){
         console.log(err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
-// Exámenes en órden - Búsqueda
+//examenes en ordenes - busqueda
+
+app.get('/ordenes/examenes/buscarTodos', async (req, res) =>{
+    const id = req.params.id;
+    try {
+        const examenes = await Examen.buscarExamenesActivo();
+        res.json(examenes);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error'});
+    } 
+})
 
 app.get('/ordenes/examenes/buscarPorId/:id', async (req, res) => {
     const id = req.params.id;

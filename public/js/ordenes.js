@@ -1,216 +1,239 @@
 
 document.getElementById('pacienteID').addEventListener('input', (event) => {
     const input = event.target;
-
+    const div = document.getElementById('divPacienteError');
     if (verificar(input) == 'error') {
-        //missing some stuff happening here... probably
+        if (!div.querySelector('p')){
+            const p = document.createElement('p');
+            p.classList.add('form-text');
+            p.classList.add('text-danger');
+            p.innerHTML = 'Debe ingresar solo numeros para buscar por DNI, solo letras para apellido o un formato valido de email (nombreEmail@email.com).';
+            div.appendChild(p);
+        }
+        
+    } else {
+        div.innerHTML = '';
     };
 })
 
-let tablePacientes;
-
-let dataT;
-let dataTe;
-$(document).ready(function () {
-    tablePacientes = $('#table_patients').DataTable({ //esto no tiene mucho sentido porque mas abajo me la paso inicializando la table y destruyendola xd (working on it(mas abajo hay otra version que me gusto mas para #table_agregados))
-        select: true,
-        //columns
-    })
-    //dataT = $('#table_patients').DataTable({
-     //   select: true,
-    //})
-    //dataTe = $('#table_examenes').DataTable({
-      //  select: true,
-    //})
+document.getElementById('idExamen').addEventListener('input', (event) => {
+    const input = event.target;
+    const div = document.getElementById('divExamenesError');
+    if (verificar(input) == 'error') {
+        if (!div.querySelector('p')){
+            const p = document.createElement('p');
+            p.classList.add('form-text');
+            p.classList.add('text-danger');
+            p.innerHTML = 'Debe ingresar solo numeros para buscar por ID o solo letras para buscar por nombres.';
+            div.appendChild(p);
+        }
+        
+    } else {
+        div.innerHTML = '';
+    };
 })
 
+let verificados = {
+    pacienteSeleccionado: false,
+    diagnosticoSeleccionado: false,
+    medicoSeleccionado: false,
+    examenesAgregados: false,
+}
 
-async function buscarPaciente() {
-
-    const input = document.getElementById('pacienteID');
-    //retiro button registrarPaciente y button confirmar si existen
-
-    const btn = document.getElementById('btn_registrarP');
-    const p = document.getElementById('p_registrarP');
-    const btnConfirmar = document.getElementById('confirmar');
-    if (btn) {
-        btn.parentNode.removeChild(btn);
-        p.parentNode.removeChild(p);
-    } else if (btnConfirmar) {
-        btnConfirmar.parentNode.removeChild(btnConfirmar);
-    }
-
-    //fetch the patients by the type of data in the input(mail, lastname or dni);
-    switch (verificar(input)) {
-
-        case 'mail': //busca por mail
-
-            try {
-                const res = await fetch(`/ordenes/buscarPorMail/${input.value}`);
-                if (!res.ok) {
-                    throw new Error('Network response was not ok... :c');
-                }
-                const data = await res.json();
-                llenarData(data);
-            } catch (err) {
-                console.error('Error:', err);
+$(document).ready(function () {
+    //inicializacion de datatables
+    const tablePacientes = $('#table_patients').DataTable({ 
+        select: true,
+        responsive: {
+            responsive: true,
+            breakpoints: [
+                {name: 'xxl', width: Infinity},
+                {name: 'xl', width: 1400},
+                {name: 'lg', width: 1200},
+                {name: 'md', width: 768},
+                {name: 'sm', width: 576},
+            ],
+            details: {
+                type: 'column',
+                target: 'tr'
             }
+        },
+        columns: [
+            { title:'', data: 'idPaciente', visible: false },
+            { title: 'Nombre:',
+                data: null,
+                render: function (data, type, row) {
+                    return data.nombre + ', ' + data.apellido;
+                },
+                priority: 2,
+            },
+            { title: 'Dni:', data: 'dni', priority: 2},
+            { title: 'Sexo:', data: 'sexo', priority: 1},
+            { title: 'Fecha de nacimiento:', data: 'fechaNacimiento' },
+            { title: 'Provincia, localidad', 
+                data: null, render: function (data, type, row) {
+                    return data.provincia + ', ' + data.localidad;
+                }, priority: 0
+            },
+            { title: 'Domicilio:', data: 'domicilio', priority: 0 },
+            { title: 'Telefono:', data: 'telefono', priority: 0 },
+            { title: 'Email:', data: 'email', priority: 0 },
+            { title: 'Obra social:', data: 'obraSocial', priority: 0 },
+            { title: 'Nro. Afiliado:', data: 'nroAfiliado', priority: 0 },
+        ]
+    })
+    const tableExamenes = $('#table_examenes').DataTable({
+        select: true,
+        responsive: {
+            responsive: true,
+            breakpoints: [
+                {name: 'xxl', width: Infinity},
+                {name: 'xl', width: 1400},
+                {name: 'lg', width: 1200},
+                {name: 'md', width: 768},
+                {name: 'sm', width: 576},
+            ],
+            details: {
+                type: 'column',
+                target: 'tr'
+            }
+        },
+        columns: [
+            { title: '', data: 'idExamenes', visible: false },
+            { title: 'Nombre:', data: 'nombre', priority: 4},
+            { title: 'Requerimientos:', data: 'requerimiento', priority: 3, },
+            { title: 'Muestra requerida:', data: 'tipoAnalisis', priority: 2 },
+            { title: 'Hs.demora:', data: 'diasDemora', priority: 1 },
+            { title: 'Otros terminos:', data: 'otrosNombres', priority: 1}
+        ]
+    })
+    const tableAgregados = $('#table_agregados').DataTable({
+        select: true,
+        responsive: {
+            responsive: true,
+            breakpoints: [
+                {name: 'xxl', width: Infinity},
+                {name: 'xl', width: 1400},
+                {name: 'lg', width: 1200},
+                {name: 'md', width: 768},
+                {name: 'sm', width: 576},
+            ],
+            details: {
+                type: 'column',
+                target: 'tr'
+            }
+        },
+        columns: [
+            { title: '', data: 'idExamenes', visible:false}, 
+            { title: 'Nombres:', data: 'nombre', priority: 4 }, 
+            { title: 'Requerimientos:', data: 'requerimiento', priority: 3 }, 
+            { title: 'Muestra requerida:', data: 'tipoAnalisis', priority: 2 }, 
+            { title: 'Hs.demora:', data: 'diasDemora', priority: 1 }, 
+            { title: 'Otros terminos:', data: 'otrosNombres', priority: 1}]
+    })
 
+    const buttonExamenes = document.getElementById('buscarExamenes');
+    buttonExamenes.addEventListener('click', () => {
+        buscarExamenes(tableExamenes);
+    })
+
+    $('#agregarExamen').on('click', function () { 
+        const selectedRow = tableExamenes.rows('.selected').data();
+        if (selectedRow.length > 0) {
+            agregarExamen(selectedRow[0], tableAgregados); 
+        } else {
+            console.log('Tenes que seleccionar un examen a agregar, ameo');
+        }
+    })
+
+    const buttonBuscarPaciente = document.getElementById('buscarPaciente');
+    buttonBuscarPaciente.addEventListener('click', () => {
+        buscarPaciente(tablePacientes);
+    });
+
+    //preventDefault del submit
+    $('#form_ordenes').submit(function(event){
+        event.preventDefault();
+    })
+
+})
+
+//Hace los fetch correspondiente al value del input de pacientes y envia los pacientes encontrados a la table
+async function buscarPaciente(table) {
+    const input = document.getElementById('pacienteID');
+    switch (verificar(input)) {
+        case 'mail': //busca por mail
+            manejarFetch(`/ordenes/buscarPorMail/${input.value}`, table, llenarData)
             break;
         case 'number': //busca por dni
-
-            try {
-                const res = await fetch(`/ordenes/buscarPorDni/${input.value}`);
-                if (!res.ok) {
-                    throw new Error('Network response was not ok... :c');
-                }
-                const data = await res.json();
-                llenarData(data);
-            } catch (err) {
-                console.error('Error:', err);
-            }
-
+            manejarFetch(`/ordenes/buscarPorDni/${input.value}`, table, llenarData)
             break;
         case 'string': //busca por apellido
-
-            try {
-                const res = await fetch(`/ordenes/buscarPorApe/${input.value}`);
-                if (!res.ok) {
-                    throw new Error('Network response was not ok... :c');
-                }
-                const data = await res.json();
-                llenarData(data);
-            } catch (err) {
-                console.error('Error:', err);
-            }
-
+            manejarFetch(`/ordenes/buscarPorApe/${input.value}`, table, llenarData)
+            break;
+        case 'vacio': //si no se ingresa nada, trae todos los pacientes en db
+            manejarFetch(`/ordenes/buscarTodos`, table, llenarData)
             break;
         default:
             break;
     }
-
 }
 
-const llenarData = (pacientes) => {
-
-    if (pacientes.length > 0) {
-        /* data = [pacientes[0].nombre + ' ' + pacientes[0].apellido, pacientes[0].sexo, pacientes[0].fechaNacimiento, pacientes[0].provincia + ', ' + pacientes[0].localidad, pacientes[0].domicilio, pacientes[0].telefono, pacientes[0].email, pacientes[0].obraSocial, pacientes[0].nroAfiliado]
-        for (let i = 0; i < 9; i++) {
-            const p = document.getElementById('p_' + i);
-            p.innerHTML = data[i]
-        } */
-        /* let pacientesArr = [];
-        pacientes.forEach(p => {
-            pacientesArr.push({
-                id:p.idPaciente,
-                nombreYApellido: p.nombre + ', ' + p.apellido,
-                sexo: p.sexo,
-                fechaNacimiento: p.fechaNacimiento,
-                provinciaLocalidad: p.provincia + ', ' + p.localidad,
-                domicilio: p.domicilio,
-                telefono: p.telefono,
-                email: p.email,
-                obraSocial: p.obraSocial,
-                nroAfiliado: p.nroAfiliado
-            });
-        });
-        console.log(dataT);
-        console.log(pacientesArr);
-        console.log(pacientes);
-        dataT.clear();
-        dataT.rows.add(pacientesArr).draw();
-        dataT.column(0).visible(false); */
-
-        /*const tableb = document.querySelector('#table_patients tbody');
-        tableb.innerHTML = '';
-
-         pacientes.forEach(paciente => {
-            const row = tableb.insertRow();
-            row.insertCell().textContent = paciente.idPaciente;
-            row.insertCell().textContent = paciente.nombre + ', ' + paciente.apellido;
-            row.insertCell().textContent = paciente.sexo;
-            row.insertCell().textContent = paciente.fechaNacimiento;
-            row.insertCell().textContent = paciente.provincia + ', ' + paciente.localidad;
-            row.insertCell().textContent = paciente.domicilio;
-            row.insertCell().textContent = paciente.telefono;
-            row.insertCell().textContent = paciente.email;
-            row.insertCell().textContent = paciente.obraSocial;
-            row.insertCell().textContent = paciente.nroAfiliado;
-            
-        }); */
-
-        if ($.fn.DataTable.isDataTable('#table_patients')) {
-            $('#table_patients').DataTable().destroy();
+//
+//Recibe un string que contiene la ruta a la que se quiere hacer fetch
+//recibe tambien la tabla a donde se desea ingresar el resultado
+//mas la funcion que recibe la data del fetch y la table
+async function manejarFetch(route, table, fun){
+    try {
+        const res = await fetch(route);
+        if (!res.ok) {
+            throw new Error('Network response was not ok... :c');
         }
+        const data = await res.json();
+        fun(table, data);
+    } catch (err) {
+        console.error('Error:', err);
+    }
+}
 
-        const table = $('#table_patients').DataTable({
-            select: true,
-            data: pacientes,
-            columns: [
-                { data: 'idPaciente', visible: false },
-                {
-                    data: null,
-                    render: function (data, type, row) {
-                        return data.nombre + ', ' + data.apellido;
-                    }
-                },
-                { data: 'sexo' },
-                { data: 'fechaNacimiento' },
-                {
-                    data: null, render: function (data, type, row) {
-                        return data.provincia + ', ' + data.localidad;
-                    }
-                },
-                { data: 'domicilio' },
-                { data: 'telefono' },
-                { data: 'email' },
-                { data: 'obraSocial' },
-                { data: 'nroAfiliado' },
-            ]
-        });
-
-        /* let btn = document.createElement('button');
-        btn.classList = 'btn btn-success';
-        btn.id = 'confirmar'
-        //btn.disabled = true;
-        btn.innerHTML = 'Confirmar'
-        btn.type = 'button';
-        document.getElementById('form_examenes').appendChild(btn);
-        $('#confirmar').on('click', function () {
-
-            const selectedRow = table.rows('.selected').data();
-            if (selectedRow.length > 0) {
-                const idPaciente = selectedRow[0].idPaciente;
-                //console.log(selectedRow[0].idPaciente);
-                confirmarOrden(idPaciente);
-            } else {
-                console.log('Tenes que seleccionar un paciente, ameo');
-            }
-
-        }); */
-
-
-    } else {
-
+//
+//Recibe la instancia de la dataTable a llenar(OJO! la instancia de la dataTable, no el elemento table del html)
+//Recibe un arreglo de objectos a ingresar en la datatable (Las columnas deben haber sido inicializadas con el tipo de valor 
+//correspondiente a los atributos de los objectos que se encuentran en el array data)
+//Limpia la tabla antes de ingresar los objectos del array
+//Devuelve true si logro ingresar algo en la table, si no false 
+const llenarData = (table, data) => {
+    const btn = document.getElementById('btn_registrar');
+    const p = document.getElementById('p_registrarP');
+    if (btn) {
+        if (p) {
+            p.parentNode.removeChild(p);
+        }
+        btn.parentNode.removeChild(btn);
+    }
+    if (data.length > 0) {
+        llenarTableConData(table, data);
+    } else {  
         let btn = document.createElement('button');
+        btn.type = 'button';
         btn.classList.add('btn');
         btn.classList.add('btn-warning');
-        btn.id = 'btn_registrarP';
+        btn.id = 'btn_registrar';
         btn.innerHTML = 'Registrar paciente nuevo';
         let p = document.createElement('p');
-        p.id = 'p_registrarP'
-        p.innerHTML = '¡No se encontro ningun paciente!'
+        p.id = 'p_registrarP';
+        p.innerHTML = '¡No se encontro ningun paciente!';
         document.getElementById('search').appendChild(btn);
         document.getElementById('search').appendChild(p);
+        return false
     }
-
-
 }
 
-
+//
 //devuelve 'mail' si el input contiene patron de mail
 //devuelve 'string' si el input contiene solo letras
 //devuelve 'number' si el input contiene solo numeros
+//devuelve 'vacio' si el input esta vacio
 //devuelve 'error' si esta vacio o contiene un valor invalido(no es mail, ni solo letras, ni solo numeros)
 //Agrega las clases correspondientes de error y correct para un poco de css
 const verificar = (input) => {
@@ -220,12 +243,15 @@ const verificar = (input) => {
         const regexLetters = /^[a-zA-Z]+$/;
 
         if (regexEmail.test(input.value)) {
+            input.classList.remove('error');
             input.classList.add('correct');
             return 'mail';
         } else if (regexLetters.test(input.value)) {
+            input.classList.remove('error');
             input.classList.add('correct');
             return 'string';
         } else if (regexNumber.test(input.value)) {
+            input.classList.remove('error');
             input.classList.add('correct');
             return 'number';
         } else {
@@ -233,9 +259,9 @@ const verificar = (input) => {
             input.classList.add('error');
         }
     } else {
-        input.classList.remove('correct');
-        input.classList.add('error');
-
+        input.classList.remove('error');
+        input.classList.add('correct');
+        return 'vacio';
     }
     return 'error';
 }
@@ -284,161 +310,114 @@ async function confirmarOrden(idPaciente) {
         diagno.classList.add('error');
         console.log('debe ingresar un diagnostico');
     }
-
-
 }
 
 //EXAMENES
 
-async function buscarExamenes() {
+async function buscarExamenes(table) {
     const input = document.getElementById('idExamen');
-    //console.log(input.value);
-    if (verificar(input) === 'number') { //busca por ID
-        try {
-            const res = await fetch(`/ordenes/examenes/buscarPorId/${input.value}`);
-            if (!res.ok) {
-                throw new Error('Network response was not ok... :c');
-            }
-            const examenes = await res.json();
-
-            llenarTableExamenes(examenes)
-        } catch (err) {
-            console.error('Error:', err);
-        }
-    } else if (verificar(input) === 'string') { //busca por nombre
-        try {
-            const res = await fetch(`/ordenes/examenes/buscarPorNombre/${input.value}`);
-            if (!res.ok) {
-                throw new Error('Network response was not ok... :c');
-            }
-            const examenes = await res.json();
-            llenarTableExamenes(examenes)
-        } catch (err) {
-            console.error('Error:', err);
-        }
+    
+    switch (verificar(input)) {
+        case 'number':
+            manejarFetch(`/ordenes/examenes/buscarPorId/${input.value}`, table, llenarTableExamenes);
+            break;
+        case 'string':
+            manejarFetch(`/ordenes/examenes/buscarPorNombre/${input.value}`, table, llenarTableExamenes);
+            break;
+        case 'vacio':  
+            manejarFetch(`/ordenes/examenes/buscarTodos`, table, llenarTableExamenes);
+            break;
+        default:
+            break;
     }
 }
 
-function llenarTableExamenes(examenes) {
-    if (examenes.length > 0) { 
-        if ($.fn.DataTable.isDataTable('#table_examenes')) { //si existe una instancia inicializada de datatable la destruyo para inicializarla de nuevo mas adelante
-            $('#table_examenes').DataTable().destroy();
-        }
+const llenarTableConData = (table, data) =>{
+    table.clear();
+    table.rows.add(data).draw();
+}
 
-        let examenesHabilitados = [];
+const llenarTableExamenes = (table, data) =>{
 
-        //console.log(examenes);
-        examenes.forEach(e => {
-            if (e.habilitado === 1) {
-                examenesHabilitados.push({
-                    idExamenes: e.idExamenes,
-                    nombre: e.nombre,
-                    requerimientos: e.requerimiento,
-                    diasDemora: e.diasDemora + ' hs',
-                    tipoAnalisis: e.tipoAnalisis
-                });
-            }
-
-        });
-
-        const table = $('#table_examenes').DataTable({ //estoy inicializando la table y mas arriba destruyendola, ya que solo se pueden inicializar una sola vez... :c
-            select: true,
-            data: examenesHabilitados,
-            columns: [
-                { data: 'idExamenes', visible: false },
-                { data: 'nombre' },
-                { data: 'requerimientos' },
-                { data: 'diasDemora' },
-                { data: 'tipoAnalisis' },
-            ]
-        });
-
-
-        let btn = document.createElement('button');
-        btn.classList = 'btn btn-secondary';
-        btn.id = 'agregarExamen'
-        //btn.disabled = true;
-        btn.innerHTML = 'Agregar examen'
-        btn.type = 'button';
-        document.getElementById('form_examenes').appendChild(btn);
-        $('#agregarExamen').on('click', function () { //recupero mi btn y le agrego la funcion onclick
-
-            const selectedRow = table.rows('.selected').data(); //devuelve la fila que este seleccionada y el data() es para decirle que me de los datos
-            if (selectedRow.length > 0) { //si es mayor a cero quiere decir que hay algo seleccionado
-                console.log(selectedRow); //muestra varias cositas
-                console.log(selectedRow[0]); //muestra lo que se alceno de datos dentro de cada columna de esa fila
-                agregarExamen(selectedRow[0]); 
-                //data() devuelve varias cosas por lo que le pido que me de lo que esta en [0] que es donde se almacena un obj de los datos
-            } else {
-                console.log('Tenes que seleccionar un examen a agregar, ameo');
-            }
-        })
-
+    const container = document.getElementById('divExamenesError');
+    container.innerHTML = '';
+    if (data.length > 0){
+        llenarTableConData(table, data);
     } else {
-        console.log('No se encontraron examenes');
+        
+        if (!container.querySelector('p')){
+            const p = document.createElement('p');
+            p.classList.add('form-text');
+            p.classList.add('text-danger');
+            p.innerHTML = 'No se encontraron examenes, pruebe con otro ID, nombre o término';
+            container.appendChild(p);
+        }
     }
 }
 
-//!!! EPA ATENCION ACA!! esta es la manera que creo que es mas correcta de crear la table; la creo una sola vez de manera global en tableAgregados
-//en vez de crearla dentro de una funcion local y que luego no pueda accederla desde otras
-//y de paso no la estoy destruyendo cada vez que la tengo que llenar para poder inicializar una nueva que la reemplaze
-//(de seguro hay otras maneras, aun estoy viendo bien como es...)
-let tableAgregados;
-$(document).ready(function () { //en cuanto la pagina esta lista se inicializa la datatable seleccionando mi table de id table_agregados
-    tableAgregados = $('#table_agregados').DataTable({
-        //select: true, //opcion por si quieres que las filas sean seleccionables (false por default)
-        columns: [ //inicializo las columnas
-            { title: '', data: 'idExamenes', visible:false}, //columna oculta, no se puede ver ni inspeccionando la pagina(esta buena para los IDs)
-            { title: 'Nombres:', data: 'nombre' }, 
-            { title: 'Requerimientos:', data: 'requerimientos' }, 
-            { title: 'Tipo de muestra:', data: 'tipoAnalisis' }, 
-            { title: 'Hs. demora aprox.:', data: 'diasDemora' }, 
-
-            //IMPORTANTE: el objecto que vayas a introducir luego en cada fila debera
-            //tener propiedades que coincidan con los data para que se acomoden solas con la columna de data correspondiente
-            //por ejemplo: paciente {nombre: 'Valentina', tipoAnalisis: 'Sangre', etc} 
-            //los valores de nombre y el tipoAnalisis se acomodaran solas con su columnas correspondiente sin importar el orden 
-            //cuando hagas un tableAgregados.row.add(paciente).draw();
-
-             /* { title: 'Eliminar', data: null, render: function (data, type, row) {
-                return data.eliminar; 
-            }}  */]
-    })
-})
-
-function agregarExamen(row) {
+function agregarExamen(row, tableAgregados) {
     try {
-        console.log(row);
-        console.log(row.idExamenes);
         let btn = document.createElement('button');
         btn.type = 'button';
-        btn.innerHTML = 'Eliminar';
-        
-        /* dataAgregar = {
-            'Nombres:': row.data()[0].nombre,
-            'Requerimientos:': row.data()[0].requerimientos,
-            'Tipo de muestra:': row.data()[0].tipoAnalisis,
-            'Hs. demora aprox.:': row.data()[0].diasDemora
-        };*/
-        /* dataAgregar.eliminar = btn.outerHTML;
-        //dataAgregar.ButtonElement = btn; */
-        const index = 0;
-        const idEnTable = tableAgregados.column(index).data().toArray(); //para convertir en array los datos que esten en la columna index(en este caso index = 0 ya que ahi guarde los ID (columna invisible)) 
-        //console.log(idEnTable);
+        btn.innerHTML = 'Eliminar';       
+        const idEnTable = tableAgregados.column(0).data().toArray(); //index 0 es mi columna de id (invisible)
         if (!idEnTable.includes(row.idExamenes)){ //si el ID de la row seleccionada esta incluida dentro del array de IDs quiere decir que ya esta dentro de la lista (niego con !)
             tableAgregados.row.add(row).draw(); //si no esta incluida dentro de la lista, la agrego (supuestamente .rows agregaria de a varios, en este caso .row solo porque le paso un solo obj, en vez de un arr de obj)
         } else {
             console.log('El examen ya esta agregado, como vas a querer agregar dos veces el mismo examen?!');
         }
-        
-        
     } catch (err) {
         console.error(err);
     }
 }
 
-crearOrden = () =>{
-    let examenes = tableAgregados.rows().data().toArray();
-    console.log(examenes);
+async function crearOrden(){
+    console.log('ORDEN:');
+
+    paciente = tablePacientes.row('.selected').data();
+    const diagno = document.getElementById('diagnosticoMedico').value;
+    const medic = document.getElementById('nombreMedico').value;
+    const matricula = document.getElementById('matriculaMedico').value;
+
+    if (paciente){
+        let examenes = tableAgregados.rows().data().toArray();
+        if (examenes.length > 0){
+            
+            const idP = paciente.idPaciente;
+            const idExs = [];
+            examenes.forEach((e) =>{
+                idExs.push(e.idExamenes);
+            });
+
+            try {
+
+                const res = await fetch(`/ordenes/crearOrden`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        idPaciente: idP,
+                        idExamenes: idExs,
+                        diagnostico: diagno,
+                        nombreMedico: medic,
+                        matricula: matricula
+                    })
+                });
+                const orden = await res.json();
+                console.log(orden);
+            } catch (err) {
+                console.error('Error:', err);
+            }
+        }
+    } else {
+        console.log('Debe seleccionar un paciente!');    
+    }
+
+}
+
+mensajeOrden = (orden) =>{
+
+//mostraria un mensajito que muestre la info de la orden de trabajo creada + la muestras faltantes
 
 }
