@@ -1,0 +1,43 @@
+html 
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        title Laboratorio de Analisis
+        include includes/linkStyles.pug 
+        link(rel="stylesheet", href="../styles/home.css") 
+    body 
+        include includes/nav.pug
+        header.py-5.bg-image-full.imgHome(style="background-image: url('../img/img_home1.jpg');")
+             div(style='height: 20rem;')
+        // Content section
+        section.py-5
+            .container.my-5
+                .row.justify-content-center
+                    .col-lg-6
+                        h2 Siempre a la altura de nuestros pacientes
+                        p.lead Certificados en norma ISO 15189
+                        p.mb-0 Nuestro Laboratorio obtuvo la acreditación ISO 15189, un estándar internacionalmente reconocido.
+                        p.mb-0
+                            |La Norma ISO 15189 fue elaborada para ser utilizada en los Laboratorios de Análisis Clínicos. La misma permite fomentar una cultura de constante mejora en los procesos que se realizan en los laboratorios asegurando la competencia técnica del laboratorio.
+        // Image element - set the background image for the header in the line below
+        .py-5.bg-image-full(style="background-image: url('../img/img_home.jpg');")
+            // Put anything you want here! The spacer below with inline CSS is just for demo purposes!
+            div(style='height: 20rem;')
+
+        // Content section
+        section.py-5
+            .container.my-5
+                .row.justify-content-center
+                    .col-lg-6
+                        h2 Resultados precisos, confiables y en tiempo óptimo
+                        p.lead ISO 15189 nos proporciona el reconocimiento de la competencia como Laboratorio de Análisis Clínicos
+                        p.mb-0
+                            | El laboratorio es reevaluado regularmente para verificar que sigue manteniendo los estándares de calidad. Es un proceso voluntario mediante el cual una organización es capaz de medir la calidad de servicios, que demuestra la competencia técnica, asegurando la entrega de resultados precisos, confiables y en tiempo óptimo.
+
+        // Footer
+        footer.py-5.bg-dark
+            .container
+                p.m-0.text-center.text-white Copyright &copy; Laboratorio de Analisis 2023
+            
+        // Bootstrap core JS
+        script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js')

@@ -1,7 +1,7 @@
 const formulario = document.getElementById('formulario');
 const inputs = document.querySelectorAll('#formulario input');
 const select = document.querySelectorAll('#formulario select');
-const sele=document.getElementById('provincia');
+//const sele=document.getElementById('provincia');
 
 const expresiones = {
 	string: /^[a-zA-ZÀ-ÿ\s]{2,40}$/, // Letras y espacios, pueden llevar acentos.

@@ -25,11 +25,7 @@ app.use(express.static('./public'));
 // Ruta inicial renderiza a paciente.pug
 app.get('/', async function (req, res) {
 
-    const todosPacientes = await Paciente.obtenerPacientes();
-    res.render('paciente', {
-        titulo: 'Laboratorio de análisis',
-        pacientes: todosPacientes
-    });
+    res.render('home');
 
 });
 

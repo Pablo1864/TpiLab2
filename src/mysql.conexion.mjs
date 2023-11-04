@@ -1,6 +1,6 @@
 import mysql from 'mysql';
 
-const conectar = mysql.createPool({
+const conexion = mysql.createPool({
     user: 'root',
     host: 'localhost',
     password: '',
@@ -9,4 +9,4 @@ const conectar = mysql.createPool({
 
 
 
-export default conectar;
+export default conexion;
