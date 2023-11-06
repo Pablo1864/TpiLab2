@@ -29,22 +29,35 @@ app.get('/', async function (req, res) {
 
 });
 
+/////////////////////////////////////////////////////////////
+//region Pacientes
+
+//Registrar Paciente form registro paciente
 app.get('/registrarPaciente', function (req, res) {
     res.render('registrarPaciente');
 });
 
 app.get('/paciente', function (req, res) {
-    res.render('paciente');
+    res.render('dataTablePaciente');
 });
 
-app.post('/ProcesandoDatos', async function (req, res) {
+//guarda datos paciente y redirije a vista Registrar Paciente
+app.post('/registrarPaciente', async function (req, res) {
 
     console.log(req.body);
     const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado } = req.body;
 
+    const verificarSiExistePaciente= await Paciente.verificarPaciente(dni,email);
+    console.log(verificarSiExistePaciente)
+     if(verificarSiExistePaciente===0)
+     {
     const data = await Paciente.agregarPaciente(nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado);
+    res.render( 'registrarPaciente', {validacionExitosa: true});
+} else{
+    res.render( 'registrarPaciente', {validacionError: true});
 
-    res.redirect('/registrarPaciente');
+}
+    
 });
 
 // RUTA PARA BUSCAR PACIENTE
@@ -83,6 +96,55 @@ app.get('/resultados', (req, res) => {
     });
 });
 
+app.get('/paciente/buscarPorMail/:mail', async (req, res) => {
+    const mail = req.params.mail;
+    try {
+        const pacientes = await Paciente.obtenerPacientePorMail(mail);
+        const data = pacientes;
+        res.json(data);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.get('/paciente/buscarPorApe/:apellido', async (req, res) => {
+    const apellido = req.params.apellido;
+    try {
+        const pacientes = await Paciente.obtenerPacientesPorApellido(apellido);
+        const data = pacientes;
+        res.json(data);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.get('/paciente/buscarPorDni/:dni', async (req, res) => {
+    const dni = req.params.dni;
+    try {
+        const pacientes = await Paciente.obtenerPacienteFiltrado(dni);
+        const data = pacientes;
+        res.json(data);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.get('/ordenes/buscarTodos', async (req, res) => {
+    try {
+        const pacientes = await Paciente.obtenerPacientesTodos();
+        res.json(pacientes);
+    } catch (err){
+        res.status(500).json({error: 'Internal Server Error'})
+    }
+});
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//region Ordenes
 // RUTA PARA BUSCAR ORDEN en View resultados
 app.get('/resultados/buscar/:id', async (req, res) => {
     let id = req.params.id;
@@ -227,6 +289,8 @@ app.get('/ordenes/examenes/buscarPorNombre/:nombre', async (req, res) => {
 
 // FIN DE ÓRDENES
 
+////////////////////////////////////////////////////////////////////////////////
+//region examen
 app.get('/gestion-examenes', function (req, res) {
     res.render('examenes.pug');
 });

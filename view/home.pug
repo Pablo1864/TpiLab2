@@ -2,9 +2,14 @@ html
     head
         meta(charset="UTF-8")
         meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        meta(name='msapplication-TileColor' content='#ffffff')
+        meta(name='msapplication-TileImage' content='/ms-icon-144x144.png')
+        meta(name='theme-color' content='#ffffff')
         title Laboratorio de Analisis
         include includes/linkStyles.pug 
-        link(rel="stylesheet", href="../styles/home.css") 
+        link(rel="stylesheet", href="../styles/home.css")
+        link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.css')
+        script(src='https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert-dev.js') 
     body 
         include includes/nav.pug
         header.py-5.bg-image-full.imgHome(style="background-image: url('../img/img_home1.jpg');")
@@ -35,9 +40,7 @@ html
                             | El laboratorio es reevaluado regularmente para verificar que sigue manteniendo los estándares de calidad. Es un proceso voluntario mediante el cual una organización es capaz de medir la calidad de servicios, que demuestra la competencia técnica, asegurando la entrega de resultados precisos, confiables y en tiempo óptimo.
 
         // Footer
-        footer.py-5.bg-dark
-            .container
-                p.m-0.text-center.text-white Copyright &copy; Laboratorio de Analisis 2023
+        include includes/footer.pug
             
-        // Bootstrap core JS
-        script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js')
+       
+        script(src='js/modal.js')

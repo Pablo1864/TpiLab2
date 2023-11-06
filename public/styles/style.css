@@ -1,24 +1,3 @@
-header {
-    background-image: url(/img/img_home.jpg);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-color: #cccccc;
-    position: absolute;
-    top: 85px;
-    height: 500px;
-    z-index: -1;
-}
-
-.formRegistro {
-    padding: 3% 22%;
-}
-
-.formRegistro label,
-.formRegistro input {
-    display: block;
-    /* Cambiar a bloque para que estén uno debajo del otro */
-    margin-bottom: 10px;
-    width: 100%;
-    /* Establecer el ancho al 100% */
-}
+#table_patients{
+    zoom: 75%;
+ }
