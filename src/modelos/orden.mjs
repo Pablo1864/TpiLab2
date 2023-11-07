@@ -17,6 +17,31 @@ export class Orden{
     }
 
     
+    static async buscarOrdenDataPorId(id){
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT ordenes.*, pacientes.nombre as nombrePaciente, pacientes.apellido as apellidoPaciente, pacientes.dni, medico.nombre as nombreMedico, medico.apellido as apellidoMedico FROM ordenes JOIN pacientes JOIN medico on (ordenes.idPaciente = pacientes.idPaciente AND medico.idMedico = ordenes.idMedico) WHERE razonCancelacion = '' AND ordenes.nroOrden = ?`;
+            conexion.query(sql, [id], (err, res, field) => {
+                if (res) {
+                    resolve(res)
+                } else {
+                    reject(err);
+                }
+            });
+        })
+    }
+    static async buscarOrdenPorApellidoPaciente(ape){
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT ordenes.*, pacientes.nombre as nombrePaciente, pacientes.apellido as apellidoPaciente, pacientes.dni, medico.nombre as nombreMedico, medico.apellido as apellidoMedico FROM ordenes JOIN pacientes JOIN medico on (ordenes.idPaciente = pacientes.idPaciente AND medico.idMedico = ordenes.idMedico) WHERE razonCancelacion = '' AND pacientes.apellido LIKE (?)`;
+            conexion.query(sql, ['%'+ape+ '%'], (err, res, field) => {
+                if (res) {
+                    resolve(res)
+                } else {
+                    reject(err);
+                }
+            });
+        })
+    }
+    
     static async buscarOrdenPorID(id){
         return new Promise((resolve, reject) => {
             const sql = `SELECT * FROM ordenes WHERE nroOrden=${id}`;

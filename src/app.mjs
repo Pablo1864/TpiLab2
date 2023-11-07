@@ -415,10 +415,28 @@ app.get('/Ordenes/buscarOrdenesTodas', async (req, res) => {
     }
 });
 
-/* app.get('/cargarMuestras', async (req, res)=>{
-    res.render('cargarMuestras')
+ app.get('/ordenes/buscarOrdenesPorApellido/:apellido', async (req, res)=>{
+    const ape = req.params.apellido;
+    try {
+        const ordenes = await Orden.buscarOrdenPorApellidoPaciente(ape);
+        res.json(ordenes);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 });
 
+app.get('/ordenes/buscarOrdenesPorId/:id', async (req, res)=>{
+    const id = req.params.id;
+    try {
+        const ordenes = await Orden.buscarOrdenDataPorId(id);
+        res.json(ordenes);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+/*
 app.get('/cargarMuestras/:id', async (req, res) => {
     const IdOrden = req.params.id;
     try {

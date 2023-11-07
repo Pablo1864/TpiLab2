@@ -16,6 +16,22 @@ const config = (dataSingular, dataPlural) => {
     }
 }
 
+document.getElementById('ordenesInput').addEventListener('input', (event) => {
+    const input = event.target;
+    const div = document.getElementById('divOrdenesError');
+    if (verificar(input) == 'error' || verificar(input) == 'email') {
+        if (!div.querySelector('p')) {
+            const p = document.createElement('p');
+            p.classList.add('form-text');
+            p.classList.add('text-danger');
+            p.innerHTML = 'Debe ingresar solo numeros para buscar por ID, solo letras para apellido de paciente, o dejar el campo vacio para una busqueda general.';
+            div.appendChild(p);
+        }
+    } else {
+        div.innerHTML = '';
+    };
+})
+
 $(document).ready(function () {
 
     function formatDateT(stringDate) {
@@ -100,22 +116,29 @@ $(document).ready(function () {
             }
         });
         let data = '';
-        try {
-            const eliminar = await fetch(`/cancelarOrden/${ordenId}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ razon: razon }),
-            });
-            data = await eliminar.json();
-            console.log(data);
-        } catch (err) {
-            Swal.fire('No se cancelo la orden');
-        }
-        if (razon && data.affectedRows > 0) {
-            Swal.fire('La orden fue cancelada con éxito!');
-            tableOrdenes.row($(this).parents('tr')).remove().draw();
+
+        if (razon) {
+            try {
+                const eliminar = await fetch(`/cancelarOrden/${ordenId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ razon: razon }),
+                });
+                data = await eliminar.json();
+                console.log(data);
+            } catch (err) {
+                Swal.fire('No se cancelo la orden');
+            }
+            if (data != '') {
+                if (data.affectedRows > 0) {
+                    Swal.fire('La orden fue cancelada con éxito!');
+                    tableOrdenes.row($(this).parents('tr')).remove().draw();
+                }
+
+            }
+
         }
     })
 
@@ -181,7 +204,7 @@ $(document).ready(function () {
     });
     let pExam = document.createElement('p');
     pExam.classList = 'form-text text-danger';
-    pExam.innerText = 'No se encontraron ordenes, pruebe con otro dni, nombre o busque todos y filtre.';
+    pExam.innerText = 'No se encontraron ordenes, pruebe con otro id, apellido de paciente, o busque todos y filtre desde allí.';
     document.getElementById('buscarOrdenes').addEventListener('click', () => {
         buscarOrdenes(tableOrdenes, 'ordenesInput', pExam, 'divOrdenesError');
     })
@@ -254,10 +277,10 @@ async function buscarOrdenes(table, inputId, element, containerIdError) {
     const input = document.getElementById(inputId);
     switch (verificar(input)) {
         case 'number': //busca por id
-            //manejarFetch(`/ordenes/examenes/buscarPorId/${input.value}`, table, llenarTableYagregarErrores, element, containerIdError);
+            manejarFetch(`/ordenes/buscarOrdenesPorId/${input.value}`, table, llenarTableYagregarErrores, element, containerIdError);
             break;
         case 'string': //busca por nombre o termino
-            //manejarFetch(`/ordenes/examenes/buscarPorNombre/${input.value}`, table, llenarTableYagregarErrores, element, containerIdError);
+            manejarFetch(`/ordenes/buscarOrdenesPorApellido/${input.value}`, table, llenarTableYagregarErrores, element, containerIdError);
             break;
         case 'vacio': //trae todo
             manejarFetch(`/Ordenes/buscarOrdenesTodas`, table, llenarTableYagregarErrores, element, containerIdError);
