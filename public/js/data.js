@@ -12,8 +12,12 @@ const dataTableOptions = {
     // ],
     pageLength: 10, // Cambia 10 para mostrar 10 registros por página
     destroy: true,
-    columns: [{ data: "detail", title: "descripcion" }, { data: "id", visible: false, title: " " }
-        , { data: "status", title: "estado" }],
+    columns: [{ data: "idExamenes", title: "Codigo del examen" }, { data: "nombre", title: "Nombre" }, { data: "requerimiento", title: "Requerimiento" }
+        , { data: "horaDemora", title: "Horas demora " },
+    { data: "tipoAnalisis", title: "Tipo de analisis" },
+    { data: "estado", title: "Estado" },
+    { "defaultContent": "<button type='button' class='editar btn btn-primary'><i class='bi bi-pencil-fill'></i></button>	<button type='button' class='eliminar btn btn-danger' data-toggle='modal' data-target='#modalEliminar' ><i class='bi bi-trash3-fill'></i></button>" },
+    ],
     language: {
         lengthMenu: "Mostrar _MENU_ registros por página",
         zeroRecords: "Ningún examen encontrado",

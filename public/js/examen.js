@@ -45,7 +45,7 @@ router.get('/examen', (req, res) => {
             return;
         }
 
-        const query = 'SELECT * FROM exams'; // Cambia esto según el nombre de tu tabla.
+        const query = 'SELECT * FROM examenes'; // Cambia esto según el nombre de tu tabla.
 
         connection.query(query, (error, results) => {
             connection.release(); // Devuelve la conexión al pool.
@@ -56,12 +56,28 @@ router.get('/examen', (req, res) => {
             } else {
                 res.render('examen', {
                     titulo: 'Gestión de Exámenes',
-                    exams: results,
+                    examenes: results,
                 });
             }
         });
     });
 });
+router.post('/editar-examen/:id', (req, res) => {
+    const examenId = req.params.id;
+
+    // Recupera los datos actualizados del formulario de edición
+    const examenActualizado = {
+        // Recupera los campos actualizados desde req.body
+        nombreExamen: req.body.nombreExamen,
+        requerimiento: req.body.requerimiento,
+        horasDemora: req.body.requerimiento,
+        tipoAnalisis: req.body.tipoAnalisis
+    };
+
+
+    res.redirect('/gestion-examenes');
+});
+
 
 // Exporta el módulo router
 module.exports = router;
