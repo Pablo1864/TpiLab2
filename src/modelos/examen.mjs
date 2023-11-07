@@ -2,6 +2,20 @@ import conexion from '../mysql.conexion.mjs';
 
 export class Examen{
 
+    
+    static async buscarMuestrasNecesariasPorNroOrden(idOrden){
+        return new Promise((resolve, reject) => {
+            const sql = 'SELECT tipoAnalisis FROM examenes JOIN ordenes_examenes ON (examenes.idExamenes = ordenes_examenes.idExamenes) WHERE ordenes_examenes.nroOrden = ? GROUP BY tipoAnalisis;';
+            conexion.query(sql, [idOrden] ,(err, res, field) => {
+                if (res){
+                    resolve(res);
+                } else {
+                    reject(err);
+                }
+            });
+        })
+    }
+
     static async buscarExamenesActivo(){
         return new Promise((resolve, reject) => {
             const sql = 'SELECT * FROM examenes WHERE habilitado = 1';
