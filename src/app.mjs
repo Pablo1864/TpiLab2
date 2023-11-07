@@ -44,7 +44,7 @@ app.get('/paciente', function (req, res) {
 //guarda datos paciente y redirije a vista Registrar Paciente
 app.post('/registrarPaciente', async function (req, res) {
 
-    console.log(req.body);
+    //console.log(req.body);
     const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado } = req.body;
 
     const verificarSiExistePaciente= await Paciente.verificarPaciente(dni,email);
@@ -65,7 +65,7 @@ app.get('/buscarPaciente', async function (req, res) {
     const todosPacientes = await Paciente.obtenerPacientes();
     if (todosPacientes && todosPacientes.length) {
         todosPacientes.forEach(paciente => {
-            console.log(paciente.apellido);
+            //console.log(paciente.apellido);
         });
     }
     res.render('buscarPaciente', { pacientes: todosPacientes });
@@ -80,6 +80,19 @@ app.get('/buscarPaciente/:datoBuscado', async function (req, res) {
         } else {
             console.log('No se encontró el paciente');
         }
+    }
+});
+
+app.post('/actualizarPaciente', async function (req, res){
+    const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado,idPaciente } = req.body;
+    console.log(req.body)
+    try {
+        const pacientes = await Paciente. actualizarPaciente(idPaciente,nombre,apellido,provincia,localidad,domicilio,email,telefono,sexo,obraSocial,numeroAfiliado,fechaNac,dni);
+       // render('buscarPaciente',{modalExito:true},{dataTableVisible:true});
+        res.redirect('/buscarPaciente')
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 

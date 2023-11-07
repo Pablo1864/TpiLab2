@@ -120,12 +120,12 @@ export class Paciente {
         })
     };
 
-    static async actualizarPaciente(idPaciente,nombre,apellido,provincia,localidad,domicilio,email,telefono,sexo,obraSocial,nroAfiliado,fechaNacimiento){
+    static async actualizarPaciente(idPaciente,nombre,apellido,provincia,localidad,domicilio,email,telefono,sexo,obraSocial,nroAfiliado,fechaNacimiento,dni){
         return new Promise((resolve, reject) => {
-            const sql = `UPDATE pacientes SET nombre=${nombre},apellido=${apellido},
-            provincia=${provincia},localidad=${localidad},domicilio=${domicilio},email=${email},
-            telefono=${telefono},sexo=${sexo},obraSocial=${obraSocial},nroAfiliado=${nroAfiliado},
-            fechaNacimiento=${fechaNacimiento} WHERE idPaciente=${idPaciente}`
+            const sql = `UPDATE pacientes SET nombre="${nombre}",apellido="${apellido}",
+            provincia="${provincia}",localidad="${localidad}",domicilio="${domicilio}",email="${email}",
+            telefono=${telefono},sexo="${sexo}",obraSocial="${obraSocial}",nroAfiliado=${nroAfiliado},
+            fechaNacimiento="${fechaNacimiento}",dni=${dni} WHERE idPaciente=${idPaciente}`
             conexion.query(sql, (err, res, field)=>{
                 if (err) {
                     reject(err);
@@ -135,7 +135,19 @@ export class Paciente {
             });
         });
     }
-    
+
+    static async actualizarEstado(idPaciente,activo){
+        return new Promise((resolve, reject) => {
+            const sql = `UPDATE pacientes SET Activo="${activo}" WHERE idPaciente=${idPaciente}`
+            conexion.query(sql, (err, res, field)=>{
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(res);
+                }
+            });
+        });
+    }
 };
 
 

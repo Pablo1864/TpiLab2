@@ -66,8 +66,8 @@ const validarCampo = (expresion,valorCampo,nombreCampo) => {
 		document.getElementById(`${nombreCampo}Error`).classList.add('input-error');
 		campos[nombreCampo] = true;
 	} else {
-		console.log('entro al else de la validacion');
-        console.log(valorCampo.value)
+		//console.log('entro al else de la validacion');
+        //console.log(valorCampo.value)
 		document.getElementById(`${nombreCampo}Error`).classList.remove('input-error');
 		document.getElementById(`${nombreCampo}Error`).classList.add('input-error-activo');
 		campos[nombreCampo] = false;
@@ -103,7 +103,7 @@ inputs.forEach((input) => {
 function handleChange(event,id){
     var selectedOption = event.target.options[event.target.selectedIndex];
 	
-    console.log("Option selected: " + selectedOption.value +' '+ id);
+    //console.log("Option selected: " + selectedOption.value +' '+ id);
     if(selectedOption.value === ''){
 		document.getElementById(`${id}Error`).classList.remove('input-error');
 	    document.getElementById(`${id}Error`).classList.add('input-error-activo');
@@ -128,9 +128,10 @@ formulario.addEventListener('submit', (e) => {
 		let valor= document.getElementById(`${id}`).value;
 		console.log(id + ' el value es ' + valor)
 		if(valor === ''){
-			console.log(id + ' el value es vacio ')
+			//console.log(id + ' el value es vacio ')
 			validarInputsVacios(id);
-		}	
+		}
+		else campos[id] = true;	
 	}
 
 //validar select vacios
@@ -138,11 +139,13 @@ for (let i = 0; i < select.length; i++) {
 	let elemento = select[i];
 	let id = elemento.id;
 	let valor= document.getElementById(`${id}`).value;
+
 	console.log(id + ' el value es ' + valor)
 	if(valor === ''){
-		console.log(id + ' el value es '+ valor)
+		//console.log(id + ' el value es vacio ')
 		validarSelectVacios(id);
 	}	
+	else campos[id] = true;	
 }
 
 // verifica que todos los campos esten correctos para poder enviar

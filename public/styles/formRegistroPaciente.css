@@ -88,3 +88,8 @@ h1#titulo{
   text-align: left;
   padding-top: 0px;
 }
+#btnOcultarFormulario{
+  cursor: pointer;
+  font-size: 36px;
+  float: right;
+}

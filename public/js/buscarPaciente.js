@@ -23,13 +23,6 @@ $(document).ready(function () {
       select: true,
       responsive: {
           responsive: true,
-          breakpoints: [
-              {name: 'xxl', width: Infinity},
-              {name: 'xl', width: 1400},
-              {name: 'lg', width: 1200},
-              {name: 'md', width: 768},
-              {name: 'sm', width: 576},
-          ],
           details: {
               type: 'column',
               target: 'tr'
@@ -57,7 +50,7 @@ $(document).ready(function () {
           { title: 'Email', data: 'email', priority: 0 },
           { title: 'Obra social', data: 'obraSocial', priority: 0 },
           { title: 'Nro. Afiliado', data: 'nroAfiliado', priority: 0 },
-          {"defaultContent": "<button type='button' class='editar btn btn-primary'><i class='bi bi-pencil-fill'></i></button>	<button type='button' class='eliminar btn btn-danger' data-toggle='modal' data-target='#modalEliminar' ><i class='bi bi-trash3-fill'></i></button>"},
+          {"defaultContent": "<button type='button' class='editar btn btn-primary'><i class='bi bi-pencil-fill'></i></button>",priority: 4 },
       ]
   })
 
@@ -66,16 +59,50 @@ $(document).ready(function () {
       buscarPaciente(tablePacientes);
   });
 
-  
-  obtener_data_editar("#table_patients tbody", tablePacientes)
+    
+  $('#table_patients tbody').on('click', 'button.editar', function() {
+    const data = tablePacientes.row($(this).parents('tr')).data();
+    
+    console.log(data)
+    
+    // const fechaNacParts = data.fechaNacimiento.split("-");
+    // const fechaNacFormatted = `${fechaNacParts[2]}/${fechaNacParts[1]}/${fechaNacParts[0]}`;
+   
+// Rellena el formulario de edición con los datos del registro seleccionado
+          $('#nombre').val(data.nombre);
+          $('#apellido').val(data.apellido);
+          $('#dni').val(data.dni);
+          $('#telefono').val(data.telefono);
+          $('#email').val(data.email);
+          $('#fechaNac').val(data.fechaNacimiento);
+          $('#provincia').val(data.provincia);
+          $('#localidad').val(data.localidad);
+          $('#domicilio').val(data.domicilio);
+          $('#obraSocial').val(data.obraSocial);
+          $('#numeroAfiliado').val(data.nroAfiliado);
+          $('#sexo').val(data.sexo);
+          $('#idPaciente').val(data.idPaciente);
+
+    // Muestra el form de edición
+    $('#ContainerAll').show();
+  });
+
+  // obtener_data_editar("#table_patients tbody", tablePacientes)
 })
 
-const obtener_data_editar= function(tbody,table){
-  $(tbody).on("click","button.editar", function(){
-    let data=table.row($(this).parents("tr")).data();
-    console.log(data)
-  })
-}
+
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  const formularioEdicion = document.getElementById("ContainerAll");
+  const btnOcultarFormulario = document.getElementById("btnOcultarFormulario");
+
+  // controlador de eventos al botón
+  btnOcultarFormulario.addEventListener("click", function(event) {
+    event.preventDefault();
+    formularioEdicion.style.display = "none";
+  });
+});
 
 
 //Hace los fetch correspondiente al value del input de pacientes y envia los pacientes encontrados a la table
@@ -130,6 +157,9 @@ const llenarData = (table, data) => {
       btn.classList.add('btn-warning');
       btn.id = 'btn_registrar';
       btn.innerHTML = 'Registrar paciente nuevo';
+      btn.addEventListener('click', function() {
+        window.location.href = '/registrarPaciente'; 
+      });      
       let p = document.createElement('p');
       p.id = 'p_registrarP';
       p.innerHTML = '¡No se encontro ningun paciente!';
@@ -173,3 +203,5 @@ const llenarTableConData = (table, data) =>{
   table.clear();
   table.rows.add(data).draw();
 }
+
+

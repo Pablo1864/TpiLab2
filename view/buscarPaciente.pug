@@ -3,13 +3,15 @@ html
         meta(charset="UTF-8")
         meta(name="viewport", content="width=device-width, initial-scale=1.0")
         title Laboratorio de Analisis
+        link(rel="stylesheet" href="../styles/style.css")
+        link(rel="stylesheet" href="../styles/formRegistroPaciente.css")
+        link(href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet')
         link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0")
         link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css")
         include includes/linkStyles.pug
         include includes/linksDataTable.pug
-        link(rel="stylesheet" href="../styles/style.css")
     body 
-        include includes/nav.pug
+        include includes/nav.pug 
         .container.cardbg-lightmb-12
             form#form_ordenes
                 .p-3.pb-0.col-12
@@ -21,29 +23,136 @@ html
                         input.form-control#pacienteID(type='text' aria-describedby='pacienteHelp')
                         .form-text#pacienteHelp ingresar dni, apellido o mail del paciente
                         button(type='button').btn.btn-secondary.m-1#buscarPaciente Buscar
-        
-        .col.mb-3.p-3.bg-light
-            table#table_patients.table.table-striped.table-secondary.table-bordered(style='width:100%')
-                thead 
-                    tr 
-                        th
-                        th Nombre y apellido
-                        th Dni
-                        th Sexo
-                        th Fecha de nac.
-                        th Provincia y localidad
-                        th Domicilio
-                        th Nro.Telefono
-                        th Email
-                        th Obra social
-                        th Nro. Afiliado
-                        th Accion
-                tbody
+            
+            .col.mb-3.p-3.bg-light
+                table#table_patients.table.table-striped.table-secondary.table-bordered(style='width:100%')
+                    thead 
+                        tr 
+                            th
+                            th Nombre y apellido
+                            th Dni
+                            th Sexo
+                            th Fecha de nac.
+                            th Provincia y localidad
+                            th Domicilio
+                            th Nro.Telefono
+                            th Email
+                            th Obra social
+                            th Nro. Afiliado
+                            th Acciones
+                    tbody
 
-    .row.p-3.m-4.bg-secondary-subtle
- 
-            //- - if (pacientes && pacientes.length)
-            //-             each paciente in pacientes
-            //-                 p= `${paciente.idPaciente} - ${paciente.nombre} - ${paciente.apellido}- ${paciente.dni}- ${paciente.email}`
-            //-                 span(class="borrarPaciente material-symbols-outlined" id=paciente.idPaciente) delete                          
+        div#ContainerAll(style="display:none") 
+            div#ContainerForm 
+                //- button#btnOcultarFormulario 
+                span#btnOcultarFormulario.material-icons cancel
+                h1#titulo ACTUALIZAR PACIENTE
+                section#contact
+                    .content#form
+                        div#contactForm
+                        form(action='/actualizarPaciente' method='POST' id='formulario')
+                            div 
+                                span Nombre
+                                input(type='text' id='nombre' name='nombre' placeholder='nombre' tabindex='1')
+                                p(class="input-error" id='nombreError') * Nombre debe tener de 2 o más dígitos y no tener números ni caracteres especiales.
+                            div
+                                span Apellido
+                                input(type='text' id='apellido' name='apellido' placeholder='apellido' tabindex='2')
+                                p(class="input-error" id='apellidoError') * Apellido debe tener 2 o más dígitos y no tener números ni caracteres especiales.
+                            div   
+                                span DNI
+                                input(type='number' id='dni' name='dni' placeholder='dni' tabindex='3' 
+                                oninput='javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);'
+                                maxlength="9")
+                                p(class="input-error" id='dniError') * DNI no debe contener letras tampoco caracteres especiales.
+                            div
+                                span Teléfono
+                                input(type='number' id='telefono' name='telefono' placeholder='teléfono' tabindex='4'
+                                oninput='javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);'
+                                maxlength="15")
+                                p(class="input-error" id='telefonoError') * Teléfono debe tener entre 6 y 14 digitos y no incluir caracteres especiales.
+                            div
+                                span Email
+                                input(type='text' id='email' name='email' placeholder='email' tabindex='5')
+                                p(class="input-error" id='emailError') * Ingrese un email valido.
+                            div
+                                span Fecha de Nacimiento
+                                input(type='date' id='fechaNac' name='fechaNac' tabindex='6')
+                                p(class="input-error" id='fechaNacError') * Ingrese fecha de nacimiento.
+                            div
+                                span Provincia
+                                select(name="provincia" id='provincia' onchange='handleChange(event,`provincia`)')
+                                        option(value="") seleccione
+                                        option(value="Buenos Aires") Buenos Aires
+                                        option(value="CABA") CABA 
+                                        option(value="Catamarca") Catamarca
+                                        option(value="Chaco") Chaco
+                                        option(value="Chubut") Chubut
+                                        option(value="Córdoba") Córdoba 
+                                        option(value="Corrientes") Corrientes
+                                        option(value="Entre Ríos") Entre Ríos
+                                        option(value="Formosa") Formosa
+                                        option(value="Jujuy") Jujuy
+                                        option(value="La Pampa") La Pampa
+                                        option(value="La Rioja") La Rioja
+                                        option(value="Mendoza") Mendoza
+                                        option(value="Misiones") Misiones
+                                        option(value="Neuquén") Neuquén
+                                        option(value="Río Negro") Río Negro
+                                        option(value="Salta") Salta
+                                        option(value="San Juan") San Juan
+                                        option(value="San Luis") San Luis
+                                        option(value="Santa Cruz") Santa Cruz
+                                        option(value="Santa Fe") Santa Fe
+                                        option(value="Santiago del Estero") Santiago del Estero
+                                        option(value="Tierra del fuego") Tierra del fuego
+                                        option(value="Tucuman") Tucuman
+                                p(class="input-error" id='provinciaError') * Seleccione provincia.    
+                            div
+                                span Localidad
+                                input(type='text' id='localidad' name='localidad' placeholder='localidad' tabindex='8')
+                                p(class="input-error" id='localidadError') * Ingrese localidad valida.
+                            div
+                                span Domicilio
+                                input(type='text' id='domicilio' name='domicilio' placeholder='domicilio' tabindex='9')
+                                p(class="input-error" id='domicilioError') * Ingrese domicilio valido.
+                            div
+                                span Obra Social
+                                select(name="obraSocial" id='obraSocial' onchange='handleChange(event,`obraSocial`)')
+                                        option(value="") seleccione
+                                        option(value="DOSEP") DOSEP
+                                        option(value="PAMI") PAMI 
+                                        option(value="OSDE") OSDE
+                                        option(value="GALENO") GALENO
+                                        option(value="OSPRERA") OSPRERA
+                                        option(value="USUOMRA") USUOMRA 
+                                        option(value="OSUTHGRA") OSUTHGRA
+                                        option(value="SANCOR SALUD") SANCOR SALUD
+                                        option(value="OSPIA") OSPIA
+                                        option(value="OSPEP") OSPEP
+                                        option(value="PARTICULAR") PARTICULAR
+                                        option(value="OTRA") OTRA
+                                p(class="input-error" id='obraSocialError') * Seleccione obra social.  
+                            div
+                                span Nro Afiliado
+                                input(type='number' id='numeroAfiliado' name='numeroAfiliado' placeholder='nro afiliado' tabindex='11'
+                                oninput='javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);'
+                                maxlength="12")
+                                p(class="input-error" id='numeroAfiliadoError') * Ingrese número afiliado valido.
+                            div    
+                                span Sexo
+                                select(name="sexo" id='sexo' onchange='handleChange(event,`sexo`)')
+                                        option(value="") seleccione
+                                        option(value="femenino") femenino
+                                        option(value="masculino") masculino 
+                                        option(value="otro") otro
+                            div
+                                input(type='hidden' id='idPaciente' name='idPaciente' tabindex='9')
+                                   
+                            button.submit(type='submit') Actualizar
+                            
+
+        //- include includes/footer.pug
+
+script(src='js/validacionRegistroPaciente.js')           
 script(src='../js/buscarPaciente.js')
