@@ -5,98 +5,170 @@ html(lang="en")
         meta(name="viewport", content="width=device-width, initial-scale=1.0")
         title Registrar orden
         include includes/linkStyles.pug
-        //link(rel="stylesheet" href="https://cdn.datatables.net/v/dt/jqc-1.12.4/dt-1.13.6/b-2.4.2/sl-1.7.0/datatables.min.css")
+        
         link(rel="stylesheet", href="../styles/ordenesStyle.css")
         script(src="https://code.jquery.com/jquery-3.7.1.min.js" type='text/javascript')
-        //link(rel='stylesheet' href='https://cdn.datatables.net/v/dt/dt-1.13.6/b-2.4.2/r-2.5.0/sc-2.2.0/sl-1.7.0/sr-1.3.0/datatables.min.css')
-        //script(src='https://cdn.datatables.net/v/dt/dt-1.13.6/b-2.4.2/r-2.5.0/sc-2.2.0/sl-1.7.0/sr-1.3.0/datatables.min.js')
+        link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css")
         link(href='https://cdn.datatables.net/v/bs5/dt-1.13.6/b-2.4.2/r-2.5.0/sc-2.2.0/sb-1.6.0/sp-2.2.0/sl-1.7.0/sr-1.3.0/datatables.min.css' rel='stylesheet')
         script(src='https://cdn.datatables.net/v/bs5/dt-1.13.6/b-2.4.2/r-2.5.0/sc-2.2.0/sb-1.6.0/sp-2.2.0/sl-1.7.0/sr-1.3.0/datatables.min.js')
-
-        //script(src="https://cdn.datatables.net/v/dt/jqc-1.12.4/dt-1.13.6/b-2.4.2/sl-1.7.0/datatables.min.js" type='text/javascript')
+        
     body 
         include includes/nav.pug
-        .container
+        .container-fluid
             form#form_ordenes
-                .row.p-3.m-4.bg-secondary-subtle
-
-                    .p-3.pb-0.col-12
-
+                .p-3.m-4.bg-secondary-subtle
+                    .p-3.pb-0.m-2
                         h3.text-center Ingresar nueva orden
-                        h4.text-center Buscar paciente:
-                        #search.mb-3 
-                            label.form-label(for='pacienteID') Paciente:
-                            #divPacienteError
-                            input.form-control#pacienteID(type='text' aria-describedby='pacienteHelp')
-                            .form-text#pacienteHelp ingresar dni, apellido o mail del paciente
-                            button(type='button').btn.btn-secondary.m-1#buscarPaciente Buscar
+                    nav
+                        div(role='tablist').nav.nav-tabs#nav-tab
+                            button(data-bs-toggle='tab' data-bs-target='#nav-paciente' type='button' role='tab' aria-controls='nav-paciente' aria-selected='true').nav-link.active#nav-paciente-tab 
+                                |Ingresar paciente
+                                i#i1.bi.bi-circle.ms-2
+                            button(data-bs-toggle='tab' data-bs-target='#nav-medico' type='button' role='tab' aria-controls='nav-medico' aria-selected='false').nav-link#nav-medico-tab 
+                                |Ingresar medico
+                                i#i2.bi.bi-circle.ms-2
+                            button(data-bs-toggle='tab' data-bs-target='#nav-diagnosticos' type='button' role='tab' aria-controls='nav-diagnosticos' aria-selected='false').nav-link#nav-diagnosticos-tab 
+                                |Ingresar diagnostico
+                                i#i3.bi.bi-circle.ms-2
+                            button(data-bs-toggle='tab' data-bs-target='#nav-examenes' type='button' role='tab' aria-controls='nav-examenes' aria-selected='false').nav-link#nav-examenes-tab 
+                                |Ingresar examenes
+                                i#i4.bi.bi-circle.ms-2
                     
-                    .col.mb-3.p-3.bg-light
-                        table#table_patients.table.table-striped.table-secondary.table-bordered(style='width:100%')
-                            thead 
-                                tr 
-                                    th
-                                    th Nombre y apellido
-                                    th Dni
-                                    th Sexo
-                                    th Fecha de nacimiento
-                                    th Provincia y localidad
-                                    th Domicilio
-                                    th Nro.Telefono
-                                    th Email
-                                    th Obra social
-                                    th Nro. Afiliado
-                            tbody
+                    .tab-content#nav-tabContent
+                        div(id="nav-paciente" role="tabpanel" aria-labelledby="nav-paciente-tab" tabindex="0").tab-pane.fade.show.active
+                            .mb-3.p-4.bg-light#divTablaPaciente
+                                #search.mb-3.row.input-group
+                                    .col-12.m-2
+                                        h4 Seleccionar el paciente:
+                                        #divPacienteError
+                                    label(for='pacienteID').form-label.col-12.col-lg-1.m-2 Paciente:
+                                    .col-5.p-0
+                                        input.form-control#pacienteID(type='text' aria-describedby='pacienteHelp')
+                                        .form-text#pacienteHelp ingresar dni, apellido o mail del paciente, y seleccionar el paciente de la tabla.
+                                    .col-2.p-0
+                                        button(type='button').btn.btn-warning.m-0#buscarPaciente 
+                                            |Buscar
+                                            i.bi.bi-search.ms-2
 
-                .row.p-3.m-4.bg-secondary-subtle
+                                .bg-secondary-subtle.p-3.rounded
+                                    table(style='width:100%')#table_patients.table.table-striped.table-light.align-middle
+                                        thead 
+                                            tr 
+                                                th
+                                                th Nombre y apellido
+                                                th Dni
+                                                th Sexo
+                                                th Fecha de nacimiento
+                                                th Provincia y localidad
+                                                th Domicilio
+                                                th Nro.Telefono
+                                                th Email
+                                                th Obra social
+                                                th Nro. Afiliado
+                                        tbody
 
-                    .p-3.pb-0.col-12
+                        div(id="nav-medico" role="tabpanel" aria-labelledby="nav-medico-tab" tabindex="0").tab-pane.fade
+                            .mb-3.p-4.bg-light#divTablaMedicos
+                                #medicoDiv.mb-3.row.input-group
+                                    .col-12.m-2
+                                        h4 Seleccionar el medico:
+                                        #divMedicoError
+                                    label(for='medicoId').form-label.col-12.col-lg-1.m-2 Medico:
+                                    .col-5.p-0
+                                        input.form-control#medicoId(type='text' aria-describedby='medicoHelp')
+                                        .form-text#medicoHelp ingresar dni, apellido o mail del medico, y seleccionar el medico de la tabla.
+                                    .col-2.p-0
+                                        button(type='button').btn.btn-warning.m-0#buscarMedico 
+                                            |Buscar
+                                            i.bi.bi-search.ms-2
 
-                        h4.text-center Ingresar informacion del medico solicitante:
-                        .mb-3 
-                            label.form-label(for='diagnosticoMedico') Diagnostico: 
-                            input.form-control#diagnosticoMedico(type='text')
-                        .mb-3
-                            label.form-label(for="nombreMedico") Nombre:
-                            input.form-control#nombreMedico(type="text") 
-                        .mb-3
-                            label.form-label(for="matriculaMedico") Matricula
-                            input.form-control#matriculaMedico(type="number")
-
-                .row.p-3.m-4.bg-secondary-subtle
-                    .p-3.pb-0.col-12
-                        h4 Ingreso de examenes a realizar 
-                        .mb-3
-                            label.form-label(for='idExamen') Examen:
-                            #divExamenesError
-                            input.form-control#idExamen(type='text' aria-describedby='examenHelp')
-                            .form-text#examenHelp ingresar nombre o ID de examen
-                            button(type='button').btn.btn-secondary.m-1#buscarExamenes Buscar
-                            button#agregarExamen.btn.btn-secondary.m-1(type='button') Agregar examen
-                    .col.mb-3.p-3.bg-light
-                        table#table_examenes.table.table-striped.table-secondary(style='width:100%')
-                            thead 
-                                tr 
-                                    th
-                                    th Nombres:
-                                    th Requerimientos:
-                                    th Tipo de muestra:
-                                    th Hs. demora aprox.:
-                                    th Otros terminos:
-                            tbody
-                    .col.mb-3.p-3.bg-light
-                        h5 Examenes a realizar para la orden actual:
-                        table#table_agregados.table.table-striped.table-primary(style='width:100%')
-                            thead 
-                                tr 
-                                    th 
-                                    th Nombres:
-                                    th Requerimientos:
-                                    th Tipo de muestra:
-                                    th Hs. demora aprox.:
-                                    th Otros terminos:
-                                    //th Eliminar
-                            tbody#tbody_agregados    
-                    button.btn.btn-lg.btn-primary.m-auto(onclick='crearOrden()' type='button') Crear orden 
-                
+                                .bg-secondary-subtle.p-3.rounded
+                                    table(style='width:100%')#table_medics.table.table-striped.table-light.align-middle
+                                        thead 
+                                            tr 
+                                                th
+                                                th Nombre y apellido
+                                                th matricula
+                                                th email
+                                        tbody
+                            
+                        div(id="nav-diagnosticos" role="tabpanel" aria-labelledby="nav-diagnosticos-tab" tabindex="0").tab-pane.fade
+                            .bg-light.mb-3.p-3
+                                .row.input-group
+                                    .col-12.m-2
+                                        h4 Seleccionar los diagnosticos:
+                                        #divDiagnosticosError
+                                    label(for='diagnosticoSearch').form-label.col-12.col-lg-1.m-2 Diagnostico: 
+                                    .col-5.p-0
+                                        input(type='text' aria-describedby='diagnosticoHelp').form-control#diagnosticoSearch
+                                        .form-text#diagnosticoHelp Ingrese el nombre o termino del diagnostico a buscar, y agregue a la lista
+                                    .col-2.p-0
+                                        button(type='button').btn.btn-warning.m-0#buscarDiagnosticos
+                                            |Buscar
+                                            i.bi.bi-search.ms-2
+                                .row
+                                    .p-3.pb-0.col-6
+                                        h4.text-center Diagnosticos disponibles
+                                        table(style='width:100%')#table_diagnosticos.table.table-striped.table-secondary.table-bordered
+                                            thead
+                                                tr
+                                                    th
+                                                    th Diagnostico
+                                                    th otros nombre
+                                                    th 
+                                            tbody
+                                    .p-3.pb-0.col-6
+                                        h4.text-center Diagnosticos de la orden
+                                        table(style='width:100%')#table_diagnosticos_agregados.table.table-striped.table-secondary.table-bordered
+                                            thead
+                                                tr
+                                                    th
+                                                    th Diagnostico
+                                                    th otros nombre
+                                                    th 
+                                            tbody
+                        div(id="nav-examenes" role="tabpanel" aria-labelledby="nav-examenes-tab" tabindex="0").tab-pane.fade
+                            .bg-light.mb-3.p-3
+                                .row.input-group
+                                    .col-12.m-2
+                                        h4 Ingrese los examenes a realizar
+                                        #divExamenesError
+                                    label(for='idExamen').form-label.col-12.col-lg-1.m-2 Examen:
+                                    .col-5.p-0
+                                        input(type='text' aria-describedby='examenHelp').form-control#idExamen
+                                        .form-text#examenHelp ingrese el nombre o ID del examen a buscar, y agregue a la lista
+                                    .col-2.p-0
+                                        button(type='button').btn.btn-warning.m-0#buscarExamenes
+                                            |Buscar
+                                            i.bi.bi-search.ms-2
+                                .row.mb-3.p-3.rounded
+                                    .col-12.col-xl-6.mb-3.p-3.bg-white.rounded
+                                        h5 Examenes disponibles
+                                        table(style='width:100%')#table_examenes.table.table-striped.table-secondary.table-bordered.align-middle
+                                            thead 
+                                                tr 
+                                                    th
+                                                    th Nombres:
+                                                    th Requerimientos:
+                                                    th Tipo de muestra:
+                                                    th Hs. demora aprox.:
+                                                    th Otros terminos:
+                                                    th
+                                            tbody
+                                    .col-12.col-xl-6.mb-3.p-3.bg-white.rounded
+                                        h5 Examenes a realizar para la orden actual:
+                                        table(style='width:100%')#table_agregados.table.table-striped.table-warning.table-bordered.align-middle
+                                            thead 
+                                                tr 
+                                                    th 
+                                                    th Nombres:
+                                                    th Requerimientos:
+                                                    th Tipo de muestra:
+                                                    th Hs. demora aprox.:
+                                                    th Otros terminos:
+                                                    th 
+                                            tbody 
+                    .row.p-4
+                        button(type='button' disabled).btn.btn-lg.btn-warning.m-auto.w-25#crearOrden Crear orden 
+        script(src="https://cdn.jsdelivr.net/npm/sweetalert2@10.0.2/dist/sweetalert2.all.min.js")
         script(type='text/javascript' src="../js/ordenes.js") 

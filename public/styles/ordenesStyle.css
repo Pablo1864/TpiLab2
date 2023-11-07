@@ -25,6 +25,16 @@
     border-width: 2px;
 }
 
+.custom-row-class{
+    max-height: 50px;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.custom-row-class.expanded{
+    max-height: none;
+}
+
 /* #table_patients tbody td:first-child {
     display: none;
 }

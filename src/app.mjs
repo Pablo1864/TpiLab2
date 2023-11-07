@@ -4,6 +4,10 @@ import { Paciente } from './modelos/paciente.mjs'
 import { Orden } from './modelos/orden.mjs';
 import { Examen } from './modelos/examen.mjs';
 import { Muestra } from './modelos/muestra.mjs';
+import { Diagnostico } from './modelos/diagnostico.mjs';
+import { Medico } from './modelos/medico.mjs';
+import { Ordenes_diagnosticos } from './modelos/ordenes_diagnosticos.mjs';
+import { Ordenes_examenes } from './modelos/ordenes_examenes.mjs';
 
 const app = express();
 
@@ -251,14 +255,80 @@ app.get('/ordenes/buscarTodos', async (req, res) => {
     }
 });
 
+app.get('/ordenes/diagnosticos/buscarPorId/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        const diagno = await Diagnostico.buscarDiagnosticoPorId(id);
+        res.json(diagno);
+    } catch (err){
+        res.status(500).json({error: 'Internal Server Error'})
+    }
+})
+
+app.get('/ordenes/diagnosticos/buscarPorNombre/:nombre', async (req, res) => {
+    const nombre = req.params.nombre;
+    try {
+        const diagnos = await Diagnostico.buscarDiagnosticosPorNombres(nombre);
+        res.json(diagnos);
+    } catch (err){
+        res.status(500).json({error: 'Internal Server Error'})
+    }
+})
+
+app.get('/ordenes/diagnosticos/buscarTodos', async (req, res) => {
+    try {
+        const diagnos = await Diagnostico.buscarDiagnosticosTodos();
+        res.json(diagnos);
+    } catch (err){
+        res.status(500).json({error: 'Internal Server Error'})
+    }
+})
+
+async function iterarArrOrden (array, nroOrden, fun){
+    const errores = [];
+    for (const id of array) {
+        try {
+            await fun(nroOrden, id);
+        } catch (err){
+            errores.push({id: id, error: err});
+        }
+    }
+    return errores;
+}
+
 app.post(('/ordenes/crearOrden'), async (req, res) =>{
     const dataOrden = req.body;
-
     try {
-        const resp = await Orden.crearOrden(dataOrden.idPaciente, dataOrden.diagnostico, dataOrden.nombreMedico, dataOrden.matricula);
+        const ordenRes = await Orden.crearOrden(dataOrden);
+        let diagnosticosRes = [];
+        let examenesRes = [];
+        if (ordenRes.affectedRows > 0){
+            diagnosticosRes = await iterarArrOrden(dataOrden.arrayIdsDiagnosticos, ordenRes.insertId, Ordenes_diagnosticos.createRelationship);
+            examenesRes = await iterarArrOrden(dataOrden.arrayIdsExamenes, ordenRes.insertId, Ordenes_examenes.createRelationship);
+        }
+        res.json({
+            orden: ordenRes, 
+            diagnostico: diagnosticosRes,
+            examenes: examenesRes
+        });
+    } catch(err){
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.put(('/ordenes/updateOrden/:id'), async (req, res) =>{
+    const idOrden = req.params.id;
+    const dataOrden = req.body;
+    try {
+        const resp = await Orden.updateExistingOrder(id, dataOrden);
+        let diagnosticosRes = [];
+        let examenesRes = [];
+        if (res.affectedRows > 0){
+            diagnosticosRes = await iterarArrOrden(dataOrden.arrayIdsDiagnosticos, res.insertId, Ordenes_diagnosticos.createRelationship);
+            examenesRes = await iterarArrOrden(dataOrden.arrayIdsExamenes, res.insertId, Ordenes_examenes.createRelationship);
+        }
         res.json(resp);
-
-
     } catch(err){
         console.log(err);
         res.status(500).json({ error: 'Internal Server Error' });
@@ -299,6 +369,100 @@ app.get('/ordenes/examenes/buscarPorNombre/:nombre', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
+app.get('/buscarMedicosPorApellido/:apellido', async (req, res) => {
+    const apellido = req.params.apellido;
+    try {
+        const medicos = await Medico.buscarMedicoPorApellido(apellido);
+        res.json(medicos);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.get('/buscarTodosLosMedicos', async (req, res) => {
+    try {
+        const medicos = await Medico.buscarTodosMedicos();
+        res.json(medicos);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.get('/ordenesAdministracion', async (req, res)=>{
+    res.render('ordenesAdmins')
+});
+
+app.patch('/cancelarOrden/:id', async (req, res) => {
+    const idOrden = req.params.id;
+    const razon = req.body;
+    try {
+        const estadoCancel = await Orden.cancelarOrden(idOrden, razon.razon);
+        res.json(estadoCancel);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.get('/buscarMuestraNecesariasPorOrden/:id', async (req, res) => {
+    const idOrden = req.params.id;
+    try {
+        const muestras = await Examen.buscarMuestrasNecesariasPorNroOrden(idOrden);
+        res.json(muestras);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.get('/Ordenes/buscarOrdenesTodas', async (req, res) => {
+    try {
+        const ordenes = await Orden.buscarTodas();
+        res.json(ordenes);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+ app.get('/ordenes/buscarOrdenesPorApellido/:apellido', async (req, res)=>{
+    const ape = req.params.apellido;
+    try {
+        const ordenes = await Orden.buscarOrdenPorApellidoPaciente(ape);
+        res.json(ordenes);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.get('/ordenes/buscarOrdenesPorId/:id', async (req, res)=>{
+    const id = req.params.id;
+    try {
+        const ordenes = await Orden.buscarOrdenDataPorId(id);
+        res.json(ordenes);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+/*
+app.get('/cargarMuestras/:id', async (req, res) => {
+    const IdOrden = req.params.id;
+    try {
+        const resp = await Orden.traerExamenesDeOrden(IdOrden);
+        console.log(resp);
+        res.render('cargarMuestras', {
+            ordenData: resp,
+        })
+    } catch (err){
+        res.status(500).json({error: 'Internal Server Error'})
+    }
+   
+}); */
 
 // FIN DE ÓRDENES
 
