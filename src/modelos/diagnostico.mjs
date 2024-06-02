@@ -1,4 +1,4 @@
-import conexion from '../mysql.conexion.mjs';
+import {conexion} from '../mysql.conexion.mjs';
 
 export class Diagnostico{
     
