@@ -1,0 +1,43 @@
+doctype html
+head
+  meta(charset='UTF-8')
+  meta(name='viewport' content='width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0')
+  // Google Fonts
+  link(href='https://fonts.googleapis.com/css?family=Raleway|Ubuntu' rel='stylesheet')
+  // Estilos
+  link(rel='stylesheet' href='/styles/registro.css')
+  include includes/linkStyles.pug
+  title Registro de Usuarios
+body
+include includes/navHome.pug 
+// Formularios
+.contenedor-formularios
+  // Contenido de los Formularios
+  .contenido-tab
+    // Links de los formularios
+    // Registrarse
+    #registrarse
+      h1 Registrarse
+      form(action='#' method='post' name='form-register'  id='form-register')
+        .contenedor-input
+          label(for="email") Email 
+            span.req *
+          input(type='email' required='' id="email" oninput='escuchaInput("email")')
+        .contenedor-input
+          label(for="pass")
+            | Contrase&ntilde;a 
+            span.req *
+          input(type='password' required='' id="pass" oninput='escuchaInput("pass")')
+        .contenedor-input
+          label(for="pass2")
+            | Repetir Contrase&ntilde;a 
+            span.req *
+          input(type='password' required='' id="pass2" oninput='escuchaInput("pass2")')
+        input.button.button-block(type='submit' value='Registrarse')
+        br
+        br
+        span.iniciarSesion ¿Ya tienes una cuenta?  - 
+          a(href='/login') Iniciar Sesión
+script(src='js/jquery.js')
+script(src='js/registro.js')
+

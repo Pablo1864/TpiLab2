@@ -1,0 +1,43 @@
+doctype html
+head
+  meta(charset='UTF-8')
+  meta(name='viewport' content='width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0')
+  // Google Fonts
+  link(href='https://fonts.googleapis.com/css?family=Raleway|Ubuntu' rel='stylesheet')
+  // Estilos
+  link(rel='stylesheet' href='/styles/login.css')
+  include includes/linkStyles.pug
+  title Formulario Login de Usuarios
+body
+include includes/navHome.pug 
+// Formularios
+.contenedor-formularios
+  // Contenido de los Formularios
+  .contenido-tab
+    // Iniciar Sesion
+    #iniciar-sesion
+      h1 Iniciar Sesi&oacute;n
+      span.errorInicioSesion *Error al iniciar sesión usuario o contraseña incorrectos
+      br
+      br
+      form(action='#' method='post')
+        .contenedor-input
+          label(for='usuario')
+            | Email 
+            span.req *
+          input(type='text' required='' id='usuario' oninput='escuchaInput("usuario")')
+        .contenedor-input
+          label(for='pass')
+            | Contrase&ntilde;a 
+            span.req *
+          input(type='password' required='' id='pass' oninput='escuchaInput("pass")')
+        p.forgot
+          a(href='/registro') Se te olvid&oacute; la contrase&ntilde;a?
+        input.button.button-block(type='submit' value='Iniciar Sesión')
+    // Links de los formularios
+    ul.contenedor-tabs
+      li.tab.tab-primera 
+        span ¿Todavía no tienes una cuenta?  - 
+          a(href='/registro') Regístrate
+    script(src='js/jquery.js')
+    script(src='js/login.js')

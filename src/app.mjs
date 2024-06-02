@@ -32,12 +32,25 @@ app.get('/', async function (req, res) {
     res.render('home');
 
 });
+app.get('/home', async function (req, res) {
+
+    res.render('home');
+
+});
+//Login//
+app.get('/login', function (req, res) {
+    res.render('login');
+});
+//Registro
+app.get('/registro', function (req, res) {
+    res.render('registro');
+});
 
 /////////////////////////////////////////////////////////////
 //region Pacientes
 
 //Registrar Paciente form registro paciente
-app.get('/registrarPaciente', function (req, res) {
+app.get('/registrar', function (req, res) {
     res.render('registrarPaciente');
 });
 
@@ -62,7 +75,9 @@ app.post('/registrarPaciente', async function (req, res) {
 
 }
     
-});
+}
+//Mostrar cartelito el paciente ya esta
+);
 
 // RUTA PARA BUSCAR PACIENTE
 app.get('/buscarPaciente', async function (req, res) {
