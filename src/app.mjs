@@ -32,25 +32,12 @@ app.get('/', async function (req, res) {
     res.render('home');
 
 });
-app.get('/home', async function (req, res) {
-
-    res.render('home');
-
-});
-//Login//
-app.get('/login', function (req, res) {
-    res.render('login');
-});
-//Registro
-app.get('/registro', function (req, res) {
-    res.render('registro');
-});
 
 /////////////////////////////////////////////////////////////
 //region Pacientes
 
 //Registrar Paciente form registro paciente
-app.get('/registrar', function (req, res) {
+app.get('/registrarPaciente', function (req, res) {
     res.render('registrarPaciente');
 });
 
@@ -64,20 +51,17 @@ app.post('/registrarPaciente', async function (req, res) {
     //console.log(req.body);
     const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado } = req.body;
 
-    const verificarSiExistePaciente= await Paciente.verificarPaciente(dni,email);
+    const verificarSiExistePaciente = await Paciente.verificarPaciente(dni, email);
     console.log(verificarSiExistePaciente)
-     if(verificarSiExistePaciente===0)
-     {
-    const data = await Paciente.agregarPaciente(nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado);
-    res.render( 'registrarPaciente', {validacionExitosa: true});
-} else{
-    res.render( 'registrarPaciente', {validacionError: true});
+    if (verificarSiExistePaciente === 0) {
+        const data = await Paciente.agregarPaciente(nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado);
+        res.render('registrarPaciente', { validacionExitosa: true });
+    } else {
+        res.render('registrarPaciente', { validacionError: true });
 
-}
-    
-}
-//Mostrar cartelito el paciente ya esta
-);
+    }
+
+});
 
 // RUTA PARA BUSCAR PACIENTE
 app.get('/buscarPaciente', async function (req, res) {
@@ -102,12 +86,12 @@ app.get('/buscarPaciente/:datoBuscado', async function (req, res) {
     }
 });
 
-app.post('/actualizarPaciente', async function (req, res){
-    const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado,idPaciente } = req.body;
+app.post('/actualizarPaciente', async function (req, res) {
+    const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado, idPaciente } = req.body;
     console.log(req.body)
     try {
-        const pacientes = await Paciente. actualizarPaciente(idPaciente,nombre,apellido,provincia,localidad,domicilio,email,telefono,sexo,obraSocial,numeroAfiliado,fechaNac,dni);
-       // render('buscarPaciente',{modalExito:true},{dataTableVisible:true});
+        const pacientes = await Paciente.actualizarPaciente(idPaciente, nombre, apellido, provincia, localidad, domicilio, email, telefono, sexo, obraSocial, numeroAfiliado, fechaNac, dni);
+        // render('buscarPaciente',{modalExito:true},{dataTableVisible:true});
         res.redirect('/buscarPaciente')
     } catch (err) {
         console.log(err);
@@ -168,8 +152,8 @@ app.get('/ordenes/buscarTodos', async (req, res) => {
     try {
         const pacientes = await Paciente.obtenerPacientesTodos();
         res.json(pacientes);
-    } catch (err){
-        res.status(500).json({error: 'Internal Server Error'})
+    } catch (err) {
+        res.status(500).json({ error: 'Internal Server Error' })
     }
 });
 
@@ -265,8 +249,8 @@ app.get('/ordenes/buscarTodos', async (req, res) => {
     try {
         const pacientes = await Paciente.obtenerPacientesTodos();
         res.json(pacientes);
-    } catch (err){
-        res.status(500).json({error: 'Internal Server Error'})
+    } catch (err) {
+        res.status(500).json({ error: 'Internal Server Error' })
     }
 });
 
@@ -275,8 +259,8 @@ app.get('/ordenes/diagnosticos/buscarPorId/:id', async (req, res) => {
     try {
         const diagno = await Diagnostico.buscarDiagnosticoPorId(id);
         res.json(diagno);
-    } catch (err){
-        res.status(500).json({error: 'Internal Server Error'})
+    } catch (err) {
+        res.status(500).json({ error: 'Internal Server Error' })
     }
 })
 
@@ -285,8 +269,8 @@ app.get('/ordenes/diagnosticos/buscarPorNombre/:nombre', async (req, res) => {
     try {
         const diagnos = await Diagnostico.buscarDiagnosticosPorNombres(nombre);
         res.json(diagnos);
-    } catch (err){
-        res.status(500).json({error: 'Internal Server Error'})
+    } catch (err) {
+        res.status(500).json({ error: 'Internal Server Error' })
     }
 })
 
@@ -294,57 +278,57 @@ app.get('/ordenes/diagnosticos/buscarTodos', async (req, res) => {
     try {
         const diagnos = await Diagnostico.buscarDiagnosticosTodos();
         res.json(diagnos);
-    } catch (err){
-        res.status(500).json({error: 'Internal Server Error'})
+    } catch (err) {
+        res.status(500).json({ error: 'Internal Server Error' })
     }
 })
 
-async function iterarArrOrden (array, nroOrden, fun){
+async function iterarArrOrden(array, nroOrden, fun) {
     const errores = [];
     for (const id of array) {
         try {
             await fun(nroOrden, id);
-        } catch (err){
-            errores.push({id: id, error: err});
+        } catch (err) {
+            errores.push({ id: id, error: err });
         }
     }
     return errores;
 }
 
-app.post(('/ordenes/crearOrden'), async (req, res) =>{
+app.post(('/ordenes/crearOrden'), async (req, res) => {
     const dataOrden = req.body;
     try {
         const ordenRes = await Orden.crearOrden(dataOrden);
         let diagnosticosRes = [];
         let examenesRes = [];
-        if (ordenRes.affectedRows > 0){
+        if (ordenRes.affectedRows > 0) {
             diagnosticosRes = await iterarArrOrden(dataOrden.arrayIdsDiagnosticos, ordenRes.insertId, Ordenes_diagnosticos.createRelationship);
             examenesRes = await iterarArrOrden(dataOrden.arrayIdsExamenes, ordenRes.insertId, Ordenes_examenes.createRelationship);
         }
         res.json({
-            orden: ordenRes, 
+            orden: ordenRes,
             diagnostico: diagnosticosRes,
             examenes: examenesRes
         });
-    } catch(err){
+    } catch (err) {
         console.log(err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
-app.put(('/ordenes/updateOrden/:id'), async (req, res) =>{
+app.put(('/ordenes/updateOrden/:id'), async (req, res) => {
     const idOrden = req.params.id;
     const dataOrden = req.body;
     try {
         const resp = await Orden.updateExistingOrder(id, dataOrden);
         let diagnosticosRes = [];
         let examenesRes = [];
-        if (res.affectedRows > 0){
+        if (res.affectedRows > 0) {
             diagnosticosRes = await iterarArrOrden(dataOrden.arrayIdsDiagnosticos, res.insertId, Ordenes_diagnosticos.createRelationship);
             examenesRes = await iterarArrOrden(dataOrden.arrayIdsExamenes, res.insertId, Ordenes_examenes.createRelationship);
         }
         res.json(resp);
-    } catch(err){
+    } catch (err) {
         console.log(err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
@@ -352,15 +336,15 @@ app.put(('/ordenes/updateOrden/:id'), async (req, res) =>{
 
 //examenes en ordenes - busqueda
 
-app.get('/ordenes/examenes/buscarTodos', async (req, res) =>{
+app.get('/ordenes/examenes/buscarTodos', async (req, res) => {
     const id = req.params.id;
     try {
         const examenes = await Examen.buscarExamenesActivo();
         res.json(examenes);
     } catch (err) {
         console.log(err);
-        res.status(500).json({ error: 'Internal Server Error'});
-    } 
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 })
 
 app.get('/ordenes/examenes/buscarPorId/:id', async (req, res) => {
@@ -406,7 +390,7 @@ app.get('/buscarTodosLosMedicos', async (req, res) => {
     }
 });
 
-app.get('/ordenesAdministracion', async (req, res)=>{
+app.get('/ordenesAdministracion', async (req, res) => {
     res.render('ordenesAdmins')
 });
 
@@ -443,7 +427,7 @@ app.get('/Ordenes/buscarOrdenesTodas', async (req, res) => {
     }
 });
 
- app.get('/ordenes/buscarOrdenesPorApellido/:apellido', async (req, res)=>{
+app.get('/ordenes/buscarOrdenesPorApellido/:apellido', async (req, res) => {
     const ape = req.params.apellido;
     try {
         const ordenes = await Orden.buscarOrdenPorApellidoPaciente(ape);
@@ -454,7 +438,7 @@ app.get('/Ordenes/buscarOrdenesTodas', async (req, res) => {
     }
 });
 
-app.get('/ordenes/buscarOrdenesPorId/:id', async (req, res)=>{
+app.get('/ordenes/buscarOrdenesPorId/:id', async (req, res) => {
     const id = req.params.id;
     try {
         const ordenes = await Orden.buscarOrdenDataPorId(id);
@@ -483,53 +467,97 @@ app.get('/cargarMuestras/:id', async (req, res) => {
 
 ////////////////////////////////////////////////////////////////////////////////
 //region examen
-app.get('/gestion-examenes', function (req, res) {
-    res.render('examenes.pug');
+app.get('/examen', (req, res) => {
+    res.render('examen', { titulo: 'Gestión de Exámenes' });
+});
+app.get('/resultados', (req, res) => {
+    res.render('resultados', { titulo: 'Carga de resultados' });
 });
 
 app.post('/nuevo-examen', (req, res) => {
-    // Recuperar los datos del formulario
     const nuevoExamen = {
-        nombreExamen: req.body.nombreExamen,
-        fechaModif: req.body.fechaModif,
+        nombre: req.body.nombreExamen,
         requerimiento: req.body.requerimiento,
-        idDeterminante: req.body.idDeterminante,
-        diasDemora: req.body.diasDemora,
+        horaDemora: req.body.diasDemora,
         tipoAnalisis: req.body.tipoAnalisis,
-        estado: req.body.estado,
-        fechaCreacion: req.body.fechaCreacion,
+        fechaCreacion: new Date(),
+        fechaModificacion: new Date(),
+        estado: 1
     };
 
-    // Llama a la función para insertar el examen en la base de datos
     Examen.insertarExamen(nuevoExamen, (error, results) => {
         if (error) {
             console.error('Error al insertar el examen:', error);
-            res.redirect('/gestion-examenes?error=1'); // Redirige a la página de gestión de exámenes con un indicador de error
+            res.status(500).json({ message: 'Error al crear el examen' });
         } else {
             console.log('Examen insertado con éxito');
-            res.redirect('/gestion-examenes');
+            res.status(200).json({ message: 'Examen creado exitosamente' });
         }
     });
 });
 
-app.get('/examen', async (req, res) => {
-    try {
-
-        res.render('examen', {
-            titulo: 'Gestión de Exámenes',
-
-        });
-    } catch (error) {
-        console.error('Error al obtener los exámenes:', error);
-        res.status(500).send('Error al obtener los exámenes de la base de datos');
-    }
-});
 app.get('/buscarexamen', async (req, res) => {
     try {
-        const exams = await Examen.obtenerTodosLosExamenes(); // Debes implementar esta función en tu modelo Examen.
+        const exams = await Examen.obtenerTodosLosExamenes();
         res.json(exams);
     } catch (error) {
         console.error('Error al obtener los exámenes:', error);
         res.status(500).send('Error al obtener los exámenes de la base de datos');
     }
 });
+
+app.post('/editarExamen/:idExamen', async (req, res) => {
+    try {
+        const idExamen = req.params.idExamen;
+        const datosActualizados = {
+            nombre: req.body.nombre,
+            requerimiento: req.body.requerimiento,
+            horaDemora: req.body.horaDemora,
+            tipoAnalisis: req.body.tipoAnalisis,
+            fechaModificacion: new Date()
+        };
+
+        await Examen.actualizarExamen(idExamen, datosActualizados);
+        res.json({ message: 'Cambios guardados exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar el examen:', error);
+        res.status(500).json({ message: 'Error al actualizar el examen' });
+    }
+});
+
+app.post('/eliminarExamen/:idExamen', async (req, res) => {
+    try {
+        const idExamen = req.params.idExamen;
+        await Examen.actualizarEstadoExamen(idExamen, 0);
+        res.json({ message: 'Examen eliminado exitosamente' });
+    } catch (error) {
+        console.error('Error al eliminar el examen:', error);
+        res.status(500).json({ message: 'Error al eliminar el examen' });
+    }
+});
+app.get('/ordenesanalitica', async (req, res) => {
+    try {
+        const ordenes = await Orden.obtenerOrdenesAnalitica();
+        res.render('listaOrdenes', { titulo: 'Órdenes en Analítica', ordenes });
+    } catch (error) {
+        console.error('Error al obtener las órdenes:', error);
+        res.status(500).send('Error al obtener las órdenes');
+    }
+});
+app.get('/detalles-orden/:nroOrden', async (req, res) => {
+    const nroOrden = parseInt(req.params.nroOrden, 10);
+
+    try {
+        const ordenDetalles = await Orden.buscarDetallesOrden(nroOrden);
+
+        if (ordenDetalles) {
+            res.render('detallesOrden', { orden: ordenDetalles });
+        } else {
+            res.status(404).json({ error: 'Orden no encontrada' });
+        }
+    } catch (error) {
+        console.error('Error al obtener los detalles de la orden:', error);
+        res.status(500).json({ error: 'Error al obtener los detalles de la orden' });
+    }
+});
+

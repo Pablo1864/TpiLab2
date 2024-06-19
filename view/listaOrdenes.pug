@@ -1,0 +1,51 @@
+doctype html
+html(lang='es')
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title= titulo
+    include includes/linkStyles.pug
+    link(rel="stylesheet", href="../styles/style.css")
+    // Incluir jQuery desde un CDN
+    script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+  body
+    include includes/nav.pug
+    .container
+      h2.text-center.m-3 Órdenes en Analítica
+
+      table.table.table-striped.table-hover.caption-top
+        thead
+          tr
+            th.table-primary(scope='col') Número de Orden
+            th.table-primary(scope='col') Paciente
+            th.table-primary(scope='col') Fecha de Creación
+            th.table-primary(scope='col') Estado
+            th.table-primary(scope='col') Acciones
+        tbody
+          - if (ordenes.length > 0)
+            each orden in ordenes
+              tr
+                td= orden['nroOrden']
+                td= `${orden.nombrePaciente} ${orden.apellidoPaciente}`
+                td.fecha-orden= orden.fechaCreacion
+                td= orden.estado
+                td
+                  a.btn.btn-outline-secondary(data-bs-toggle="modal", data-bs-target="#modalDetalles", href=`/detalles-orden/${orden['nroOrden']}`) Ver Detalles
+          - else
+            tr
+              td(colspan='5') No hay órdenes con estado "Analítica"
+
+    // Modal para mostrar los detalles de la orden
+    div.modal.fade#modalDetalles(tabindex="-1", aria-labelledby="modalDetallesLabel", aria-hidden="true")
+      div.modal-dialog.modal-lg
+        div.modal-content
+          div.modal-header
+            h5.modal-title#modalDetallesLabel Detalles de la Orden
+            button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+          div.modal-body
+            iframe#modalIframe(style="width:100%;height:500px;", frameborder="0")
+          div.modal-footer
+            button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cerrar
+
+    // Incluye el archivo JavaScript para formatear las fechas y manejar el modal
+    script(src="js/listaOrdenes.js")

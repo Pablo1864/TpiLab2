@@ -1,0 +1,40 @@
+doctype html
+html(lang='es')
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Detalles de la Orden
+    include includes/linkStyles.pug
+    link(rel="stylesheet", href="../styles/style.css")
+  body
+    .container
+      h2.text-center.m-3 Detalles de la Orden #{orden.nroOrden}
+
+      h3 Detalles del Paciente
+      p
+        strong Nombre: 
+        | #{orden.nombrePaciente} #{orden.apellidoPaciente}
+      p
+        strong Fecha de Creación: 
+        | #{orden.fechaCreacion}
+      p
+        strong Estado: 
+        | #{orden.estado}
+
+      h3 Exámenes a Analizar
+      table.table.table-striped.table-hover
+        thead
+          tr
+            th Código del Examen
+            th Nombre del Examen
+            th Requerimiento
+            th Horas de Demora
+            th Tipo de Análisis
+        tbody
+          each examen in orden.examenes
+            tr
+              td= examen.idExamen
+              td= examen.nombre
+              td= examen.requerimiento
+              td= examen.horaDemora
+              td= examen.tipoAnalisis
