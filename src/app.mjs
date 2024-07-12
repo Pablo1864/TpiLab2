@@ -455,8 +455,6 @@ app.get('/ordenes/buscarTodos', async (req, res) => {  //check
     try {
         const pacientes = await Paciente.obtenerPacientesTodos();
         res.json(pacientes);
-    } catch (err) {
-        res.status(500).json({ error: 'Internal Server Error' })
     } catch (err){
         if (err.code === 'ECCONNREFUSED') {
             res.status(500).json({error: 'Error de conexión con la base de datos'});
@@ -472,8 +470,6 @@ app.get('/ordenes/diagnosticos/buscarPorId/:id', async (req, res) => {  //check
     try {
         const diagno = await Diagnostico.buscarDiagnosticoPorId(id);
         res.json(diagno);
-    } catch (err) {
-        res.status(500).json({ error: 'Internal Server Error' })
     } catch (err){
         res.status(500).json({error: 'Error al buscar Diagnosticos por id'})
     }

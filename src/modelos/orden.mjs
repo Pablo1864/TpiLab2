@@ -102,8 +102,6 @@ WHERE
                     resolve(res)
                 } else {
                     reject(err);
-                } else {
-                    resolve(res);
                 }
             });
         });
@@ -116,8 +114,6 @@ WHERE
                     resolve(res)
                 } else {
                     reject(err);
-                } else {
-                    resolve(res);
                 }
             });
         });
