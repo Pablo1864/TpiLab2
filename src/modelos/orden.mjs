@@ -121,15 +121,15 @@ WHERE
 
     static async buscarOrdenPorID(id) {
         return new Promise((resolve, reject) => {
-            const sql = `SELECT * FROM ordenes WHERE nroOrden = ?`;
-            conexion.query(sql, [id], (err, res) => {
-                if (err) {
-                    reject(err);
+            const sql = `SELECT * FROM ordenes WHERE nroOrden=${id}`;
+            conexion.query(sql, (err, res, field) => {
+                if (res) {
+                    resolve(res)
                 } else {
-                    resolve(res);
+                    reject(err);
                 }
             });
-        });
+        })
     }
 
     static async traerExamenesDeOrden(idOrden) {
@@ -142,7 +142,7 @@ WHERE
                     resolve(res);
                 }
             });
-        });
+        })
     }
 
     static async crearOrdenConRelaciones(idMedico, idPaciente, estado, idDiagnosticosArr, examenesArr) { //idDiagnosticosArr es un array de ids, examenesArr es un array de objectos({idExamen, tipo})
@@ -272,45 +272,6 @@ WHERE
         } finally {
             if (con) con.release();
         }
-    }
-
-    static async buscarDetallesOrden(nroOrden) {
-        return new Promise((resolve, reject) => {
-            const queryOrden = `
-                SELECT o.nroOrden, p.nombre AS nombrePaciente, p.apellido AS apellidoPaciente, o.fechaCreacion, o.estado, 
-                       e.idExamenes AS idExamen, e.nombre AS nombreExamen, e.requerimiento, e.horaDemora, e.tipoAnalisis
-                FROM ordenes o
-                JOIN pacientes p ON o.idPaciente = p.idPaciente
-                JOIN ordenes_examenes oe ON o.nroOrden = oe.nroOrden
-                JOIN examenes e ON oe.idExamenes = e.idExamenes
-                WHERE o.nroOrden = ?
-            `;
-            conexion.query(queryOrden, [nroOrden], (err, res) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    if (res.length > 0) {
-                        const orden = {
-                            nroOrden: res[0].nroOrden,
-                            nombrePaciente: res[0].nombrePaciente,
-                            apellidoPaciente: res[0].apellidoPaciente,
-                            fechaCreacion: res[0].fechaCreacion,
-                            estado: res[0].estado,
-                            examenes: res.map(row => ({
-                                idExamen: row.idExamen,
-                                nombre: row.nombreExamen,
-                                requerimiento: row.requerimiento,
-                                horaDemora: row.horaDemora,
-                                tipoAnalisis: row.tipoAnalisis
-                            }))
-                        };
-                        resolve(orden);
-                    } else {
-                        resolve(null);
-                    }
-                }
-            });
-        });
     }
 }
 
