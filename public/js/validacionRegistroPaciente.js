@@ -25,7 +25,8 @@ const campos = {
     numeroAfiliado:false,
 	sexo:false,
 	provincia:false,
-	obraSocial:false
+	obraSocial:false,
+	inputMethod:true
 }
 
 const validarFormulario = (e) => {
@@ -125,6 +126,8 @@ formulario.addEventListener('submit', (e) => {
 	for (let i = 0; i < inputs.length; i++) {
 		let elemento = inputs[i];
 		let id = elemento.id;
+		let name=elemento.name;
+	if(name !== '_method'){
 		let valor= document.getElementById(`${id}`).value;
 		console.log(id + ' el value es ' + valor)
 		if(valor === ''){
@@ -132,6 +135,7 @@ formulario.addEventListener('submit', (e) => {
 			validarInputsVacios(id);
 		}
 		else campos[id] = true;	
+	}
 	}
 
 //validar select vacios

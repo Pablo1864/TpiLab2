@@ -1,6 +1,7 @@
 // Obtén el input por su ID
-const inputUsuario = document.getElementById("usuario");
-const inputPass = document.getElementById("pass");
+const usuario = document.getElementById("usuario");
+const pass = document.getElementById("pass");
+const formLogin=document.getElementById("form-login")
 
 
 // Define la función que quieres asociar al input
@@ -22,10 +23,10 @@ function escuchaInput(valor) {
     for (var i = 0; i < labels.length; i++) {
         if (labels[i].htmlFor === valor) {
             if(valor==='usuario'){
-            labels[i].textContent = "Email";
+            labels[i].textContent = "Usuario *";
             break; }
             if(valor==='pass'){
-            labels[i].textContent = "Contraseña";
+            labels[i].textContent = "Contraseña *";
             break; 
             }
         }
@@ -36,7 +37,19 @@ function escuchaInput(valor) {
 
 
 
-document.getElementById('form-register').addEventListener("submit",(e)=>{
-    e.preventDefault();
-    console.log(e)
+formLogin.addEventListener("submit",(e)=>{
+  console.log(e.
+    target.elements.usuario.value);
+  console.log(e.
+      target.elements.pass.value);
+    if(pass.value !='' && usuario.value !='' ){
+   //   console.log(inputPass.value +' ' + inputUsuario.value);
+      e.preventDefault();
+			formLogin.submit();
+    }
+	// } else {
+  //       e.preventDefault();
+	// }
+
+   
 })
