@@ -6,9 +6,9 @@ swal({
   type: "success",
   timer: 5000,
   showConfirmButton: true
-// }, function(){
-//       window.location.href = "tupaginaweb.com";
-// 
+ }, function(){
+     window.location.href = "registro";
+
 })
-// };
+
       

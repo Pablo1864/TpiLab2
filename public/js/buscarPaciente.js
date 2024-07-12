@@ -6,7 +6,7 @@ document.getElementById('pacienteID').addEventListener('input', (event) => {
           const p = document.createElement('p');
           p.classList.add('form-text');
           p.classList.add('text-danger');
-          p.innerHTML = 'Debe ingresar solo numeros para buscar por DNI, solo letras para apellido o un formato valido de email (nombreEmail@email.com).';
+          p.innerHTML = 'Debe ingresar solo números para buscar por DNI, solo letras para apellido o un formato valido de email (nombreEmail@email.com).';
           div.appendChild(p);
       }
       
@@ -18,8 +18,8 @@ $(document).ready(function () {
   //inicializacion de datatable
   const tablePacientes = $('#table_patients').DataTable({ 
     language: {
-      url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-AR.json',
-  },
+        url: '../otros/languageDataTable.json',
+    },
       select: true,
       responsive: {
           responsive: true,
@@ -29,6 +29,7 @@ $(document).ready(function () {
           }
       },
       columns: [
+        {title:'Editar',"defaultContent": "<button type='button' class='editar btn btn-primary'><i class='bi bi-pencil-fill'></i></button>",priority: 1},
           { title:'', data: 'idPaciente', visible: false },
           { title: 'Nombre',
               data: null,
@@ -50,7 +51,7 @@ $(document).ready(function () {
           { title: 'Email', data: 'email', priority: 0 },
           { title: 'Obra social', data: 'obraSocial', priority: 0 },
           { title: 'Nro. Afiliado', data: 'nroAfiliado', priority: 0 },
-          {"defaultContent": "<button type='button' class='editar btn btn-primary'><i class='bi bi-pencil-fill'></i></button>",priority: 4 },
+         
       ]
   })
 
@@ -65,8 +66,6 @@ $(document).ready(function () {
     
     console.log(data)
     
-    // const fechaNacParts = data.fechaNacimiento.split("-");
-    // const fechaNacFormatted = `${fechaNacParts[2]}/${fechaNacParts[1]}/${fechaNacParts[0]}`;
    
 // Rellena el formulario de edición con los datos del registro seleccionado
           $('#nombre').val(data.nombre);
@@ -116,7 +115,7 @@ async function buscarPaciente(table) {
           manejarFetch(`/paciente/buscarPorDni/${input.value}`, table, llenarData)
           break;
       case 'string': //busca por apellido
-          manejarFetch(`/paciente/buscarPorApe/${input.value}`, table, llenarData)
+          manejarFetch(`/paciente/buscarPorApellido/${input.value}`, table, llenarData)
           break;
       case 'vacio': //si no se ingresa nada, trae todos los pacientes en db
           manejarFetch(`/paciente/buscarTodos`, table, llenarData)
@@ -154,15 +153,20 @@ const llenarData = (table, data) => {
       let btn = document.createElement('button');
       btn.type = 'button';
       btn.classList.add('btn');
-      btn.classList.add('btn-warning');
+      btn.style.backgroundColor = '#FF5733'; 
+      btn.style.marginLeft = '5px'; 
+      btn.style.borderRadius = '0px'; 
+      btn.style.border = 'solid'; 
+      btn.style.fontWeight = 'bold'; 
+      //btn.classList.add('btn-warning');
       btn.id = 'btn_registrar';
-      btn.innerHTML = 'Registrar paciente nuevo';
+      btn.innerHTML = 'Registrar nuevo paciente';
       btn.addEventListener('click', function() {
-        window.location.href = '/registrarPaciente'; 
+        window.location.href = 'registro'; 
       });      
       let p = document.createElement('p');
       p.id = 'p_registrarP';
-      p.innerHTML = '¡No se encontro ningun paciente!';
+      p.innerHTML = '¡No se encontrarón pacientes que coincidan con el dato ingresado!';
       document.getElementById('search').appendChild(btn);
       document.getElementById('search').appendChild(p);
       return false
@@ -191,7 +195,8 @@ const verificar = (input) => {
           input.classList.remove('correct');
           input.classList.add('error');
       }
-  } else {
+  } 
+    if (input.value.trim() == '') {
       input.classList.remove('error');
       input.classList.add('correct');
       return 'vacio';

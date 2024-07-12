@@ -6,8 +6,11 @@ html
         link(rel="stylesheet" href="../styles/style.css")
         link(rel="stylesheet" href="../styles/formRegistroPaciente.css")
         link(href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet')
+        link(rel="stylesheet" href="../styles/dataTable.css")
         link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0")
         link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css")
+        script(src='https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert-dev.js')
+        link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.css')
         include includes/linkStyles.pug
         include includes/linksDataTable.pug
     body 
@@ -20,12 +23,14 @@ html
                     #search.mb-3 
                         label.form-label(for='pacienteID') Paciente:
                         #divPacienteError
-                        input.form-control#pacienteID(type='text' aria-describedby='pacienteHelp')
-                        .form-text#pacienteHelp ingresar dni, apellido o mail del paciente
-                        button(type='button').btn.btn-secondary.m-1#buscarPaciente Buscar
+                        input.form-control#pacienteID(type='text' aria-describedby='pacienteHelp' placeholder='ingresar dni, apellido o email del paciente')
+                        .form-text#pacienteHelp 
+                        //-strong ingresar dni, apellido o email del paciente
+                        br
+                        button(type='button' style="color:black;width:320px;height:30px;font-weight:bold;background:#FFC300; border:solid 1px;")#buscarPaciente Buscar
             
             .col.mb-3.p-3.bg-light
-                table#table_patients.table.table-striped.table-secondary.table-bordered(style='width:100%')
+                table#table_patients.table.table-striped.table-secondary.table-bordered
                     thead 
                         tr 
                             th
@@ -50,7 +55,7 @@ html
                 section#contact
                     .content#form
                         div#contactForm
-                        form(action='/actualizarPaciente' method='POST' id='formulario')
+                        form(method='POST' action='buscar?_method=PUT' id='formulario')
                             div 
                                 span Nombre
                                 input(type='text' id='nombre' name='nombre' placeholder='nombre' tabindex='1')
@@ -150,9 +155,9 @@ html
                                 input(type='hidden' id='idPaciente' name='idPaciente' tabindex='9')
                                    
                             button.submit(type='submit') Actualizar
-                            
-
+                            - if(validacionExitosa)
+                                 script(src='../js/modalActualizacionExito.js')
+                                
         //- include includes/footer.pug
-
-script(src='js/validacionRegistroPaciente.js')           
+script(src='../js/validacionRegistroPaciente.js')           
 script(src='../js/buscarPaciente.js')

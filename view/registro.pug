@@ -6,10 +6,11 @@ head
   link(href='https://fonts.googleapis.com/css?family=Raleway|Ubuntu' rel='stylesheet')
   // Estilos
   link(rel='stylesheet' href='/styles/registro.css')
+  link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css')
   include includes/linkStyles.pug
   title Registro de Usuarios
 body
-include includes/navHome.pug 
+include includes/nav.pug 
 // Formularios
 .contenedor-formularios
   // Contenido de los Formularios
@@ -17,27 +18,48 @@ include includes/navHome.pug
     // Links de los formularios
     // Registrarse
     #registrarse
-      h1 Registrarse
-      form(action='#' method='post' name='form-register'  id='form-register')
+      h1 Registrar usuario
+      form(method='Post' action='crear' name='form-register' id='form-register')
         .contenedor-input
-          label(for="email") Email 
+          label(for="usuario") Usuario
             span.req *
-          input(type='email' required='' id="email" oninput='escuchaInput("email")')
+          input(type='text' required='' id="usuario"  name="usuario" oninput='escuchaInput("usuario")')
+          p(class="input-error" id='usuarioError') * Ingrese un usuario de al menos 6 caracteres 
+        .contenedor-input
+          label(for="rol") Rol
+            span.req *
+          select(name='rol' id="rol" oninput='escuchaInput("rol")' onchange='handleChange(event,`rol`)')
+                option(value="")
+                option(value="1") Administrador
+                option(value="3") Toma muestra  
+                option(value="2") Bioquimico
+                option(value="5") Técnico laboratorio
+                option(value="4") Recepcionista
+          p(class="input-error" id='rolError') * Seleccione rol.
         .contenedor-input
           label(for="pass")
             | Contrase&ntilde;a 
             span.req *
-          input(type='password' required='' id="pass" oninput='escuchaInput("pass")')
+          input(type='password' required='' id="pass" name="pass" maxlength='8' oninput='escuchaInput("pass")')
+          span(id='iconVer' style='display:inline-block')  
+             i.bi.bi-eye.iconVer
+          span(id='iconNoVer' style='display:none') 
+             i.bi.bi-eye-slash.iconNoVer
+          p(class="input-error" id='passError') * La Contraseña debe tener una longitud de 8 caracteres y al menos: una letra mayúscula, un número y un carácter especial(no espacios).
         .contenedor-input
           label(for="pass2")
             | Repetir Contrase&ntilde;a 
             span.req *
-          input(type='password' required='' id="pass2" oninput='escuchaInput("pass2")')
-        input.button.button-block(type='submit' value='Registrarse')
+          input(type='password' required='' id="pass2" name="pass2" maxlength='8' oninput='escuchaInput("pass2")')
+          span(id='iconVer2' style='display:inline-block')  
+             i.bi.bi-eye.iconVer2
+          span(id='iconNoVer2' style='display:none') 
+             i.bi.bi-eye-slash.iconNoVer2
+          p(class="input-error" id='pass2Error') * Las contraseñas deben ser iguales.
+        input.button.button-block(id='btnRegistrar' type='submit' value='Registrar')
         br
         br
-        span.iniciarSesion ¿Ya tienes una cuenta?  - 
+        //- span.iniciarSesion ¿Ya tienes una cuenta?  - 
           a(href='/login') Iniciar Sesión
-script(src='js/jquery.js')
-script(src='js/registro.js')
+    script(src='../js/registro.js')
 

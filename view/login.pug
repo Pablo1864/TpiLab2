@@ -7,7 +7,7 @@ head
   // Estilos
   link(rel='stylesheet' href='/styles/login.css')
   include includes/linkStyles.pug
-  title Formulario Login de Usuarios
+  title Formulario Iniciar Sesión
 body
 include includes/navHome.pug 
 // Formularios
@@ -20,24 +20,23 @@ include includes/navHome.pug
       span.errorInicioSesion *Error al iniciar sesión usuario o contraseña incorrectos
       br
       br
-      form(action='#' method='post')
+      form(method='post' action='/home' id='form-login')
         .contenedor-input
           label(for='usuario')
-            | Email 
+            | Usuario 
             span.req *
-          input(type='text' required='' id='usuario' oninput='escuchaInput("usuario")')
+          input(type='text' required='' id='usuario' name='usuario' oninput='escuchaInput("usuario")')
         .contenedor-input
           label(for='pass')
             | Contrase&ntilde;a 
             span.req *
-          input(type='password' required='' id='pass' oninput='escuchaInput("pass")')
+          input(type='password' required='' id='pass' name='pass' oninput='escuchaInput("pass")')
         p.forgot
-          a(href='/registro') Se te olvid&oacute; la contrase&ntilde;a?
+          a(href='usuario/login') ¡Cambia tu contrase&ntilde;a!
         input.button.button-block(type='submit' value='Iniciar Sesión')
     // Links de los formularios
-    ul.contenedor-tabs
-      li.tab.tab-primera 
-        span ¿Todavía no tienes una cuenta?  - 
-          a(href='/registro') Regístrate
-    script(src='js/jquery.js')
-    script(src='js/login.js')
+    //- ul.contenedor-tabs
+    //-   li.tab.tab-primera 
+    //-     span ¿Todavía no tienes una cuenta?  - 
+    //-       a(href='/registro') Regístrate
+    script(src='../js/login.js')

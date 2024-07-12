@@ -1,6 +1,7 @@
-import express, { text } from 'express';
-import bodyParser from 'body-parser'; // Importa body-parser
-import { Paciente } from './modelos/paciente.mjs'
+import express from 'express';
+import bodyParser from 'body-parser'; 
+import cookieParser from 'cookie-parser'//para guardar y consultar el token en cookie navegador
+//import { Paciente } from './modelos/paciente.mjs'
 import { Orden } from './modelos/orden.mjs';
 import { Examen } from './modelos/examen.mjs';
 import { Muestra } from './modelos/muestra.mjs';
@@ -8,145 +9,173 @@ import { Diagnostico } from './modelos/diagnostico.mjs';
 import { Medico } from './modelos/medico.mjs';
 import { Ordenes_diagnosticos } from './modelos/ordenes_diagnosticos.mjs';
 import { Ordenes_examenes } from './modelos/ordenes_examenes.mjs';
+//Rutas 
+import pacienteRutas from './rutas/pacientes.rutas.js'
+import authRutas from './rutas/auth.rutas.js'
+import homeRutas from './rutas/home.rutas.js'
 
+import methodOverride from 'method-override';
 const app = express();
+//Configura method-override para manejar los métodos PUT y DELETE
+app.use(methodOverride('_method'));
 
-// Configura body-parser para analizar los datos del formulario
-app.use(bodyParser.json());
+
+app.use(bodyParser.json());//body-parser para analizar los datos del formulario formato json
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.json()); // Hace lo mismo que bodyParser (bodyParser es su versión anterior, por así decirlo)
-// express.json viene ya con express sin necesidad de importarlo de otro módulo para obtener los JSON de los bodies.
-
+app.use(express.json()); // Hace lo mismo que bodyParser (bodyParser es su versión anterior).
+app.use(cookieParser());
 app.listen(3000, function () {
     console.log('La aplicación se inició en el puerto 3000');
 });
 
 app.set('views', './view');
 app.set('view engine', 'pug');
-
+app.use('/paciente',pacienteRutas);
+app.use('/usuario',authRutas);
+app.use('/',homeRutas);
 app.use(express.static('./public'));
 
-// Ruta inicial renderiza a paciente.pug
-app.get('/', async function (req, res) {
 
-    res.render('home');
+// // Ruta inicial renderiza a la home.pug
+// app.get('/', async function (req, res) {
+//     res.render('home');
+// });
 
-});
+// app.get('/home', async function (req, res) {
+//     const rol= req.body.rol;
+//     console.log(rol +' ruta home')
+//     res.render('home',{rol:rol});
+// });
+ 
+// //Login//
+// app.get('/login', function (req, res) {
+//     res.render('login');
+// });
+// //Registro
+// app.get('/registro', function (req, res) {
+//     res.render('registro');
+// });
 
 /////////////////////////////////////////////////////////////
 //region Pacientes
 
 //Registrar Paciente form registro paciente
-app.get('/registrarPaciente', function (req, res) {
-    res.render('registrarPaciente');
-});
+// app.get('/registrar', function (req, res) {
+//     res.render('registrarPaciente');
+// });
 
-app.get('/paciente', function (req, res) {
-    res.render('dataTablePaciente');
-});
+
+// app.get('/paciente', function (req, res) {
+//     res.render('dataTablePaciente');
+// });
 
 //guarda datos paciente y redirije a vista Registrar Paciente
-app.post('/registrarPaciente', async function (req, res) {
+// app.post('/registrarPaciente', async function (req, res) {
 
-    //console.log(req.body);
-    const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado } = req.body;
+//     const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado } = req.body;
 
-    const verificarSiExistePaciente = await Paciente.verificarPaciente(dni, email);
-    console.log(verificarSiExistePaciente)
-    if (verificarSiExistePaciente === 0) {
-        const data = await Paciente.agregarPaciente(nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado);
-        res.render('registrarPaciente', { validacionExitosa: true });
-    } else {
-        res.render('registrarPaciente', { validacionError: true });
+//     const verificarSiExistePaciente= await Paciente.verificarPaciente(dni,email);
+//     console.log(verificarSiExistePaciente)
+//      if(verificarSiExistePaciente===0)
+//      {
+//     const data = await Paciente.crearPaciente(nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado);
+//     res.render( 'registrarPaciente', {validacionExitosa: true});
+// } else{
+//     res.render( 'registrarPaciente', {validacionError: true});
 
-    }
-
-});
+// }
+    
+//}
+//Mostrar cartelito el paciente ya esta
+//);
 
 // RUTA PARA BUSCAR PACIENTE
-app.get('/buscarPaciente', async function (req, res) {
-    const todosPacientes = await Paciente.obtenerPacientes();
-    if (todosPacientes && todosPacientes.length) {
-        todosPacientes.forEach(paciente => {
-            //console.log(paciente.apellido);
-        });
-    }
-    res.render('buscarPaciente', { pacientes: todosPacientes });
-});
+// app.get('/buscarPaciente', async function (req, res) {
+//     const todosPacientes = await Paciente.obtenerPacientes();
+//     if (todosPacientes && todosPacientes.length) {
+//         todosPacientes.forEach(paciente => {
+//             //console.log(paciente.apellido);
+//         });
+//     }
+//     res.render('buscarPaciente', { pacientes: todosPacientes });
+// });
 
-app.get('/buscarPaciente/:datoBuscado', async function (req, res) {
-    const datoBuscado = req.params.datoBuscado;
-    if (datoBuscado && datoBuscado !== '') {
-        const pacienteBuscado = await Paciente.obtenerPacienteFiltrado(datoBuscado);
-        if (pacienteBuscado) {
-            res.render('buscarPaciente', { pacientes: pacienteBuscado });
-        } else {
-            console.log('No se encontró el paciente');
-        }
-    }
-});
+// app.get('/buscarPaciente/:datoBuscado', async function (req, res) {
+//     const datoBuscado = req.params.datoBuscado;
+//     if (datoBuscado && datoBuscado !== '') {
+//         const pacienteBuscado = await Paciente.obtenerPacienteFiltrado(datoBuscado);
+//         if (pacienteBuscado) {
+//             res.render('buscarPaciente', { pacientes: pacienteBuscado });
+//         } else {
+//             console.log('No se encontró el paciente');
+//         }
+//     }
+// });
 
-app.post('/actualizarPaciente', async function (req, res) {
-    const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado, idPaciente } = req.body;
-    console.log(req.body)
-    try {
-        const pacientes = await Paciente.actualizarPaciente(idPaciente, nombre, apellido, provincia, localidad, domicilio, email, telefono, sexo, obraSocial, numeroAfiliado, fechaNac, dni);
-        // render('buscarPaciente',{modalExito:true},{dataTableVisible:true});
-        res.redirect('/buscarPaciente')
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
+// app.post('/actualizarPaciente', async function (req, res){
+//     const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado,idPaciente } = req.body;
+//     console.log(req.body)
+//     try {
+//         const pacientes = await Paciente. actualizarPaciente(idPaciente,nombre,apellido,provincia,localidad,domicilio,email,telefono,sexo,obraSocial,numeroAfiliado,fechaNac,dni);
+//        // render('buscarPaciente',{modalExito:true},{dataTableVisible:true});
+//         res.redirect('/buscarPaciente')
+//     } catch (err) {
+//         console.log(err);
+//         res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// });
 
 // RUTA PARA ELIMINAR PACIENTE
-app.get('/delete/:id', function (req, res) {
-    let id = req.params.id;
-    Paciente.borrarPaciente(id);
-    res.redirect('/');
-});
+// app.get('/delete/:id', function (req, res) {
+//     let id = req.params.id;
+//     Paciente.borrarPaciente(id);
+//     res.redirect('/');
+// });
 
-app.get('/resultados', (req, res) => {
-    res.render('resultados', {
-        estado: 'noHuboBusqueda'
-    });
-});
+// app.get('/paciente/buscarPorMail/:mail', async (req, res) => {
+//     const mail = req.params.mail;
+//     try {
+//         const pacientes = await Paciente.obtenerPacientePorMail(mail);
+//         const data = pacientes;
+//         res.json(data);
+//     } catch (err) {
+//         console.log(err);
+//         res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// });
 
-app.get('/paciente/buscarPorMail/:mail', async (req, res) => {
-    const mail = req.params.mail;
-    try {
-        const pacientes = await Paciente.obtenerPacientePorMail(mail);
-        const data = pacientes;
-        res.json(data);
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
+// app.get('/paciente/buscarPorApe/:apellido', async (req, res) => {
+//     const apellido = req.params.apellido;
+//     try {
+//         const pacientes = await Paciente.obtenerPacientesPorApellido(apellido);
+//         const data = pacientes;
+//         res.json(data);
+//     } catch (err) {
+//         console.log(err);
+//         res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// });
 
-app.get('/paciente/buscarPorApe/:apellido', async (req, res) => {
-    const apellido = req.params.apellido;
-    try {
-        const pacientes = await Paciente.obtenerPacientesPorApellido(apellido);
-        const data = pacientes;
-        res.json(data);
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
+// app.get('/paciente/buscarPorDni/:dni', async (req, res) => {
+//     const dni = req.params.dni;
+//     try {
+//         const pacientes = await Paciente.obtenerPacienteFiltrado(dni);
+//         const data = pacientes;
+//         res.json(data);
+//     } catch (err) {
+//         console.log(err);
+//         res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// });
 
-app.get('/paciente/buscarPorDni/:dni', async (req, res) => {
-    const dni = req.params.dni;
-    try {
-        const pacientes = await Paciente.obtenerPacienteFiltrado(dni);
-        const data = pacientes;
-        res.json(data);
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
+// app.get('/paciente/buscarTodos', async (req, res) => {
+//     try {
+//         const pacientes = await Paciente.obtenerPacientesTodos();
+//         res.json(pacientes);
+//     } catch (err){
+//         res.status(500).json({error: 'Internal Server Error'})
+//     }
+// });
 
 app.get('/ordenes/buscarTodos', async (req, res) => {
     try {
@@ -201,6 +230,12 @@ app.put('/resultados/muestra/:id', async (req, res) => {
         console.log(err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
+});
+
+app.get('/resultados', (req, res) => {
+    res.render('resultados', {
+        estado: 'noHuboBusqueda'
+    });
 });
 
 // ÓRDENES

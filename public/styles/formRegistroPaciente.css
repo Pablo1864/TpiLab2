@@ -48,6 +48,7 @@ h1#titulo{
   padding:10px 10px 10px 30px;
   font: 11px/20px'Open Sans', Verdana, Helvetica, sans-serif;
   margin-bottom:10px;
+  font-size: 14px;
 }
 #contact #form select{
     float:left;
