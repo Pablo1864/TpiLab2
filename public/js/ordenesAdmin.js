@@ -34,6 +34,15 @@ document.getElementById('ordenesInput').addEventListener('input', (event) => {
 
 $(document).ready(function () {
 
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        //add class for better styling
+    })
+
     function formatDateT(stringDate) {
         const options = {
             year: 'numeric',
@@ -158,53 +167,62 @@ $(document).ready(function () {
             console.log(data);
         } catch (err) {
             errArr.push(err);
+            await Toast.fire({ //to test
+                icon: 'error',
+                title: 'Error al buscar las muestras!',
+                text: errArr.join(', ')
+            });
         }
         if (data.length > 0) {
             try {
-                arrayCheckboxes = data.map(ex => ex.tipoAnalisis);
+                console.log(data);
+                const arrayCheckboxes = data.map(ex => ex.tipoAnalisis);
+                const checkboxesHtml = arrayCheckboxes.map(op=> 
+                    `<input class="form-check-input" type="checkbox" id="${op}" name="${op}">
+                    <label class="form-check-label" for="${op}">${op}</label><br>`
+                ).join('');
                 console.log(arrayCheckboxes);
+                console.log(checkboxesHtml);
                 const { value: muestracheck } = await Swal.fire({
                     title: 'Muestras requeridas para la orden nro ' + ordenId,
-                    text: 'Marque las muestras que desea ingresar:',
-                    input: 'checkbox',
-                    inputValue: 1,
-                    inputPlaceholder: 'Seleccione las muestras:',
-                    inputOptions: arrayCheckboxes.reduce((obj, muestra, index) => {
-                        obj[index] = muestra;
-                        return obj;
-                    }, {}),
-                    inputValidator: (muestracheck) => {
-                        if (muestracheck.length === 0) {
-                            return 'Debe checkear!'
-                        }
+                    html: `<div class="form-check text-start"><p>Marque las muestras que desea ingresar: </p>${checkboxesHtml}<div>`,
+                    //inputPlaceholder: 'Seleccione las muestras:',
+                    focusConfirm: false,
+                    preConfirm:()=>{
+                        const selectedCheckboxes=[];
+                        arrayCheckboxes.forEach((op)=>{
+                            if(document.getElementById(op).checked){
+                                selectedCheckboxes.push(op);
+                            }
+                        });
+                        return selectedCheckboxes;
                     },
                     showCancelButton: true,
                     confirmButtonText: 'Imprimir las muestras ingresadas',
                     cancelButtonText: 'Cancelar',
-                    inputValidator: (muestracheck) => {
-                        if (muestracheck.length === 0) {
-                            return 'Debe checkear!'
-                        }
-                    }
                 });
 
-                if (muestracheck.isConfirmed) {
-                    const muestrasChecked = muestracheck.value.map(index => muestras[index]);
-                    await Swal.fire({
+                if (muestracheck) {
+                    await Toast.fire({
+                        icon: 'success',
                         title: 'Muestras seleccionadas: ',
-                        text: muestrasChecked.join(', '),
-                        icon: 'success'
+                        text: muestracheck.join(', ')
                     });
+                    //await Swal.fire({
+                     //   title: 'Muestras seleccionadas: ',
+                       // text: muestracheck.join(', '),
+                        //icon: 'success'
+                    //});
 
                 };
             } catch (err) {
-
+                console.error(err);
             }
         };
     });
     let pExam = document.createElement('p');
     pExam.classList = 'form-text text-danger';
-    pExam.innerText = 'No se encontraron ordenes, pruebe con otro id, apellido de paciente, o busque todos y filtre desde allí.';
+    pExam.innerText = 'No se encontraron ordenes, pruebe con otro id, apellido de paciente, o busque todos dejando la caja vacia y filtre desde allí.';
     document.getElementById('buscarOrdenes').addEventListener('click', () => {
         buscarOrdenes(tableOrdenes, 'ordenesInput', pExam, 'divOrdenesError');
     })

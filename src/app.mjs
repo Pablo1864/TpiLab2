@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { text } from 'express';
 import bodyParser from 'body-parser'; // Importa body-parser
 import { Paciente } from './modelos/paciente.mjs'
 import { Orden } from './modelos/orden.mjs';
@@ -205,11 +205,182 @@ app.put('/resultados/muestra/:id', async (req, res) => {
 
 // ÓRDENES
 
-app.get('/ordenes', (req, res) => {
+async function agruparData(data){
+    const orden = {};
+    //console.log("agrupando data: ", data);
+    data.forEach(row => {
+        if (!orden[row.nroOrden]) {
+            orden[row.nroOrden] = {
+                nroOrden: row.nroOrden,
+                estado: row.estado,
+                fechaCreacion: row.fechaCreacion,
+                //muestrasEnEspera: row.muestrasEnEspera,
+                //razonCancelacion: row.razonCancelacion,
+                //muestrasEnEspera: row.muestrasEnEspera,
+                paciente:{
+                    idPaciente: row.idPaciente,
+                    nombre: row.nombrePaciente,
+                    apellido: row.apellidoPaciente,
+                    dni: row.dni,
+                    email: row.emailPaciente,
+                    provincia: row.provincia,
+                    localidad: row.localidad,
+                    domicilio: row.domicilio,
+                    fechaNacimiento: row.fechaNacimiento,
+                    obraSocial: row.obraSocial,
+                    nroAfiliado: row.nroAfiliado,
+                    telefono: row.telefono,
+                    sexo: row.sexo
+                },
+                medico:{
+                    idMedico: row.idMedico,
+                    nombre: row.nombreMedico,
+                    apellido: row.apellidoMedico,
+                    matricula: row.matricula,
+                    email: row.emailMedico
+                },
+                examenes: [],
+                muestras: [],
+                diagnosticos: []
+            }
+        }
+        if (row.idExamenes && !orden[row.nroOrden].examenes.some(e => e.idExamenes === row.idExamenes)) {
+            orden[row.nroOrden].examenes.push({
+                idExamenes: row.idExamenes,
+                nombre: row.nombreExamen,
+                requerimiento: row.requerimiento,
+                tipoAnalisis: row.tipoRequerimientoExamen,
+                diasDemora: row.diasDemora,
+                otrosNombres: row.otrosNombres
+            });
+        }
+        if (row.idMuestra && !orden[row.nroOrden].muestras.some(e => e.idMuestra === row.idMuestra)) {
+            orden[row.nroOrden].muestras.push({
+                idMuestra: row.idMuestra,
+                tipo : row.tipoRequerimientoMuestra,
+                estado: row.estadoMuestra
+            });
+        }
+        if (row.idDiagnostico && !orden[row.nroOrden].diagnosticos.some(e => e.idDiagnostico === row.idDiagnostico)) {
+            orden[row.nroOrden].diagnosticos.push({
+                idDiagnostico: row.idDiagnostico,
+                nombre: row.nombreDiagnostico,
+                otrosTerminos: row.otrosTerminos
+            });
+        }
+    })
+
+    return Object.values(orden);
+}
+
+const renderCreateOrden = (req, res) => {
+    res.locals.state = 'create';
     res.render('ordenes');
+}
+
+app.get('/ordenes/crear', renderCreateOrden);
+
+app.get('/ordenes', renderCreateOrden);
+
+app.get('/ordenes/editar/:id', async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    try {
+        if (!validateNumber(id)) {
+            const error = new Error('Datos invalidos');
+            error.code = 'INVALID_DATA';
+            throw error;
+        }
+        const ordenRes = await Orden.buscarDataOrden(id);
+        const orden = await agruparData(ordenRes);
+        res.locals.state = 'edit';
+        res.locals.ordenData = orden;
+        res.render('ordenes');
+
+    } catch (error) {
+        console.log("error en editar route", error);
+        if (error.code === 'INVALID_DATA') {
+            res.status(400).json({ error: 'No se enviaron datos validos!' });
+        } else {
+            res.status(500).json({ error: 'Error al crear la orden!' });
+        }
+    }
+
 });
 
-app.get('/ordenes/buscarPorMail/:mail', async (req, res) => {
+app.post(('/ordenes/crear'), async (req, res) =>{
+    const dataOrden = req.body;
+    console.log(dataOrden);
+    try {
+        if (!dataOrden || validateNumber(dataOrden.idPaciente) == false || 
+        validateNumber(dataOrden.idMedico) == false ||
+        (
+        dataOrden.estado.toLowerCase() != 'ingresada' && dataOrden.estado.toLowerCase() != 'analitica' && 
+        dataOrden.estado.toLowerCase() != 'analítica' && dataOrden.estado.toLowerCase() != 'esperando toma de muestras')
+    ){
+            const error = new Error('No se enviaron datos validos!');
+            error.code = 'INVALID_DATA';
+            throw error;
+        }
+        for (const id of dataOrden.idDiagnosticosArr){
+            if (validateNumber(id) == false){
+                const error = new Error('No se enviaron datos validos!');
+                error.code = 'INVALID_DATA';
+                console.log("Error en segundo if");
+                throw error;
+            }
+        }
+        for (const obj of dataOrden.examenesArr){
+            if (validateNumber(obj.idExamen) == false){
+                const error = new Error('No se enviaron datos validos!');
+                error.code = 'INVALID_DATA';
+                console.log("Error en tercer if");
+                throw error;
+            }
+        }
+
+        const ordenRes = await Orden.crearOrdenConRelaciones(dataOrden.idMedico, dataOrden.idPaciente, dataOrden.estado, dataOrden.idDiagnosticosArr, dataOrden.examenesArr) //idDiagnosticosArr es un array de ids, examenesArr es un array de objectos({idExamen, tipo})
+        res.json(ordenRes);
+    } catch(err){
+        console.log(err);
+        if (err.code === 'INVALID_DATA') {
+            res.status(400).json({ error: 'No se enviaron datos validos!' });
+        } else {
+            res.status(500).json({ error: 'Error al crear la orden.' });
+        }
+    }
+});
+
+app.put('/ordenes/editar/:id', async (req, res) => {  //check
+    const id = parseInt( req.params.id, 10 );
+    const body = req.body;
+    try {
+        console.log("body: ", body);
+        if (!id || !validateNumber(id) || !body || !validateNumber(body.idPaciente) || !validateNumber(body.idMedico)
+        || !body.estado || !body.idDiagnosticosArr || !body.idExamenesArr
+        || body.idDiagnosticosArr.some(e => !validateNumber(e)) || body.idExamenesArr.some(e => !validateNumber(e))
+        || (body.estado.toLowerCase() != 'ingresada' && body.estado.toLowerCase() != 'esperando toma de muestras')
+        ) {
+            const error = new Error('No se enviaron datos validos!');
+            console.log("Error en primer if");
+            error.code = 'INVALID_DATA';
+            throw error;
+        }
+        
+        //const resultado = await Orden.updateOrden(id, body);
+        //console.log("resultado: ", resultado);
+        res.json(id);
+        
+    } catch (err) {
+        console.log(err);
+        if (err.code === 'INVALID_DATA') {
+            res.status(400).json({ error: 'No se enviaron datos validos!' });
+        } else {
+            res.status(500).json({ error: 'Error al editar la orden.' });
+        }
+    }
+});
+
+app.get('/ordenes/buscarPorMail/:mail', async (req, res) => {  //check
     const mail = req.params.mail;
     try {
         const pacientes = await Paciente.obtenerPacientePorMail(mail);
@@ -221,7 +392,7 @@ app.get('/ordenes/buscarPorMail/:mail', async (req, res) => {
     }
 });
 
-app.get('/ordenes/buscarPorApe/:apellido', async (req, res) => {
+app.get('/ordenes/buscarPorApe/:apellido', async (req, res) => {  //check
     const apellido = req.params.apellido;
     try {
         const pacientes = await Paciente.obtenerPacientesPorApellido(apellido);
@@ -233,7 +404,7 @@ app.get('/ordenes/buscarPorApe/:apellido', async (req, res) => {
     }
 });
 
-app.get('/ordenes/buscarPorDni/:dni', async (req, res) => {
+app.get('/ordenes/buscarPorDni/:dni', async (req, res) => {  //check
     const dni = req.params.dni;
     try {
         const pacientes = await Paciente.obtenerPacienteFiltrado(dni);
@@ -245,156 +416,112 @@ app.get('/ordenes/buscarPorDni/:dni', async (req, res) => {
     }
 });
 
-app.get('/ordenes/buscarTodos', async (req, res) => {
+app.get('/ordenes/buscarTodos', async (req, res) => {  //check
     try {
         const pacientes = await Paciente.obtenerPacientesTodos();
         res.json(pacientes);
     } catch (err) {
         res.status(500).json({ error: 'Internal Server Error' })
+    } catch (err){
+        if (err.code === 'ECCONNREFUSED') {
+            res.status(500).json({error: 'Error de conexión con la base de datos'});
+        } else {
+            res.status(500).json({error: 'Error al buscar Pacientes'})
+        }
+        
     }
 });
 
-app.get('/ordenes/diagnosticos/buscarPorId/:id', async (req, res) => {
+app.get('/ordenes/diagnosticos/buscarPorId/:id', async (req, res) => {  //check
     const id = req.params.id;
     try {
         const diagno = await Diagnostico.buscarDiagnosticoPorId(id);
         res.json(diagno);
     } catch (err) {
         res.status(500).json({ error: 'Internal Server Error' })
+    } catch (err){
+        res.status(500).json({error: 'Error al buscar Diagnosticos por id'})
     }
 })
 
-app.get('/ordenes/diagnosticos/buscarPorNombre/:nombre', async (req, res) => {
+app.get('/ordenes/diagnosticos/buscarPorNombre/:nombre', async (req, res) => {  //check
     const nombre = req.params.nombre;
     try {
         const diagnos = await Diagnostico.buscarDiagnosticosPorNombres(nombre);
         res.json(diagnos);
-    } catch (err) {
-        res.status(500).json({ error: 'Internal Server Error' })
+    } catch (err){
+        res.status(500).json({error: 'Error al buscar Diagnosticos por nombre'})
     }
 })
 
-app.get('/ordenes/diagnosticos/buscarTodos', async (req, res) => {
+app.get('/ordenes/diagnosticos/buscarTodos', async (req, res) => {  //check
     try {
         const diagnos = await Diagnostico.buscarDiagnosticosTodos();
         res.json(diagnos);
-    } catch (err) {
-        res.status(500).json({ error: 'Internal Server Error' })
+    } catch (err){
+        res.status(500).json({error: 'Error al buscar Diagnosticos'})
     }
 })
 
-async function iterarArrOrden(array, nroOrden, fun) {
-    const errores = [];
-    for (const id of array) {
-        try {
-            await fun(nroOrden, id);
-        } catch (err) {
-            errores.push({ id: id, error: err });
-        }
-    }
-    return errores;
-}
-
-app.post(('/ordenes/crearOrden'), async (req, res) => {
-    const dataOrden = req.body;
-    try {
-        const ordenRes = await Orden.crearOrden(dataOrden);
-        let diagnosticosRes = [];
-        let examenesRes = [];
-        if (ordenRes.affectedRows > 0) {
-            diagnosticosRes = await iterarArrOrden(dataOrden.arrayIdsDiagnosticos, ordenRes.insertId, Ordenes_diagnosticos.createRelationship);
-            examenesRes = await iterarArrOrden(dataOrden.arrayIdsExamenes, ordenRes.insertId, Ordenes_examenes.createRelationship);
-        }
-        res.json({
-            orden: ordenRes,
-            diagnostico: diagnosticosRes,
-            examenes: examenesRes
-        });
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
-app.put(('/ordenes/updateOrden/:id'), async (req, res) => {
-    const idOrden = req.params.id;
-    const dataOrden = req.body;
-    try {
-        const resp = await Orden.updateExistingOrder(id, dataOrden);
-        let diagnosticosRes = [];
-        let examenesRes = [];
-        if (res.affectedRows > 0) {
-            diagnosticosRes = await iterarArrOrden(dataOrden.arrayIdsDiagnosticos, res.insertId, Ordenes_diagnosticos.createRelationship);
-            examenesRes = await iterarArrOrden(dataOrden.arrayIdsExamenes, res.insertId, Ordenes_examenes.createRelationship);
-        }
-        res.json(resp);
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
-//examenes en ordenes - busqueda
-
-app.get('/ordenes/examenes/buscarTodos', async (req, res) => {
+app.get('/ordenes/examenes/buscarTodos', async (req, res) =>{  //check
     const id = req.params.id;
     try {
         const examenes = await Examen.buscarExamenesActivo();
         res.json(examenes);
     } catch (err) {
         console.log(err);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+        res.status(500).json({ error: 'Error al obtener los examenes.' });
+    } 
 })
 
-app.get('/ordenes/examenes/buscarPorId/:id', async (req, res) => {
+app.get('/ordenes/examenes/buscarPorId/:id', async (req, res) => {  //check
     const id = req.params.id;
     try {
         const examenes = await Examen.buscarExamenPorID(id);
         res.json(examenes);
     } catch (err) {
         console.log(err);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Error al obtener los examenes por id.' });
     }
 });
 
-app.get('/ordenes/examenes/buscarPorNombre/:nombre', async (req, res) => {
+app.get('/ordenes/examenes/buscarPorNombre/:nombre', async (req, res) => {  //check
     const nombre = req.params.nombre;
     try {
         const examenes = await Examen.buscarExamenPorNombre(nombre);
         res.json(examenes);
     } catch (err) {
         console.log(err);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Error al obtener los examenes por nombre.' });
     }
 });
 
-app.get('/buscarMedicosPorApellido/:apellido', async (req, res) => {
+app.get('/buscarMedicosPorApellido/:apellido', async (req, res) => { //check
     const apellido = req.params.apellido;
     try {
         const medicos = await Medico.buscarMedicoPorApellido(apellido);
         res.json(medicos);
     } catch (err) {
         console.log(err);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Error al obtener los medicos por apellido.' });
     }
 });
 
-app.get('/buscarTodosLosMedicos', async (req, res) => {
+app.get('/buscarTodosLosMedicos', async (req, res) => {  //check
     try {
         const medicos = await Medico.buscarTodosMedicos();
         res.json(medicos);
     } catch (err) {
         console.log(err);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Error al obtener los medicos' });
     }
 });
 
-app.get('/ordenesAdministracion', async (req, res) => {
+app.get('/ordenesAdministracion', async (req, res)=>{  //check
     res.render('ordenesAdmins')
 });
 
-app.patch('/cancelarOrden/:id', async (req, res) => {
+app.patch('/cancelarOrden/:id', async (req, res) => {  //check
     const idOrden = req.params.id;
     const razon = req.body;
     try {
@@ -406,7 +533,7 @@ app.patch('/cancelarOrden/:id', async (req, res) => {
     }
 });
 
-app.get('/buscarMuestraNecesariasPorOrden/:id', async (req, res) => {
+app.get('/buscarMuestraNecesariasPorOrden/:id', async (req, res) => {  //check
     const idOrden = req.params.id;
     try {
         const muestras = await Examen.buscarMuestrasNecesariasPorNroOrden(idOrden);
@@ -417,51 +544,129 @@ app.get('/buscarMuestraNecesariasPorOrden/:id', async (req, res) => {
     }
 });
 
-app.get('/Ordenes/buscarOrdenesTodas', async (req, res) => {
+app.get('/Ordenes/buscarOrdenesTodas', async (req, res) => {  //check
     try {
         const ordenes = await Orden.buscarTodas();
         res.json(ordenes);
     } catch (err) {
-        console.log(err);
-        res.status(500).json({ error: 'Internal Server Error' });
+        if (err.code == 'ECONNREFUSED') {
+            res.status(500).json({ error: 'No se pudo conectar con la base de datos. Intente mas tarde.' });
+        } else {
+            res.status(500).json({ error: 'Error al obtener las ordenes.' });
+        }
+        
     }
 });
 
-app.get('/ordenes/buscarOrdenesPorApellido/:apellido', async (req, res) => {
+ app.get('/ordenes/buscarOrdenesPorApellido/:apellido', async (req, res)=>{  //check
     const ape = req.params.apellido;
     try {
         const ordenes = await Orden.buscarOrdenPorApellidoPaciente(ape);
         res.json(ordenes);
     } catch (err) {
         console.log(err);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Error al obtener las ordenes por apellido del paciente.' });
     }
 });
 
-app.get('/ordenes/buscarOrdenesPorId/:id', async (req, res) => {
+app.get('/ordenes/buscarOrdenesPorId/:id', async (req, res)=>{ //check
     const id = req.params.id;
     try {
         const ordenes = await Orden.buscarOrdenDataPorId(id);
         res.json(ordenes);
     } catch (err) {
         console.log(err);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Error al obtener las ordenes por Id.' });
     }
 });
-/*
-app.get('/cargarMuestras/:id', async (req, res) => {
-    const IdOrden = req.params.id;
+
+app.patch('/ordenes/modificarMuestras', async (req, res) => {
+    const dataMuestra = req.body; //datos = {arrayidMuestras, idOrden, estado}
     try {
-        const resp = await Orden.traerExamenesDeOrden(IdOrden);
-        console.log(resp);
-        res.render('cargarMuestras', {
-            ordenData: resp,
-        })
-    } catch (err){
-        res.status(500).json({error: 'Internal Server Error'})
+        
+        if (!dataMuestra || !dataMuestra.arrayidMuestras || !dataMuestra.idOrden || !validateNumber(dataMuestra.idOrden) ||
+            dataMuestra.arrayidMuestras.length < 1 || 
+            dataMuestra.arrayidMuestras.some(e => !validateNumber(e)) ||
+            (dataMuestra.estado != 0 && dataMuestra.estado != 1)
+        ) {
+            const error = new Error('No se enviaron datos validos!');
+            error.code = 'INVALID_DATA';
+            throw error;
+        }
+        const result = await Muestra.actualizarEstadoMuestras(dataMuestra.arrayidMuestras, dataMuestra.estado, dataMuestra.idOrden);
+        res.json(result);
+    } catch (err) {
+        console.log(err);
+        if (err.code == 'ECONNREFUSED') {
+            res.status(500).json({ error: 'No se pudo conectar con la base de datos. Intente mas tarde.' });
+        } else if (err.code == 'INVALID_DATA') {
+            res.status(400).json({ error: 'No se enviaron datos validos.' });
+        } else {
+            res.status(500).json({ error: 'Error al agregar muestra.' });
+        }
+        
     }
-   
-}); */
+});
+
+app.post('/ordenes/datasample', async (req, res) => {
+    const data = req.body; // data = {idOrden, tipoMuestra}
+    try {
+        if (!data || !data.idOrden || !validateNumber(data.idOrden) || !data.tipoMuestra) {
+            const error = new Error('No se enviaron datos validos!');
+            error.code = 'INVALID_DATA';
+            throw error;
+        }
+        const result = await Orden.buscarOrdenDataPorOrdenTipo(data.idOrden, data.tipoMuestra);
+        res.json(result);
+    } catch (err) {
+        console.log("en app", err);
+        if (err.code === 'ER_NO_REFERENCED_ROW_1') {
+            res.status(400).json({ error: 'No se encontro la orden!' });
+        } else if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+            res.status(400).json({ error: 'No se encontro la muestra!' });
+        } else if (err.code === 'ECONNREFUSED') {
+            res.status(500).json({ error: 'No se pudo conectar con la base de datos. Intentelo más tarde.' });
+        } else {
+            res.status(500).json({ error: 'Error al buscar la muestra.' });
+        }
+    }
+});
+
+app.patch('/ordenes/updateEstado/:id', async (req, res) => {
+    const id = parseInt( req.params.id, 10 );
+    const data = req.body;
+    console.log(id, data, req.body);
+    console.log(validateNumber(id));
+    try {
+        if (validateNumber(id) && data.estado.length > 0 ) {
+            const result = await Orden.cambiarEstado(id, data.estado);
+            res.json(result);
+        } else {
+            const error = new Error('No se enviaron datos validos!');
+            error.code = 'INVALID_DATA';
+            throw error;
+        }
+    } catch (err) {
+        console.log(err);
+        if (err.code === 'INVALID_DATA') {
+            res.status(400).json({ error: 'No se enviaron datos validos!' });
+        } else if (err.code === 'ER_NO_REFERENCED_ROW_1') {
+            res.status(400).json({ error: 'No se encontro la orden!' });
+        } else if (err.code === 'ECONNREFUSED') {
+            res.status(500).json({ error: 'No se pudo conectar con la base de datos. Intentelo mas tarde.' });
+        } else {
+            res.status(500).json({ error: 'Error al actualizar el estado de la orden.' });
+        }
+    }
+})
+
+function validateNumber(data){
+    if (typeof data === 'number' && !isNaN(data) && data > 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
 // FIN DE ÓRDENES
 

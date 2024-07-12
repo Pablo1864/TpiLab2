@@ -1,4 +1,4 @@
-import { conexion } from '../mysql.conexion.mjs';
+import { conexion, getConnection, query } from '../mysql.conexion.mjs';
 
 export class Examen {
 
@@ -30,18 +30,28 @@ export class Examen {
     }
 
     static async buscarExamenPorID(id) {
-        return new Promise((resolve, reject) => {
-            const sql = 'SELECT * FROM examenes WHERE idExamenes = ? AND estado = 1';
-            conexion.query(sql, [id], (err, res, field) => {
-                if (err) {
-                    console.error('Error al buscar el examen por ID:', err);
-                    reject(err);
-                } else {
-                    console.log('Datos del examen encontrado:', res);
+        const con = await getConnection();
+        console.log(id);
+        try {
+            const sql = 'SELECT * FROM examenes WHERE idExamenes = ? AND habilitado = 1';
+            /*return new Promise((resolve, reject) => {
+            con.query(sql, [id], (err, res, field) => {
+                if (res) {
                     resolve(res);
                 }
-            });
-        });
+            });})
+            */
+
+            const res = await query(sql, [id], con);
+            return res;
+            
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            console.log('finally: releasing connection');
+            if (con) con.release();
+        }
     }
 
 

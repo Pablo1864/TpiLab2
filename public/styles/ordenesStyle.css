@@ -1,38 +1,142 @@
-.error{
-    
-    border-color: red;
-    border-width: 2px;
+.error {
+  border-color: red;
+  border-width: 2px;
 }
 
-.form-control.correct:focus{
-    box-shadow: 0 0 0 0.25rem rgb(67 230 91 / 25%);
-    border-color: #6dc17c
+.form-control.correct:focus {
+  box-shadow: 0 0 0 0.25rem rgba(137, 196, 146, 0.25);
+  border-color: #6dc17c;
 }
 
-.form-control.error:focus{
-    box-shadow: 0 0 0 0.25rem rgba(230, 67, 67, 0.25);
-    border-color: #c16d6d
+.form-control.error:focus {
+  box-shadow: 0 0 0 0.25rem rgba(230, 67, 67, 0.25);
+  border-color: #c16d6d;
 }
 
 .form-control:focus {
-    box-shadow: 0 0 0 0.25rem rgb(153 220 244 / 25%);
-    border-color: rgb(78 114 178)
+  box-shadow: 0 0 0 0.25rem rgb(153 220 244 / 25%);
+  border-color: rgb(78 114 178);
 }
 
 .correct {
-    
-    border-color: green;
-    border-width: 2px;
+  border-color: rgb(103, 193, 106);
+  border-width: 2px;
 }
 
-.custom-row-class{
-    max-height: 50px;
-    overflow: hidden;
-    transition: max-height 0.3s ease;
+.custom-row-class {
+  max-height: 50px;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
 }
 
-.custom-row-class.expanded{
-    max-height: none;
+.custom-row-class.expanded {
+  max-height: none;
+}
+
+.disable-table {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.colored-toast .swal2-icon.swal2-error .swal2-x-mark-line-left,
+.colored-toast .swal2-icon.swal2-error .swal2-x-mark-line-right,
+.colored-toast .swal2-icon.swal2-success .swal2-success-line-tip,
+.colored-toast .swal2-icon.swal2-success .swal2-success-line-long {
+  background-color: white !important;
+}
+
+.colored-toast-icon {
+  color: white !important;
+}
+
+.colored-toast .swal2-icon.swal2-error,
+.colored-toast .swal2-icon.swal2-success .swal2-success-ring {
+  border-color: white !important;
+}
+
+.colored-toast .swal2-content,
+.colored-toast .swal2-title {
+  color: white !important;
+}
+
+.colored-toast.swal2-icon-error {
+  background-color: #f27474 !important;
+}
+
+.colored-toast.swal2-icon-success {
+  background-color: #a5dc86 !important;
+}
+
+.label-template {
+  margin: 10px;
+  page-break-inside: avoid;
+  font-family: Arial, sans-serif;
+  position: unset;
+  width: 4cm;
+  height: 2cm;
+  background-color: white;
+  border: 1px solid black;
+  border-radius: 3px;
+  line-height: normal;
+}
+
+.label-template p:not(.fecha) {
+  width: 3.9cm;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.label-template p {
+  font-size: 0.35cm;
+  padding: 0.0cm 0.05cm;
+  margin: 0;
+}
+
+.label-template .fecha {
+  font-size: 0.31cm;
+}
+
+#container-label{
+  display: none;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #container-label,
+  #container-label * {
+    display: block;
+    visibility: visible;
+  }
+
+  #container-label {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+}
+
+table.dataTable tbody tr.highlight-row {
+  background-color: #e6ddc2 !important;
+  --bs-table-bg: #e6ddc2 !important;
+}
+
+table.dataTable tbody tr.highlight-existing-row {
+  background-color: #085522 !important;
+  -webkit-transition: background-color 1s ease-out;
+  -moz-transition: background-color 1s ease-out;
+  -o-transition: background-color 1s ease-out;
+  transition: background-color 1s ease-out;
+}
+
+button.accordion-button:disabled {
+  cursor: not-allowed;
+  pointer-events: all !important;
+  opacity: 0.7;
+
 }
 
 /* #table_patients tbody td:first-child {
