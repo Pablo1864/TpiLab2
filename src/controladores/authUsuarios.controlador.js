@@ -13,7 +13,8 @@ export const login= async (req, res)=>{
     //si el usuario exite devuelve la passhash sino 0
     const user = await Usuario.verificarUsuario(usuario);
     if(user===0)
-       res.json("EL usuario no existe")
+       //res.json("EL usuario no existe")
+    res.render('login',{validacion: false})
           
     else{
        //el usuario exite controlo que coincida su pass y user
@@ -32,7 +33,7 @@ export const login= async (req, res)=>{
                 res.cookie('token', token, { httpOnly: true });
                 res.cookie('id', id, { httpOnly: true });
                 //renderiza a la home, con nav dependiendo el rol
-                res.render('home', {rol:rol, token})
+                res.render('home', {rol:rol})
           
             }
         
@@ -42,13 +43,16 @@ export const login= async (req, res)=>{
 
             //res.json( 'las credenciales son correctas tome el token '+ token)
         }
-        else res.json("La contraseña es incorrecta")
+        else res.render('login',{validacion: false}) //res.json("La contraseña es incorrecta")
         
      }  
     };
 
 export const logout= async (req, res)=>{
-
+    res.clearCookie('token'); // Eliminar la cookie
+    res.clearCookie('id');
+    //res.render('home', {rol:0})
+    res.redirect('/')
 };
 
 export const registroUsuariosVista= async (req, res)=>{

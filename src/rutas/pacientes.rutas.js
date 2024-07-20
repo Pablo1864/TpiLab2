@@ -1,5 +1,5 @@
 import {Router} from 'express'
-import {verificarToken, esAdminOrRecepcionista} from '../middlewares/autorizacion.js'
+import {verificarToken, esAdminOrRecepcionista,todosMenosPaciente} from '../middlewares/autorizacion.js'
 const router= Router();
 
 
@@ -10,9 +10,9 @@ router.get('/registro',[verificarToken,esAdminOrRecepcionista], pacienteControll
 // registra al paciente
 router.post('/registro',[verificarToken,esAdminOrRecepcionista], pacienteController.registrarPaciente);
 // solo devuelve la vista de buscar paciente
-router.get('/buscar',pacienteController.pacienteBuscarView);
+router.get('/buscar',[verificarToken,todosMenosPaciente],pacienteController.pacienteBuscarView);
 // actualiza paciente y mantiene ruta de la vista actual
-router.put('/buscar', pacienteController.actualizarPaciente);
+router.put('/buscar',[verificarToken,todosMenosPaciente], pacienteController.actualizarPaciente);
 
 router.get('/buscarPorMail/:mail', pacienteController.buscarPorEmail);
 

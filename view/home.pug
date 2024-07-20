@@ -17,12 +17,6 @@ html
     - if(rol===6)
         include includes/navPaciente.pug
         include includes/bodyHomeSinNav.pug
-    - if(!rol)
+    - if(rol===0 || !rol)
         include includes/navloginRegister.pug
         include includes/bodyHomeSinNav.pug
-    - if(token)
-        script(type='text/javascript' src='../js/token.js')
-        //- script(type='text/javascript').
-        //-     document.addEventListener('DOMContentLoaded', function() {
-        //-     const token = `#{token}`
-        //-     storeToken(token)})         

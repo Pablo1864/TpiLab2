@@ -208,9 +208,9 @@
     "decimal": ".",
     "emptyTable": "No hay datos disponibles en la tabla",
     "zeroRecords": "No se encontraron coincidencias",
-    "info": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
-    "infoFiltered": "(Filtrado de _MAX_ total de entradas)",
-    "lengthMenu": "Mostrar _MENU_ entradas",
+    "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+    "infoFiltered": "(Filtrado de _MAX_ total de registros)",
+    "lengthMenu": "Mostrar _MENU_ registros",
     "stateRestore": {
         "removeTitle": "Eliminar",
         "creationModal": {

@@ -30,10 +30,10 @@ export class Paciente {
             });
         });
     }
-    
+//busca por DNI
     static async obtenerPacienteFiltrado(datoBuscado){
         return new Promise((resolve, reject) => {
-            const sql = `SELECT * FROM pacientes WHERE dni LIKE ${datoBuscado}`
+            const sql = `SELECT * FROM pacientes WHERE dni LIKE CONCAT(${datoBuscado},'%')`
             conexion.query(sql, function (err, result) {
                 if (err) {
                     reject(err);
@@ -43,6 +43,7 @@ export class Paciente {
             });
         });
     }
+    
 
     static async obtenerPacientesTodos(){
         return new Promise((resolve, reject)=>{
@@ -70,18 +71,20 @@ export class Paciente {
         })
     }
 
-    static async obtenerPacientesPorApellido(apellido){
-        return new Promise((resolve, reject) => {
-            const sql = 'SELECT * FROM pacientes WHERE apellido LIKE ?';
-            conexion.query(sql, ['%'+apellido+'%'], (err, res) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(res);
-                }
+
+        static async obtenerPacientesPorApellido(nombreOrApellido){
+            return new Promise((resolve, reject) => {
+                const sql = `SELECT * FROM pacientes WHERE nombre LIKE CONCAT(?, '%') OR apellido LIKE CONCAT(?, '%')`
+                conexion.query(sql,[nombreOrApellido, nombreOrApellido], function (err, result) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
             });
-        });
     }
+
 
     static async borrarPaciente(id){
         return new Promise((resolve, reject) => {

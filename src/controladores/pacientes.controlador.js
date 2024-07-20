@@ -24,7 +24,15 @@ export const registro= async (req,res)=>{
         res.render('registrarPaciente');
            }
 export const pacienteBuscarView= async (req,res)=>{
-        res.render('buscarPaciente');
+        const userId= req.cookies.id
+
+        if(userId){
+            const user= await Usuario.verificarUsuarioPorId(userId)
+            res.render('buscarPaciente',{rol:user.rol_id});
+        }
+        else   {
+            res.render('/')
+        }
            }      
 
 export const obtenerPacientes= async(req, res)=>{

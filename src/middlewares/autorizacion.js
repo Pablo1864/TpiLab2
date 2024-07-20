@@ -25,7 +25,7 @@ export const esAdmin = async(req, res, next)=>{
     const userId= req.cookies.id;
     console.log('esAdmin UserId: '+ userId)
     const user= await Usuario.verificarUsuarioPorId(userId);
-    console.log(user);
+    //console.log(user);
     if (user.rol_id == 1){
         console.log('autorizacion.js-> es Admin rol del usuario: '+user.rol_id + ' es admin')
         next()
@@ -34,12 +34,23 @@ export const esAdmin = async(req, res, next)=>{
 }
 
 export const esAdminOrRecepcionista = async(req, res, next)=>{
-    const userId= req.body.id;
+    const userId= req.cookies.id;
 
-    const user=Usuario.verificarUsuarioPorId(userId);
-    if (user===4 || user===1){
-        console.log(' rol del usuario: '+user.rol)
+    const user= await Usuario.verificarUsuarioPorId(userId);
+    if (user.rol_id ===4 || user.rol_id ===1){
+        console.log(' esAdminOrRecepcionista el rol por id del usuario es: '+user.rol)
         next()
     }
     else return false
+}
+
+export const todosMenosPaciente= async(req, res, next)=>{
+    const userId= req.cookies.id;
+    const  user= await Usuario.verificarUsuarioPorId(userId);
+    if (user.rol_id ===6){
+        //mostrar popup ruta no autorizada
+        console.log('no esta autorizado usted es un paciente mostrar cartel')
+    }
+    else next()
+
 }

@@ -10,9 +10,7 @@ import * as controler_authUsuarios from '../controladores/authUsuarios.controlad
 //devuelve vista login
 router.get('/login',controler_authUsuarios.loginView);
 
-//router.post('/login',controler_authUsuarios.login);
-
-router.get('/logout',controler_authUsuarios.loginView);
+//router.get('/logout',controler_authUsuarios.logout)
 
 router.get('/crear', [verificarToken, esAdmin],controler_authUsuarios.registroUsuariosVista);
 

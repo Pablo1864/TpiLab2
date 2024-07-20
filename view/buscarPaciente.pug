@@ -14,7 +14,10 @@ html
         include includes/linkStyles.pug
         include includes/linksDataTable.pug
     body 
-        include includes/nav.pug 
+        - if(rol===1)
+            include includes/navAdmin.pug
+        - if(rol===6)
+            include includes/navPaciente.pug
         .container.cardbg-lightmb-12
             form#form_ordenes
                 .p-3.pb-0.col-12
@@ -43,7 +46,7 @@ html
                             th Nro.Telefono
                             th Email
                             th Obra social
-                            th Nro. Afiliado
+                            th Nro. Afiliadopameunic@hotmail.com
                             th Acciones
                     tbody
 

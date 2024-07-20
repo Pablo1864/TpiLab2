@@ -193,3 +193,28 @@ input {
 .errorInicioSesion.escondido{
     display: none;
 }
+
+#iconVer{
+    cursor: pointer;
+    float: right;
+    height: 28px;
+    width: 28px;
+    position: relative;
+    bottom: 28px;
+}
+.iconVer{
+    margin: auto;
+    font-size: 1.3em;
+}
+.iconNoVer{
+    margin: auto;
+    font-size: 1.3em;
+}
+#iconNoVer{
+    cursor: pointer;
+    float:right;
+    height: 28px;
+    width: 28px;
+    position: relative;
+    bottom: 28px;
+}
