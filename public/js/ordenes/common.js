@@ -276,12 +276,9 @@ export async function fetchModificarMuestras(idOrden, idMuestra, agregar) {
 
 async function modificarMuestras(tableMuestras, idOrden, row, estado, examenesArr) {
     try {
-        const data = await fetchModificarMuestras(idOrden, row.data().idMuestras, estado);
+        const data = await fetchModificarMuestras(idOrden, row.data().idMuestra, estado);
         if (data) {
-            Toast.fire({ icon: 'success', title: `Muestra ${estado? "agregada" : "eliminada"} con exito.` });
             
-            console.log("Agregar muestra, response data: ", data);
-
             let updatedRow = row.data();
             updatedRow.presentada = estado;
             tableMuestras.row(row).data(updatedRow).draw();
@@ -297,6 +294,7 @@ async function modificarMuestras(tableMuestras, idOrden, row, estado, examenesAr
                     text: `Todas las muestras han sido agregadas. Los resultados de la orden estarán disponibles en ${totalDays} días.`,
                 })
             }
+            Toast.fire({ icon: 'success', title: `Muestra ${estado? "agregada" : "eliminada"} con exito.` });
             
             return data.estadoOrden ? true : false; //estadoOrden es null si no hubo cambio de estado en la orden
         }

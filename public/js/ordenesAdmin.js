@@ -282,8 +282,8 @@ $(document).ready(function () {
                                         } else {
                                             arrayidMuestras = [idMues];
                                         }
-                                        const data = await fetchModificarMuestras(id, arrayidMuestras, true);
-                                        if (data) {
+                                        const dataMuestra = await fetchModificarMuestras(id, arrayidMuestras, true);
+                                        if (dataMuestra) {
                                             swal.fire({
                                                 title: 'Muestra agregada',
                                                 icon: 'success',
@@ -305,13 +305,17 @@ $(document).ready(function () {
                                         } else {
                                             arrayidMuestras = [idMues];
                                         }
-                                        const data = await fetchModificarMuestras(id, arrayidMuestras, false);
-                                        if (data) {
+                                        const dataMuestra = await fetchModificarMuestras(id, arrayidMuestras, false);
+                                        if (dataMuestra) {
                                             swal.fire({
                                                 title: 'Muestra eliminada',
                                                 icon: 'success',
                                                 allowOutsideClick: false
                                             })
+                                            if (data[0].muestras && data[0].muestras.length > 0) {
+                                                //handle changing order status on table
+                                            }
+                                            
                                         }
                                     }
                                 });}
