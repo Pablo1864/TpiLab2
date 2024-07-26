@@ -1,28 +1,73 @@
-import {conexion} from "../mysql.conexion.mjs";
+import {conexion, query, getConnection} from "../mysql.conexion.mjs";
 
 export class Medico {
     static async buscarMedicoPorApellido(apellido){
-        return new Promise((resolve, reject) => {
+        const con = await getConnection();
+        try {
             const sql = 'SELECT * FROM medico WHERE apellido LIKE ?';
-            conexion.query(sql, ["%"+apellido+"%"], (err, res, field) => {
-                if (err){
-                    reject(err);
-                } else {
-                    resolve(res);
-                }
-            });
-        });
+            const res = await query(sql, [`%${apellido}%`], con);
+            return res;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
     }
+
+    static async buscarMedicoPorID(id){
+        const con = await getConnection();
+        try {
+            const sql = 'SELECT * FROM medico WHERE idMedico = ?';
+            const res = await query(sql, [id], con);
+            return res;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
+    }
+
+    static async buscarMedicosPorEmail(email){
+        const con = await getConnection();
+        try {
+            const sql = 'SELECT * FROM medico WHERE email LIKE ?';
+            const res = await query(sql, [`%${email}%`], con);
+            return res;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
+    }
+
+    static async buscarMedicosPorMatricula(matricula){
+        const con = await getConnection();
+        try {
+            const sql = 'SELECT * FROM medico WHERE matricula LIKE ?';
+            const res = await query(sql, [`%${matricula}%`], con);
+            return res;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
+    }
+
     static async buscarTodosMedicos(){
-        return new Promise((resolve, reject) => {
+        const con = await getConnection();
+        try{
             const sql = 'SELECT * FROM medico';
-            conexion.query(sql, (err, res, field) => {
-                if (err){
-                    reject(err);
-                } else {
-                    resolve(res);
-                }
-            });
-        });
+            const res = await query(sql, [], con);
+            return res;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
     }
 }

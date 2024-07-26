@@ -3,31 +3,33 @@ html(lang="en")
     head
         meta(charset="UTF-8")
         meta(name="viewport", content="width=device-width, initial-scale=1.0")
-        if state === 'edit'
+        if state === 'edit' 
+            if ordenData && ordenData[0].nroOrden
             title Editando Orden
         else 
             title Creando Orden
     
         include includes/linkStyles.pug
-        
         link(rel="stylesheet", href="/styles/ordenesStyle.css")
-        script(src="https://code.jquery.com/jquery-3.7.1.min.js" type='text/javascript')
         link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css")
-        link(href='https://cdn.datatables.net/v/bs5/dt-1.13.6/b-2.4.2/r-2.5.0/sc-2.2.0/sb-1.6.0/sp-2.2.0/sl-1.7.0/sr-1.3.0/datatables.min.css' rel='stylesheet')
-        script(src='https://cdn.datatables.net/v/bs5/dt-1.13.6/b-2.4.2/r-2.5.0/sc-2.2.0/sb-1.6.0/sp-2.2.0/sl-1.7.0/sr-1.3.0/datatables.min.js')
         
+        include includes/linksDataTable.pug
+
     body 
-        include includes/nav.pug
+        if rol===1
+            include includes/navAdmin.pug
+        else if rol !== 6
+            include includes/navAdmin.pug
         .container-fluid
             #container-label.row-12
             form#form_ordenes.row-12
-                .p-3.bg-secondary-subtle.row.m-auto
+                .p-3.bg-secondary-subtle.row
                     .row.m-auto.pt-4
-                        if state === 'edit'
+                        if state === 'edit' && ordenData && ordenData[0].nroOrden
                             .bg-light.p-3.d-flex.rounded
                                 if ordenData && ordenData[0] && ordenData[0].nroOrden && ordenData[0].medico && ordenData[0].paciente
                                     .border.border-secondary.rounded.p-3.mx-auto.flex-fill.col-2
-                                        h3 Orden n&deg #{ordenData[0].nroOrden + " " + ordenData[0].estado} 
+                                        h3 Orden n&deg; #{ordenData[0].nroOrden + " " + ordenData[0].estado} 
                                         p Pac. #{ordenData[0].paciente.apellido + ' ' + ordenData[0].paciente.nombre}
                                         p Doc. #{ordenData[0].medico.apellido + ' ' + ordenData[0].medico.nombre}
                                         #acordion.accordion.mx-0.mx-md-5.px-0.px-md-5
@@ -69,11 +71,18 @@ html(lang="en")
                                     .bg-danger-subtle.border.border-danger.rounded.p-3.mx-auto
                                         h3.text-danger.text-center ¡Error!
                                         p.text-danger-emphasis.text-center Hubo un error al recuperar la información de la orden!
+
                     .row.m-auto.pt-4
-                        if state === 'edit'
+                        if state === 'edit' && ordenData[0].nroOrden && !adminEdit
                             h3.text-center Editar orden
-                        else 
+                            h5.text-end Admin? 
+                                span 
+                                    a(href=`/ordenes/editar/admin/${ordenData[0].nroOrden}`).link-offset-1 editar como administrador.
+                        else if !adminEdit
                             h3.text-center Ingresar nueva Orden
+                        else if adminEdit 
+                            h3.text-center 
+                                |Edición de orden (como administrador)
                         nav
                             div(role='tablist').nav.nav-tabs#nav-tab
                                 button(data-bs-toggle='tab' data-bs-target='#nav-paciente' type='button' role='tab' aria-controls='nav-paciente' aria-selected='true').nav-link.active#nav-paciente-tab 
@@ -95,20 +104,22 @@ html(lang="en")
                         .tab-content#nav-tabContent
                             div(id="nav-paciente" role="tabpanel" aria-labelledby="nav-paciente-tab" tabindex="0").tab-pane.fade.show.active
                                 .mb-3.p-4.bg-light#divTablaPaciente.rounded-bottom.rounded-end
-                                    #search.mb-3.row.input-group.ms-1
-                                        .col-12.ps-0
-                                            h4 Seleccionar el paciente:
-                                            #divPacienteError
-                                        label(for='pacienteID').form-label.col-12.col-lg-1.ps-0.mt-1 Paciente:
-                                        .col-5.p-0
-                                            input.form-control#pacienteID(type='text' aria-describedby='pacienteHelp')
-                                            .form-text#pacienteHelp ingresar dni, apellido o mail del paciente, y seleccionar el paciente de la tabla.
-                                        .col-2.p-0
-                                            button(type='button').btn.btn-warning.m-0#buscarPaciente 
-                                                |Buscar
-                                                i.bi.bi-search.ms-2
-
-                                    .bg-secondary-subtle.p-3.rounded
+                                    #search.mb-3.row.ms-1
+                                        .col-12.col-lg-6
+                                            h4 Seleccionar paciente:
+                                            .col-12.ps-0
+                                            label.form-label Paciente:
+                                            .input-group.mb-3.me-3
+                                                select.btn.btn-outline-secondary.dropdown-toggle.px-lg-2.px-0(aria-expanded='false')#pacienteFilter
+                                                    option.dropdown-item(value='apellido') filtrar por apellido
+                                                    option.dropdown-item(value='dni') filtrar por DNI
+                                                    option.dropdown-item(value='email') filtrar por email
+                                                    option.dropdown-item(value='id') filtrar por ID
+                                                input.form-control#pacienteBuscador(aria-describedby='pacienteBtn' type='text' placeholder='')
+                                                button.btn.btn-warning(id='pacienteBtn' type='button' aria-label='buscar') 
+                                                    i.bi.bi-search
+                                            #divPacientesErrores.col-12.text-danger
+                                    .bg-secondary-subtle.p-3.rounded.row
                                         table(style='width:100%')#table_patients.table.table-striped.table-light.align-middle
                                             thead 
                                                 tr 
@@ -127,15 +138,29 @@ html(lang="en")
 
                             div(id="nav-medico" role="tabpanel" aria-labelledby="nav-medico-tab" tabindex="0").tab-pane.fade
                                 .mb-3.p-4.bg-light#divTablaMedicos.rounded
-                                    #medicoDiv.mb-3.ms-1.row.input-group
-                                        .col-12.ps-0
+                                    #medicoDiv.mb-3.row.ms-1
+                                        .col-12.col-lg-6
+                                            h4 Seleccionar Medico:
+                                            .col-12.ps-0
+                                            label.form-label Medico:
+                                            .input-group.mb-3.me-3
+                                                select.btn.btn-outline-secondary.dropdown-toggle.px-lg-2.px-0(aria-expanded='false')#medicoFilter
+                                                    option.dropdown-item(value='apellido') filtrar por apellido
+                                                    option.dropdown-item(value='matricula') filtrar por matricula
+                                                    option.dropdown-item(value='email') filtrar por email
+                                                    option.dropdown-item(value='id') filtrar por ID
+                                                input.form-control#medicoBuscador(aria-describedby='medicoBtn' type='text' placeholder='')
+                                                button.btn.btn-warning(id='medicoBtn' type='button' aria-label='buscar') 
+                                                    i.bi.bi-search
+                                            #divMedicosErrores.col-12.text-danger
+                                        //.col-12.ps-0
                                             h4 Seleccionar el medico:
                                             #divMedicoError
-                                        label(for='medicoId').form-label.col-12.col-lg-1.mt-1 Medico:
-                                        .col-5.p-0
-                                            input.form-control#medicoId(type='text' aria-describedby='medicoHelp')
+                                        //label(for='medicoBuscador').form-label.col-12.col-lg-1.mt-1 Medico:
+                                        //.col-5.p-0
+                                            input.form-control#medicoBuscador(type='text' aria-describedby='medicoHelp')
                                             .form-text#medicoHelp ingresar dni, apellido o mail del medico, y seleccionar el medico de la tabla.
-                                        .col-2.p-0
+                                        //.col-2.p-0
                                             button(type='button').btn.btn-warning.m-0#buscarMedico 
                                                 |Buscar
                                                 i.bi.bi-search.ms-2
@@ -152,18 +177,19 @@ html(lang="en")
                                 
                             div(id="nav-diagnosticos" role="tabpanel" aria-labelledby="nav-diagnosticos-tab" tabindex="0").tab-pane.fade
                                 .bg-light.mb-3.p-4#divTablasDiagnosticos.rounded
-                                    .row.mb-3.ms-1.input-group
-                                        .col-12.ps-0
-                                            h4 Seleccionar los diagnosticos:
-                                            #divDiagnosticosError
-                                        label(for='diagnosticoSearch').form-label.col-12.col-lg-1.mt-1 Diagnostico: 
-                                        .col-5.p-0
-                                            input(type='text' aria-describedby='diagnosticoHelp').form-control#diagnosticoSearch
-                                            .form-text#diagnosticoHelp Ingrese el nombre o termino del diagnostico a buscar, y agregue a la lista
-                                        .col-2.p-0
-                                            button(type='button').btn.btn-warning.m-0#buscarDiagnosticos
-                                                |Buscar
-                                                i.bi.bi-search.ms-2
+                                    .mb-3.row.ms-1
+                                        .col-12.col-lg-6
+                                            h4 Seleccionar Diagnosticos:
+                                            .col-12.ps-0
+                                            label.form-label Diagnostico:
+                                            .input-group.mb-3.me-3
+                                                select.btn.btn-outline-secondary.dropdown-toggle.px-lg-2.px-0(aria-expanded='false')#diagnosticoFilter
+                                                    option.dropdown-item(value='termino') filtrar por término
+                                                    option.dropdown-item(value='id') filtrar por ID
+                                                input.form-control#diagnosticoBuscador(aria-describedby='diagnosticoBtn' type='text' placeholder='')
+                                                button.btn.btn-warning(id='diagnosticoBtn' type='button' aria-label='buscar') 
+                                                    i.bi.bi-search
+                                            #divDiagnosticosErrores.col-12.text-danger
                                     .row.mb-3.p-3.rounded
                                         .col-12.col-xl-6.mb-3.p-3.bg-white.rounded
                                             h5.text-center Diagnosticos disponibles
@@ -189,17 +215,18 @@ html(lang="en")
                             div(id="nav-examenes" role="tabpanel" aria-labelledby="nav-examenes-tab" tabindex="0").tab-pane.fade
                                 .bg-light.mb-3.p-4#divTablasExamenes.rounded
                                     .row.mb-3.ms-1.input-group
-                                        .col-12.ps-0
-                                            h4 Ingrese los examenes a realizar
-                                            #divExamenesError
-                                        label(for='idExamen').form-label.col-12.col-lg-1.mt-1 Examen:
-                                        .col-5.p-0
-                                            input(type='text' aria-describedby='examenHelp').form-control#idExamen
-                                            .form-text#examenHelp ingrese el nombre o ID del examen a buscar, y agregue a la lista
-                                        .col-2.p-0
-                                            button(type='button').btn.btn-warning.m-0#buscarExamenes
-                                                |Buscar
-                                                i.bi.bi-search.ms-2
+                                        .col-12.col-lg-6
+                                            h4 Seleccionar Examenes:
+                                            .col-12.ps-0
+                                            label.form-label Examen:
+                                            .input-group.mb-3.me-3
+                                                select.btn.btn-outline-secondary.dropdown-toggle.px-lg-2.px-0(aria-expanded='false')#examenFilter
+                                                    option.dropdown-item(value='termino') filtrar por término
+                                                    option.dropdown-item(value='id') filtrar por ID
+                                                input.form-control#examenBuscador(aria-describedby='examenBtn' type='text' placeholder='')
+                                                button.btn.btn-warning(id='examenBtn' type='button' aria-label='buscar') 
+                                                    i.bi.bi-search
+                                            #divExamenesErrores.col-12.text-danger
                                     .row.mb-3.p-3.rounded
                                         .col-12.col-xl-6.mb-3.p-3.bg-white.rounded
                                             h5 Examenes disponibles
@@ -227,7 +254,6 @@ html(lang="en")
                                                         th Otros terminos:
                                                         th 
                                                 tbody 
-
                             div(id="nav-muestras" role="tabpanel" aria-labelledby="nav-muestras-tab" tabindex="0").tab-pane.fade
                                 .bg-light.mb-3.p-3.rounded-bottom.rounded-end
                                     .row.input-group
@@ -256,7 +282,9 @@ html(lang="en")
         script. 
             const pageState = '#{state}';
             const oldOrden = !{JSON.stringify(ordenData || {})};
-            if (pageState === 'edit'){
+            const editMode = #{adminEdit || false};
+
+            if (pageState === 'edit' && oldOrden[0].nroOrden){
                 const script = document.createElement('script');
                 script.type = 'module';
                 script.src = '/js/ordenes/edit.js';
@@ -267,3 +295,4 @@ html(lang="en")
                 script.src = '/js/ordenes/ordenes.js';
                 document.body.appendChild(script); 
             }
+    include includes/footer.pug

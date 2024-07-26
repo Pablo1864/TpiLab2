@@ -20,6 +20,38 @@ export const Toast = Swal.mixin({
     }
 })
 
+export const config = (dataSingular, dataPlural) => {
+    return {
+        lengthMenu: `Mostrar _MENU_ ${dataPlural} por página`,
+        zeroRecords: `Ningún ${dataSingular} agregado`,
+        info: `Mostrando de _START_ a _END_ de _TOTAL_ ${dataPlural}`,
+        infoEmpty: `Ningún ${dataSingular} agregado`,
+        infoFiltered: "(filtrados desde _MAX_ registros totales)",
+        search: "Buscar:",
+        loadingRecords: "Cargando...",
+        paginate: {
+            first: "Primero",
+            last: "Último",
+            next: "Siguiente",
+            previous: "Anterior",
+        }
+    }
+}
+
+export function checkAlpha(value) {
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ-\s]+$/.test(value)) {
+        return false;
+    }
+    return true;
+}
+
+export function checkNumeric(value) {
+    if (!/^[0-9]+$/.test(value)) {
+        return false;
+    }
+    return true;
+}
+
 export function disableTableSelection(table) {
     console.log('table disabled', table);
     table.select.style('api');
@@ -27,7 +59,6 @@ export function disableTableSelection(table) {
     table.off('deselect');
     //table.table().node().classList.add('disable-table');
 }
-
 
 export function llenarTableMuestras(muestrasData, examenesArr, idOrden) {
     console.log("llenando table muestras");
@@ -72,7 +103,6 @@ export function llenarTableMuestras(muestrasData, examenesArr, idOrden) {
 
     $('#table_muestras tbody').on('click', '.delete-muestra-button', async function () {
         const row = table.row($(this).parents('tr'));
-        console.log("eliminando: ", row.data().idMuestra);
         if (row.data().idMuestra != 0 && idOrden) {
             try {
                 const res = await modificarMuestras(table, idOrden, row, false, examenesArr);//false = delete
@@ -94,10 +124,11 @@ export function llenarTableMuestras(muestrasData, examenesArr, idOrden) {
     
     $("#table_muestras tbody").on("click", ".print-button", async function () {
         const row = table.row($(this).parents("tr"));
-        console.log("en print button: ", row.data() + ", validacion:  " + idOrden);
         if (idOrden) {
             try {
-                await printMuestra(row, idOrden);
+                const labels = await printMuestra(row.data().tipo, idOrden);
+                $("#container-label").html(labels);
+                window.print();
             } catch (error) {
                 Toast.fire({ icon: 'error', title: '¡Error al imprimir!', text: error.message });
                 console.log(error);
@@ -112,16 +143,15 @@ export function llenarTableMuestras(muestrasData, examenesArr, idOrden) {
 
 }
 
-async function printMuestra(row, idOrden) {
-    console.log("en function printMuestra: ", row.data());
-    const res = await fetch('/ordenes/datasample', {
+export async function printMuestra(tipo, idOrden) {
+    const res = await fetch('/ordenes/imprimir/datasample', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
             idOrden: idOrden,
-            tipoMuestra: row.data().tipo
+            tipoMuestra: tipo
         }),
     });
     if (!res.ok) {
@@ -131,10 +161,29 @@ async function printMuestra(row, idOrden) {
     } else {
         const data = await res.json();
         const labels = generateLabels(data);
-        $("#container-label").html(labels);
-        window.print();
+        return labels;
     }
 }
+
+export async function manejarFetch2(url){
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (res.ok) {
+            return data;
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (err) {
+        console.log(err);
+        Toast.fire ({
+            icon: 'error',
+            title: 'Error durante la busqueda!',
+            text: err.message || 'Error inesperado, por favor intentelo de nuevo'
+        });
+    }
+    return [];
+};
 
 function generateLabels(data) {
     let label = `<div class="label-template">
@@ -154,7 +203,7 @@ function generateLabels(data) {
     return html;
 }
 
-function formatDateTime(isoStrng) {
+export function formatDateTime(isoStrng) {
     const date = new Date(isoStrng);
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
@@ -169,27 +218,68 @@ function formatDateTime(isoStrng) {
     return formattedD;
 }
 
+export async function irAEditarOrden(nroOrden) {
+    console.log("ir a editar orden: ", nroOrden);
+    try {
+        if (!checkNumeric(nroOrden)) {
+            throw new Error( 'El nro. de orden debe ser un valor numérico');
+        };
+        if (nroOrden && nroOrden > 0) {
+            const res = await fetch(`/ordenes/editar/${nroOrden}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                }
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error);
+            } else if (res.ok && data.success){
+                window.location.href = `/ordenes/editar/${nroOrden}`
+            }
+        }
+    } catch (error) {
+        const res = await Swal.fire({
+            icon: 'error',
+            title: '¡Error al redirigir a la edición de la orden '+nroOrden+'!',
+            text: error.message || 'Error inesperado, por favor intentelo de nuevo en otro momento',
+            confirmButtonText: 'Intentar de nuevo',
+        });
+        if (res.isConfirmed) {
+            window.location.href = `/ordenes/editar/${nroOrden}`;
+        }
+        console.log(error);
+    }
+    
+}
+
+//throw new Error(data.error);
+export async function fetchModificarMuestras(idOrden, idMuestra, agregar) {
+    const res = await fetch('/ordenes/modificarMuestras', {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            idOrden: idOrden, //id de orden
+            arrayidMuestras: idMuestra, //array de id de muestras
+            estado: agregar ? 1 : 0 //new estado de muestra
+        })
+    })
+
+    if (!res.ok) {
+        throw new Error(await res.json().error);
+    } else {
+        return await res.json();
+    }
+}
+
 async function modificarMuestras(tableMuestras, idOrden, row, estado, examenesArr) {
     try {
-        const res = await fetch('/ordenes/modificarMuestras', {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                idOrden: idOrden, //id de orden
-                arrayidMuestras: row.data().idMuestra, //array de id de muestras
-                estado: estado ? 1 : 0 //new estado de muestra
-            })
-        })
-        console.log(res);
-        if (!res.ok) {
-            const data = await res.json();
-            throw new Error(data.error);
-        } else {
+        const data = await fetchModificarMuestras(idOrden, row.data().idMuestras, estado);
+        if (data) {
             Toast.fire({ icon: 'success', title: `Muestra ${estado? "agregada" : "eliminada"} con exito.` });
-            const data = await res.json();
-           
+            
             console.log("Agregar muestra, response data: ", data);
 
             let updatedRow = row.data();
@@ -309,6 +399,27 @@ function switchBtn(paciente, medico, examenes, diagnosticos, idBtn, btnTextAll, 
     }
 }
 
+export function agruparMuestrasArr ( muestrasArr){
+    const obj = muestrasArr.reduce((obj, item) => {
+        if (!obj[item.tipo]) {
+            obj[item.tipo] = {idMuestras:[], idExamenes:[], tipoAnalisis:item.tipo, presentada:true};
+        }
+        obj[item.tipo].idMuestras.push(item.idMuestra);
+        obj[item.tipo].idExamenes.push(item.idExamenes);
+        if (item.estado === 0) {
+            obj[item.tipo].presentada = false
+        }
+        return obj
+    }, {});
+    return Object.values(obj);
+}
+
+export const llenarTableConData = (table, data) => {
+    table.clear();
+    table.rows.add(data).draw();
+    table.columns.adjust().draw();
+    table.responsive.recalc().draw();
+}
 //agrega la fila a la tabla
 export function agregarRow(row, tablaAddRow, id) {
     try {
@@ -323,4 +434,32 @@ export function agregarRow(row, tablaAddRow, id) {
         console.log(err);
     }
     return false; //ya esta en la lista
+}
+
+export function disableInputsAndButtons(array, estado = true) {
+    for (let i = 0; i < array.length; i++) {
+        $(array[i]).prop('disabled', estado);
+    }
+}
+export function disablePatientsAndMedics(){
+    disableTableSelection($('#table_patients').DataTable());
+    disableTableSelection($('#table_medics').DataTable());
+    $('#divTablaPaciente').addClass('disable-table');
+    $('#divTablaMedicos').addClass('disable-table');
+    disableInputsAndButtons([$('#medicoBtn'), $('#pacienteBtn'), $('#medicoBuscador'), $('#pacienteBuscador'), $('#pacienteFilter'), $('#medicoFilter')]);
+}
+
+export function disableDiagnosisAndExams(){
+    disableTableSelection($('#table_agregados').DataTable());
+    disableTableSelection($('#table_examenes').DataTable());
+    disableTableSelection($('#table_diagnosticos').DataTable());
+    disableTableSelection($('#table_diagnosticos_agregados').DataTable());
+    $('#divTablasDiagnosticos').addClass('disable-table');
+    $('#divTablasExamenes').addClass('disable-table');
+    disableInputsAndButtons([$('#diagnosticoSearch'), $('#diagnosticoBtn'), $('#examenBuscador'), $('#examenBtn'), $('#diagnosticoFilter'), $('#examenFilter')]);
+}
+
+export function disableMuestras(){
+    disableTableSelection($('#table_muestras').DataTable());
+    disableInputsAndButtons([$('.add-muestra-button'), $('.delete-muestra-button')]);
 }

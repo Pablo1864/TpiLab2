@@ -1,4 +1,4 @@
-import {conexion} from '../mysql.conexion.mjs'
+import {conexion, query, getConnection} from '../mysql.conexion.mjs'
 
 export class Paciente {
 
@@ -140,6 +140,69 @@ export class Paciente {
             });
         });
     }
+
+    //para buscar pacientes activos
+    static async buscarPacientesActivos(){
+        const con = await getConnection();
+        try {
+            const sql = `SELECT * FROM pacientes WHERE Activo = 1`;
+            const res = await query(sql, [], con);
+            return res;
+        } catch (err) {
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
+    }
+    static async buscarPacientesActivosPorID(id){
+        const con = await getConnection();
+        try {
+            const sql = `SELECT * FROM pacientes WHERE idPaciente = ? AND Activo = 1`;
+            const res = await query(sql, [ id], con);
+            return res;
+        } catch (err) {
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
+    }
+    static async buscarPacientesActivosPorApellido(apellido){
+        const con = await getConnection();
+        try {
+            const sql = `SELECT * FROM pacientes WHERE apellido LIKE ? AND Activo = 1`;
+            const res = await query(sql, ['%'+apellido+'%'], con);
+            return res;
+        } catch (err) {
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
+    }
+    static async buscarPacientesActivosPorDNI(dni){
+        const con = await getConnection();
+        try {
+            const sql = `SELECT * FROM pacientes WHERE dni LIKE ? AND Activo = 1`;
+            const res = await query(sql, [ '%'+dni+'%'], con);
+            return res;
+        } catch (err) {
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
+    }
+    static async buscarPacientesActivosPorEmail(email){
+        const con = await getConnection();
+        try {
+            const sql = `SELECT * FROM pacientes WHERE email LIKE ? AND Activo = 1`;
+            const res = await query(sql, [ '%'+email+'%'], con);
+            return res;
+        } catch (err) {
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
+    }
+
 };
 
 

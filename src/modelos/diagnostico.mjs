@@ -1,44 +1,47 @@
-import {conexion} from '../mysql.conexion.mjs';
+import {conexion, query, getConnection} from '../mysql.conexion.mjs';
 
 export class Diagnostico{
     
     static async buscarDiagnosticoPorId(id){
-        return new Promise((resolve, reject) => {
+        const con = await getConnection();
+        try {
             const sql = 'SELECT * FROM diagnosticos WHERE idDiagnostico = ?';
-            conexion.query(sql, [id], (err, res, field) => {
-                if (res){
-                    resolve(res);
-                } else {
-                    reject(err);
-                }
-            });
-        })
+            const res = await query(sql, [id], con);
+            return res;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
     }
 
     static async buscarDiagnosticosTodos(){
-        return new Promise((resolve, reject) => {
+        const con = await getConnection();
+        try {
             const sql = 'SELECT * FROM diagnosticos';
-            conexion.query(sql, (err, res, field) => {
-                if (res){
-                    resolve(res);
-                } else {
-                    reject(err);
-                }
-            });
-        })
+            const res = await query(sql, [], con);
+            return res;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
     }
 
     static async buscarDiagnosticosPorNombres(nombre){
-        return new Promise((resolve, reject) => {
+        const con = await getConnection();
+        try {
             const sql = 'SELECT * FROM diagnosticos WHERE nombre LIKE ? OR otrosTerminos LIKE ?';
-            conexion.query(sql, ['%'+nombre+'%','%'+ nombre+'%'],(err, res, field) => {
-                if (res){
-                    resolve(res);
-                } else {
-                    reject(err);
-                }
-            });
-        })
+            const res = await query(sql, [`%${nombre}%`, `%${nombre}%`], con);
+            return res;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
     }
 
 }

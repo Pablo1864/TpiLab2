@@ -4,48 +4,61 @@ html(lang="en")
         meta(charset="UTF-8")
         meta(name="viewport", content="width=device-width, initial-scale=1.0")
         title Administracion de ordenes
+        
         include includes/linkStyles.pug
-        
-        link(rel="stylesheet", href="../styles/ordenesStyle.css")
-        script(src="https://code.jquery.com/jquery-3.7.1.min.js" type='text/javascript')
+        link(rel="stylesheet", href="/styles/ordenesStyle.css")
         link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css")
-        link(href='https://cdn.datatables.net/v/bs5/dt-1.13.6/b-2.4.2/r-2.5.0/sc-2.2.0/sb-1.6.0/sp-2.2.0/sl-1.7.0/sr-1.3.0/datatables.min.css' rel='stylesheet')
-        script(src='https://cdn.datatables.net/v/bs5/dt-1.13.6/b-2.4.2/r-2.5.0/sc-2.2.0/sb-1.6.0/sp-2.2.0/sl-1.7.0/sr-1.3.0/datatables.min.js')
         
+        include includes/linksDataTable.pug
     body 
-        include includes/nav.pug
+        if rol===1
+            include includes/navAdmin.pug
+        else if rol !== 6
+            include includes/navAdmin.pug
         .container-fluid
-            form#form_ordenes
+            
+            form#form_ordenes.row-12
                 .p-3.m-4.bg-secondary-subtle
                     .p-3.pb-0.m-2
                         h3.text-center Ordenes                            
-                    .mb-3.p-4.bg-light#divTablaPaciente
-                                #search.mb-3.row.input-group
-                                    .col-12.m-2
-                                        
-                                        #divOrdenesError
-                                    label(for='ordenesInput').form-label.col-12.col-lg-1.m-2 Buscar ordenes:
-                                    .col-5.p-0
-                                        input.form-control#ordenesInput(type='text' aria-describedby='ordenesHelp')
-                                        .form-text#ordenesHelp ingresar código interno de orden o apellido del paciente, o deje la caja vacia para mostrar todas las ordenes.
-                                    .col-2.p-0
-                                        button(type='button').btn.btn-warning.m-0#buscarOrdenes
-                                            |Buscar
-                                            i.bi.bi-search.ms-2
-
-                                .bg-secondary-subtle.p-3.rounded
-                                    table(style='width:100%')#table_ordenes.table.table-striped.table-light.align-middle
-                                        thead 
-                                            tr 
-                                                th
-                                                th Paciente
-                                                th Dni del paciente
-                                                th estado de la orden
-                                                th Medico
-                                                th muestras en espera
-                                                th fecha de creacion
-                                                //th fecha de resultados aprox
-                                                th Acciones
-                                        tbody
+                    .mb-3.p-4.bg-light#divTablaOrdenes
+                                #searchBarContainer.mb-3.row.ms-1
+                                    .col-12.col-lg-7.col-xxl-6
+                                            .col-12.ps-0
+                                            label.form-label Ordenes:
+                                            .input-group.mb-3.me-3
+                                                select.btn.btn-outline-secondary.dropdown-toggle.px-lg-2.px-0(aria-expanded='false')#ordenesFilter
+                                                    option.dropdown-item(value='apellidoPaciente') filtrar por apellido del paciente
+                                                    option.dropdown-item(value='apellidoMedico') filtrar por apellido del medico
+                                                    option.dropdown-item(value='nroOrden') filtrar por número de orden
+                                                select.btn.btn-outline-secondary.dropdown-toggle.px-lg-2.px-0(aria-expanded='false')#ordenesFilterEstado
+                                                    option.dropdown-item(value='todas' selected) Todas
+                                                    option.dropdown-item(value='ingresada') Ingresadas
+                                                    option.dropdown-item(value='esperando' title='esperando toma de muestras') Esperando toma...
+                                                    option.dropdown-item(value='analitica') Analíticas
+                                                    if rol===1
+                                                        option.dropdown-item(value='canceladas') Canceladas
+                                                input.form-control#ordenBuscador(aria-describedby='ordenBtn' type='text' placeholder='')
+                                                button.btn.btn-warning(id='ordenBtn' type='button' aria-label='buscar') 
+                                                    i.bi.bi-search
+                                            #divOrdenErrores.col-12.text-danger    
+                                div(id="divOrdenesTable").bg-secondary-subtle.p-3.rounded.row
+                                        table(style='width:100%')#table_ordenes.table.table-striped.table-light.align-middle
+                                            thead 
+                                                tr 
+                                                    th Orden
+                                                    th Estado
+                                                    th Paciente
+                                                    th Dni pac.
+                                                    th Medico
+                                                    th fecha de creacion
+                                                    th Acciones
+                                            tbody
+                                    
+        //include includes/scripts
         script(src="https://cdn.jsdelivr.net/npm/sweetalert2@10.0.2/dist/sweetalert2.all.min.js")
-        script(type='text/javascript' src="../js/ordenesAdmin.js") 
+        script(type='module' src="/js/ordenesAdmin.js") 
+        script. 
+            const ordenes = !{JSON.stringify(ordenes || {})};
+            console.log(ordenes);
+    include includes/footer.pug

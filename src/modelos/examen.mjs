@@ -18,7 +18,7 @@ export class Examen {
 
     static async buscarExamenesActivo() {
         return new Promise((resolve, reject) => {
-            const sql = 'SELECT * FROM examenes WHERE estado = 1';
+            const sql = 'SELECT * FROM examenes WHERE habilitado = 1';
             conexion.query(sql, (err, res, field) => {
                 if (res) {
                     resolve(res);
@@ -54,6 +54,19 @@ export class Examen {
         }
     }
 
+    static async buscarExamenesActivosPorNombre(nombre) {
+        const con = await getConnection();
+        try {
+            const sql = 'SELECT * FROM examenes WHERE (nombre LIKE ? OR otrosNombres LIKE ?) AND habilitado = 1';
+            const res = await query(sql, ['%' + nombre + '%', '%' + nombre + '%'], con);
+            return res;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
+    }
 
     static async buscarExamenPorNombre(nombre) {
         return new Promise((resolve, reject) => {

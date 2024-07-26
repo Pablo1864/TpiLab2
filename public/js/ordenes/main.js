@@ -1,75 +1,244 @@
-import { Toast, agregarRow } from './common.js'
+
+import { config, Toast, agregarRow, checkAlpha, checkNumeric, llenarTableConData, manejarFetch2 } from './common.js'
 
 $(document).ready(function () {
 
-    //Aqui esta todo lo que tiene que ver con inicializar datatables
-    //Y inicializar los botones de fetchear data para cada table + llenar table con data
-    const config = (dataSingular, dataPlural) => {
-        return {
-            lengthMenu: `Mostrar _MENU_ ${dataPlural} por página`,
-            zeroRecords: `Ningún ${dataSingular} agregado`,
-            info: `Mostrando de _START_ a _END_ de _TOTAL_ ${dataPlural}`,
-            infoEmpty: `Ningún ${dataSingular} agregado`,
-            infoFiltered: "(filtrados desde _MAX_ registros totales)",
-            search: "Buscar:",
-            loadingRecords: "Cargando...",
-            paginate: {
-                first: "Primero",
-                last: "Último",
-                next: "Siguiente",
-                previous: "Anterior",
-            }
+    //Aqui esta todo lo que tiene que ver con inicializar datatables y buscadores
+    
+    $('#form_ordenes').submit(function (event) {
+        event.preventDefault();
+    })
+  
+    const erroresMsj = {
+        pacientes:{
+            nonAlpha: 'Debe ingresar el apellido del paciente sin números o caracteres especiales.',
+            dni_nonNumeric: 'Debe ingresar el dni del paciente sin letras, espacios o caracteres especiales.',
+            id_nonNumeric: 'Debe ingresar un id valido sin letras, espacios o caracteres especiales.',
+        },
+        medicos:{
+            nonAlpha: 'Debe ingresar el apellido del medico sin números o caracteres especiales.',
+            matricula_nonNumeric: 'Debe ingresar el matricula del medico sin letras, espacios o caracteres especiales.',
+            id_nonNumeric: 'Debe ingresar un id valido sin letras, espacios o caracteres especiales.',
+        },
+        diagnosticos:{
+            nonAlpha: 'Debe ingresar un término del diagnostico sin números o caracteres especiales.',
+            id_nonNumeric: 'Debe ingresar un id valido sin letras, espacios o caracteres especiales.',
+        },
+        examenes:{
+            nonAlpha: 'Debe ingresar el nombre del examen sin números o caracteres especiales.',
+            id_nonNumeric: 'Debe ingresar un id valido sin letras, espacios o caracteres especiales.',
         }
-    }
-   
-    function btnInit(inputId, erroresId, errorMessage, fun){
-        $("#"+inputId).on('input', function (event) {
-            const input = event.target;
-            console.log(input.value);
-            const div = $('#'+erroresId);
-            div.empty();
-            if (fun(input) === 'error') {
-                if (!div.find('p').length) {
-                    const p = $('<p>')
-                        .addClass('form-text text-danger')
-                        .html(errorMessage);
-                    div.append(p);
-                }
-            }
-        })
-    }
-    //Devuelve mail, string, number, vacio o error dependiendo del input
-    const verificar = (input) => {
-        input.classList.remove('error');
-        input.classList.remove('correct');
-        if (input.value.trim() != '') {
-            const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            const regexNumber = /^[0-9]+$/;
-            const regexLetters = /^[a-zA-Z]+$/;
-            if (regexEmail.test(input.value)) {
-                input.classList.add('correct');
-                return 'mail';
-            } else if (regexLetters.test(input.value)) {
-                input.classList.add('correct');
-                return 'string';
-            } else if (regexNumber.test(input.value)) {
-                input.classList.add('correct');
-                return 'number';
-            } else {
-                input.classList.add('error');
-            }
-        } else {
-            input.classList.add('correct');
-            return 'vacio';
-        }
-        return 'error';
+
     }
 
-    btnInit('pacienteID', 'divPacienteError', 'Debe ingresar solo numeros para buscar por DNI, solo letras para apellido o un formato valido de email (nombreEmail@email.com).', verificar);
-    //the medic one works funny: it won't add the error message, but will change border color
-    btnInit('medicoID', 'divMedicoError', 'Debe ingresar solo numeros para buscar por DNI, solo letras para apellido o un formato valido de email (nombreEmail@email.com).', verificar);
-    btnInit('diagnosticoSearch', 'divDiagnosticosError', 'Debe ingresar solo numeros para buscar por ID o solo letras para buscar por nombres o terminos.', verificar);
-    btnInit('idExamen', 'divExamenesError', 'Debe ingresar solo numeros para buscar por ID o solo letras para buscar por nombres o terminos.', verificar);
+    const inputPaciente = $('#pacienteBuscador');
+    const filterPaciente = $('#pacienteFilter');
+    const divErroresPaciente = $('#divPacientesErrores');
+    const searchBtnPaciente = $('#pacienteBtn');
+
+    const inputMedico = $('#medicoBuscador');
+    const filterMedico = $('#medicoFilter');
+    const divErroresMedico = $('#divMedicosErrores');
+    const searchBtnMedico = $('#medicoBtn');
+
+    const inputDiagnostico = $('#diagnosticoBuscador');
+    const filterDiagnostico = $('#diagnosticoFilter');
+    const divErroresDiagnostico = $('#divDiagnosticosErrores');
+    const searchBtnDiagnostico = $('#diagnosticoBtn');
+
+    const inputExamen = $('#examenBuscador');
+    const filterExamen = $('#examenFilter');
+    const divErroresExamen = $('#divExamenesErrores');
+    const searchBtnExamen = $('#examenBtn');
+
+    const searchConfig = {
+        pacientes: {
+            url: '/buscar/pacientes',
+            params: {
+                apellido: 'apellido',
+                dni: 'dni',
+                email: 'email',
+                id: 'id'
+            },
+            table: 'table_patients',
+
+        },
+        medicos: {
+            url: '/buscar/medicos',
+            params: {
+                apellido: 'apellido',
+                matricula: 'matricula',
+                email: 'email',
+                id: 'id'
+            }
+            , table: 'table_medics',
+        },
+        diagnosticos: {
+            url: '/buscar/diagnosticos',
+            params: {
+                termino: 'termino',
+                id: 'id'
+            }
+            , table: 'table_diagnosticos',
+        },
+        examenes: {
+            url: '/buscar/examenes',
+            params: {
+                termino: 'termino',
+                id: 'id'
+            }
+            , table: 'table_examenes',
+        }
+    }
+
+    function validar(input, divErrores, type, filter){
+        let res = true;
+        try {
+            
+            input.removeClass('is-invalid');
+            divErrores.empty();
+            const value = input.val();
+            switch (filter) {
+                case 'apellido':
+                case 'termino':
+                    if (!checkAlpha(value)) {
+                        input.addClass('is-invalid');
+                        divErrores.html(erroresMsj[type].nonAlpha);
+                        res = false;
+                    }
+                    break;
+                case 'dni':
+                    if (!checkNumeric(value)) {
+                        input.addClass('is-invalid');
+                        divErrores.html(erroresMsj[type].dni_nonNumeric);
+                        res = false;
+                    }
+                    break;
+                case 'id':
+                    if (!checkNumeric(value)) {
+                        input.addClass('is-invalid');
+                        divErrores.html(erroresMsj[type].id_nonNumeric);
+                        res = false;
+                    }
+                    break;
+                case 'matricula':
+                    if (!checkNumeric(value)) {
+                        input.addClass('is-invalid');
+                        divErrores.html(erroresMsj[type].matricula_nonNumeric);
+                        res = false;
+                    }
+                    break;
+                case 'email':
+                    res = true;
+                    break;
+                default:
+                    res = false;
+                    break;
+            }
+        } catch (error) {
+            console.log(error);
+            res = false;
+        }
+
+        return res;
+        
+    }
+
+    inputPaciente.on('input', (event) => {
+        const value = event.target.value;
+        if (value.trim() != '') {
+            validar(inputPaciente, divErroresPaciente, 'pacientes', filterPaciente.val().toLowerCase())
+        } else {
+            inputPaciente.removeClass('is-invalid');
+        }
+    }
+    )
+    inputMedico.on('input', (event) => {
+        const value = event.target.value;
+        if (value.trim() != '') {
+            validar(inputMedico, divErroresMedico, 'medicos', filterMedico.val().toLowerCase())
+        } else {
+            inputMedico.removeClass('is-invalid');
+        }
+
+    })
+    inputDiagnostico.on('input', (event) => {
+        const value = event.target.value;
+        if ( value.trim() != '') {
+            validar(inputDiagnostico, divErroresDiagnostico, 'diagnosticos', filterDiagnostico.val().toLowerCase())
+        } else {
+            inputDiagnostico.removeClass('is-invalid');
+        }
+    })
+    inputExamen.on('input', (event) => {
+        const value = event.target.value;
+        if (value.trim() != '') {
+            validar(inputExamen, divErroresExamen, 'examenes', filterExamen.val().toLowerCase())
+        } else {
+            inputExamen.removeClass('is-invalid');
+        }
+    })
+
+    searchBtnPaciente.on('click', (event) => {
+        search(inputPaciente, divErroresPaciente , 'pacientes', filterPaciente.val().toLowerCase());
+    })
+    searchBtnMedico.on('click', (event) => {
+        search(inputMedico, divErroresMedico, 'medicos', filterMedico.val().toLowerCase());
+    })
+    searchBtnDiagnostico.on('click', (event) => {
+        search(inputDiagnostico, divErroresDiagnostico, 'diagnosticos', filterDiagnostico.val().toLowerCase());
+    })
+    searchBtnExamen.on('click', (event) => {
+        search(inputExamen, divErroresExamen, 'examenes', filterExamen.val().toLowerCase());
+    })
+
+    async function search(input, divErrores, type, filter){
+        divErroresPaciente.empty();
+        divErroresMedico.empty();
+        divErroresDiagnostico.empty();
+        divErroresExamen.empty();
+        $('#divBtnCrearPaciente').remove();
+        //inputDiagnostico.class.remove('is-invalid');
+        //limpiar errores(classlist de inputs) y deselect row
+        const confg = searchConfig[type];
+
+        if (!confg || !input || !filter || !type || !divErrores) {
+            return
+        }
+        if (!input.val()) { //si el input esta vacio, fetchear todos
+            const url = `/ordenes/buscar/${type}`;
+            const respuesta = await manejarFetch2(url);
+            if (respuesta){
+                llenarTableConData($(`#${confg.table}`).DataTable(), respuesta);   
+            }
+            return
+        };
+
+        if (validar(input , divErrores, type, filter)) {
+            const url = `/ordenes${confg.url}?${confg.params[filter]}=${encodeURIComponent(input.val())}`;
+            const respuesta = await manejarFetch2(url);
+            if (respuesta.length == 0 && filter == 'apellido' && type == 'pacientes') { //si no hay resultados, mostrar btn para crear paciente
+                const divSearchPatient = $('#search');
+                divSearchPatient.append( `<div id='divBtnCrearPaciente' class='col px-3'><h5 class="text-center">No se encontraron resultados para el apellido: <span class="text-primary">${input.val()}</span> </h5><div class="col text-center my-2"> <button class="btn btn-primary" id="crearPaciente">ir a Crear Paciente nuevo</button></div></div>`);
+                $('#crearPaciente').on('click', (event) => {
+                    
+                    window.location.href = '/paciente/registro';
+                    
+                });
+            } else if (respuesta) {
+                llenarTableConData($(`#${confg.table}`).DataTable(), respuesta);
+            }
+
+        } else {
+            console.log('error');
+            Toast.fire({
+                icon: 'error',
+                title: 'Error al buscar!',
+                text: 'Sucedio un error durante la busqueda!'
+            })
+            return;
+        }
+    }
 
     const tablePacientes = $('#table_patients').DataTable({
         language: config('paciente', 'pacientes'),
@@ -184,6 +353,7 @@ $(document).ready(function () {
             },
         ]
     });
+    
     const tableMuestras = $('#table_muestras').DataTable({ //format [{idMuestra:ing (array),nombre:string, idExamen:int(array), presentada:bool}]
         language: config('muestra', 'muestras'),
         responsive: true,
@@ -212,165 +382,6 @@ $(document).ready(function () {
                 }
             }
         ]
-    });
-
-    $('#form_ordenes').submit(function (event) {
-        event.preventDefault();
-    })
-
-    async function buscarMedico(table, inputId, element, containerIdError) { //missing some route
-        const input = document.getElementById(inputId);
-        switch (verificar(input)) {
-            case 'mail': //busca por mail
-                manejarFetch(`/ordenes/buscarPorMail/${input.value}`, table, llenarTableYagregarErrores, element, containerIdError)
-                break;
-            case 'number': //busca por dni
-                manejarFetch(`/buscarMedicoPorDni/${input.value}`, table, llenarTableYagregarErrores, element, containerIdError)
-                break;
-            case 'string': //busca por apellido
-                manejarFetch(`/buscarMedicosPorApellido/${input.value}`, table, llenarTableYagregarErrores, element, containerIdError)
-                break;
-            case 'vacio': //si no se ingresa nada, trae todos los pacientes en db
-                manejarFetch(`/buscarTodosLosMedicos`, table, llenarTableYagregarErrores, element, containerIdError)
-                break;
-            default:
-                break;
-        }
-    }
-    //deriva en base al input a las diferentes rutas(por id, nombre o vacio para traer todo)
-    async function buscarDiagnosticos(table, inputId, element, containerIdError) {
-        const input = document.getElementById(inputId);
-        switch (verificar(input)) {
-            case "string":
-                manejarFetch(`/ordenes/diagnosticos/buscarPorNombre/${input.value}`, table, llenarTableYagregarErrores, element, containerIdError);
-                break;
-            case "number":
-                manejarFetch(`/ordenes/diagnosticos/buscarPorId/${input.value}`, table, llenarTableYagregarErrores, element, containerIdError);
-                break;
-            case "vacio":
-                manejarFetch(`/ordenes/diagnosticos/buscarTodos`, table, llenarTableYagregarErrores, element, containerIdError);
-                break;
-            default:
-                break;
-        }
-    }
-    //deriva en base al input a las diferentes rutas(por dni, apellido, email o vacio para traer todo)
-    async function buscarPaciente(table, inputId, element, containerIdError) {
-        const input = document.getElementById(inputId);
-        switch (verificar(input)) {
-            case 'mail': //busca por mail
-                manejarFetch(`/ordenes/buscarPorMail/${input.value}`, table, llenarTableYagregarErrores, element, containerIdError)
-                break;
-            case 'number': //busca por dni
-                manejarFetch(`/ordenes/buscarPorDni/${input.value}`, table, llenarTableYagregarErrores, element, containerIdError)
-                break;
-            case 'string': //busca por apellido
-                manejarFetch(`/ordenes/buscarPorApe/${input.value}`, table, llenarTableYagregarErrores, element, containerIdError)
-                break;
-            case 'vacio': //si no se ingresa nada, trae todos los pacientes en db
-                manejarFetch(`/ordenes/buscarTodos`, table, llenarTableYagregarErrores, element, containerIdError)
-                break;
-            default:
-                break;
-        }
-    }
-    //deriva en base al input a las diferentes rutas(por id, nombre o vacio para traer todo)
-    async function buscarExamenes(table, inputId, element, containerIdError) {
-        const input = document.getElementById(inputId);
-        switch (verificar(input)) {
-            case 'number': //busca por id
-                manejarFetch(`/ordenes/examenes/buscarPorId/${input.value}`, table, llenarTableYagregarErrores, element, containerIdError);
-                break;
-            case 'string': //busca por nombre o termino
-                manejarFetch(`/ordenes/examenes/buscarPorNombre/${input.value}`, table, llenarTableYagregarErrores, element, containerIdError);
-                break;
-            case 'vacio': //trae todo
-                manejarFetch(`/ordenes/examenes/buscarTodos`, table, llenarTableYagregarErrores, element, containerIdError);
-                break;
-            default: //si se ingresa un valor invalido, mi input listener lo mostrara desde antes
-                break;
-        }
-    }
-    //
-    //Recibe un string que contiene la ruta a la que se quiere hacer fetch
-    //recibe tambien la tabla a donde se desea ingresar el resultado
-    //mas la funcion que recibe la data del fetch, el elemento html a agregar al contenedor que tenga el id containerIdError
-    async function manejarFetch(route, table, fun, element, containerIdError) {
-        try {
-            const res = await fetch(route);
-            if (!res.ok) {
-                const data = await res.json();
-                console.log(data);
-                throw new Error(data.error);
-            } else {
-                const data = await res.json();
-                fun(table, data, element, containerIdError);
-            }
-        } catch (err) {
-            fun(table, [], element, containerIdError);
-            await Toast.fire({
-                icon: 'error',
-                title: '¡Error!',
-                text: err.message
-            })
-        }
-    }
-    //llena la tabla de examenes y agrega errores en caso de no haber encontrado ningun examen
-    const llenarTableYagregarErrores = (table, data, element, containerIdError) => {
-        const container = document.getElementById(containerIdError);
-        container.innerHTML = '';
-        if (data.length > 0) {
-            llenarTableConData(table, data);
-        } else {
-            container.appendChild(element);
-        }
-    }
-
-    const llenarTableConData = (table, data) => {
-        table.clear();
-        table.rows.add(data).draw();
-        table.columns.adjust().draw();
-        table.responsive.recalc().draw();
-    }
-
-    let pExam = document.createElement('p');
-    pExam.classList = 'form-text text-danger';
-    pExam.innerText = 'No se encontraron examenes, pruebe con otro ID, nombre o término.';
-    document.getElementById('buscarExamenes').addEventListener('click', () => {
-        buscarExamenes(tableExamenes, 'idExamen', pExam, 'divExamenesError');
-    })
-
-    let div = document.createElement('div');
-    let btn = document.createElement('button');
-    btn.type = 'button';
-    btn.classList.add('btn', 'btn-warning', 'mb-2', 'py-2');
-    btn.id = 'btn_registrar';
-    btn.innerHTML = 'Registrar paciente nuevo!';
-    btn.onclick = ''
-    let p = document.createElement('p');
-    p.id = 'p_registrarP';
-    p.innerText = '¡No se encontro ningun paciente!';
-    div.appendChild(p);
-    div.appendChild(btn)
-    document.getElementById('buscarPaciente').addEventListener('click', () => {
-        buscarPaciente(tablePacientes, 'pacienteID', div, 'divPacienteError');
-    });
-
-    let divMedico = document.createElement('div');
-    let pMedic = document.createElement('p');
-    pMedic.classList = 'form-text text-danger';
-    pMedic.innerText = 'No se encontraron medicos, pruebe con otra matricula o apellido.';
-    divMedico.appendChild(pMedic);
-    document.getElementById('buscarMedico').addEventListener('click', () => {
-        buscarMedico(tableMedicos, 'medicoId', divMedico, 'divMedicoError');
-    });
-
-    let pDiagno = document.createElement('p');
-    pDiagno.classList.add('form-text');
-    pDiagno.classList.add('text-danger');
-    pDiagno.innerText = 'No se encontraron diagnosticos, pruebe con otro ID, nombre o término.'
-    document.getElementById('buscarDiagnosticos').addEventListener('click', () => {
-        buscarDiagnosticos(tableDiagnosticos, 'diagnosticoSearch', pDiagno, 'divDiagnosticosError');
     });
 
     const changeIcon = (estadoSelect, table, idIcon, newClass) => {
@@ -426,6 +437,5 @@ $(document).ready(function () {
             document.getElementById('i4').classList = 'bi bi-x-circle ms-2 text-danger';
         }
     })
-
 
 });

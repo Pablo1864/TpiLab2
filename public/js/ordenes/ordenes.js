@@ -1,61 +1,14 @@
-
-import { Toast, disableTableSelection, llenarTableMuestras, initBtnCrear } from './common.js'
-
-//para configurar las datatables languague
-const verificar = (input) => {
-    input.classList.remove('error');
-    input.classList.remove('correct');
-    if (input.value.trim() != '') {
-        const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const regexNumber = /^[0-9]+$/;
-        const regexLetters = /^[a-zA-Z]+$/;
-        if (regexEmail.test(input.value)) {
-            input.classList.add('correct');
-            return 'mail';
-        } else if (regexLetters.test(input.value)) {
-            input.classList.add('correct');
-            return 'string';
-        } else if (regexNumber.test(input.value)) {
-            input.classList.add('correct');
-            return 'number';
-        } else {
-            input.classList.add('error');
-        }
-    } else {
-        input.classList.add('correct');
-        return 'vacio';
-    }
-    return 'error';
-}
+import { irAEditarOrden, Toast, disableTableSelection, llenarTableMuestras, initBtnCrear, checkNumeric } from './common.js'
 
 $(document).ready(function () {
-
-    const tablePacientes = $('#table_patients').DataTable();
-    const tableMedicos = $('#table_medics').DataTable();
-    const tableDiagnosticos = $('#table_diagnosticos').DataTable();
-    const tableDiagnosticosAgregados = $('#table_diagnosticos_agregados').DataTable();
-    const tableExamenes = $('#table_examenes').DataTable();
-    const tableAgregados = $('#table_agregados').DataTable();
-    const tableMuestras = $('#table_muestras').DataTable();
 
     initBtnCrear();
 
     document.getElementById('crearOrden').addEventListener('click', () => {
-
-        if (tablePacientes.row({ selected: true }).data() != null && tableMedicos.row({ selected: true }).data() != null) {
-            crearOrden(tablePacientes, tableMedicos, tableAgregados, tableDiagnosticosAgregados);
-        } else {
-            Toast.fire({
-                icon: 'error',
-                title: '¡Por favor, selecciona un paciente y un médico!'
-            })
-        }
+        crearOrden($('#table_patients').DataTable(), $('#table_medics').DataTable(), $('#table_agregados').DataTable(), $('#table_diagnosticos_agregados').DataTable());
     });
     
 })
-
-
-
 
 async function crearOrden(tablePacientes, tableMedicos, tableExamenesAgregados, tableDiagnosticosAgregados) {
 
@@ -63,11 +16,10 @@ async function crearOrden(tablePacientes, tableMedicos, tableExamenesAgregados, 
         const examenesArray = tableExamenesAgregados.rows().data().toArray();
         const idExamenesArr = examenesArray.map(e => e.idExamenes);
         const diagnosticosArray = tableDiagnosticosAgregados.rows().data().toArray();
-        console.log("ExamenesArr: ", examenesArray);
         const idDiagnosticosArr = diagnosticosArray.map(d => d.idDiagnostico);
-        console.log("idDiagnosticosArr: ", idDiagnosticosArr);
         const pacienteData = tablePacientes.row({ selected: true }).data();
         const medicoData = tableMedicos.row({ selected: true }).data();
+
         let estado = 'Ingresada';
         //i.e. 'Ingresada' = orden parcial solo con paciente y doctor como minimo, y examenes o diagnostico ingresado(aka. orden editable)
         //'Esperando toma de muestras' = orden con todo lo necesario, solo necesita muestras
@@ -82,7 +34,7 @@ async function crearOrden(tablePacientes, tableMedicos, tableExamenesAgregados, 
             }*/
             estado = 'Esperando toma de muestras';
         }
-        console.log("estado de la orden:", estado);
+
         let examenesArr = [];
         for (let i = 0; i < idExamenesArr.length; i++) {
             examenesArr.push({
@@ -90,7 +42,6 @@ async function crearOrden(tablePacientes, tableMedicos, tableExamenesAgregados, 
                 tipo: examenesArray[i].tipoAnalisis,
             });
         }
-        console.log("examenes: ", examenesArr);
 
         const data = {
             idPaciente: pacienteData.idPaciente,
@@ -110,11 +61,11 @@ async function crearOrden(tablePacientes, tableMedicos, tableExamenesAgregados, 
                 body: JSON.stringify(data)
             });
             const ordenResponse = await res.json();
-            console.log("Response: ", ordenResponse);
 
-            if (ordenResponse && ordenResponse[0].nroOrden > 0 && ordenResponse[0].rowsAffectedDiagnosticos == idDiagnosticosArr.length && ordenResponse[0].rowsAffectedExamenes == idExamenesArr.length) {
+            if (ordenResponse && res.ok && ordenResponse[0].nroOrden > 0 && ordenResponse[0].rowsAffectedDiagnosticos == idDiagnosticosArr.length && ordenResponse[0].rowsAffectedExamenes == idExamenesArr.length) {
                 const html = getHtmlOrder(ordenResponse[0], pacienteData, medicoData, examenesArray, diagnosticosArray);
-                $('#titleMuestra').text(`Muestras de la Orden &deg ${ordenResponse[0].nroOrden}`);
+                $('#titleMuestra').html(`Muestras de la Orden &deg; ${ordenResponse[0].nroOrden}`);
+                $('#crearOrden').prop('disabled', true);
                 mostrarModalCreacionOrden(ordenResponse[0].nroOrden, html, (estado == 'Esperando toma de muestras'), examenesArray, ordenResponse[0].muestrasInsertadas);
 
             } else {
@@ -122,22 +73,25 @@ async function crearOrden(tablePacientes, tableMedicos, tableExamenesAgregados, 
                 console.log(ordenResponse[0].rowsAffectedDiagnosticos);
                 console.log(ordenResponse[0].rowsAffectedExamenes);
                 console.log(idDiagnosticosArr.length);
-                await Toast.fire({
-                    icon: 'error',
-                    title: '¡Error al crear la orden!',
-                    text: 'Intentelo nuevamente más tarde.'
-                });
+                if (!res.ok){
+                    throw new Error(ordenResponse.error);
+                }   
+                
             }
-            console.log("respuesta: ", ordenResponse);
         } catch (error) {
             console.log(error);
             await Toast.fire({
                 icon: 'error',
                 title: '¡Error en el servidor!',
-                text: 'La orden no pudo ser creada. Intentelo nuevamente más tarde.'
+                text: 'Intentelo nuevamente más tarde. '+error
             });
         }
 
+    } else {
+        Toast.fire({
+            icon: 'error',
+            title: '¡Por favor, selecciona un paciente y un médico!'
+        })
     }
 }
 //construye el html de la orden para mostrar en el modal
@@ -198,10 +152,10 @@ function getHtmlOrder(ordenResponse, pacienteData, medicoData, examenesArray1, d
     return html;
 }
 
-async function mostrarModalCreacionOrden(idOrden, html, hasMuestras, examenesArray, muestrasData) { //TODO: re-do showModal and crearModal into one function, plus add button to show muestras tab and manage muestras
+async function mostrarModalCreacionOrden(idOrden, html, hasMuestras, examenesArray, muestrasData) {
 
     const result = await Swal.fire({
-        title: `Orden nro ${idOrden}° creada con éxito!`,
+        title: `Orden nro ${idOrden}&deg; creada con éxito!`,
         html: html,
         showCancelButton: true,
         showDenyButton: true,
@@ -239,19 +193,19 @@ function mostrarTabMuestras(idOrden, examenesArr, listaMuestras) {
     disableTableSelection($('#table_medics').DataTable());
 
     //$('#buscarMedico').off('click'); //btn
-    $('#buscarMedico').prop('disabled', true); //btn
-    $('#medicoId').prop('disabled', true); //input
+    $('#medicoBtn').prop('disabled', true); //btn
+    $('#medicoBuscador').prop('disabled', true); //input
 
     //$('#buscarPaciente').off('click'); //btn
-    $('#buscarPaciente').prop('disabled', true); //btn
-    $('#pacienteID').prop('disabled', true); //input
+    $('#pacienteBtn').prop('disabled', true); //btn
+    $('#pacienteBuscador').prop('disabled', true); //input
 
-    $('#diagnosticoSearch').prop('disabled', true); //input
-    $('#buscarDiagnosticos').prop('disabled', true); //btn
+    $('#diagnosticoBuscador').prop('disabled', true); //input
+    $('#diagnosticoBtn').prop('disabled', true); //btn
     //$('#buscarDiagnosticos').off('click'); //btn
 
-    $('#idExamen').prop('disabled', true); //input
-    $('#buscarExamenes').prop('disabled', true); //btn
+    $('#examenBuscador').prop('disabled', true); //input
+    $('#examenBtn').prop('disabled', true); //btn
     //$('#buscarExamenes').off('click'); //btn
 
     $('#table_diagnosticos tbody').off('click');
@@ -266,34 +220,3 @@ function mostrarTabMuestras(idOrden, examenesArr, listaMuestras) {
     $('#divTablasExamenes').addClass('disable-table');
 }
 
-async function irAEditarOrden(nroOrden) {
-    console.log("ir a editar orden: ", nroOrden);
-    try {
-        if (nroOrden && nroOrden > 0) {
-            console.log("nroOrden: ", nroOrden);
-            const res = await fetch(`/ordenes/editar/${nroOrden}`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'text/html',
-                }
-            });
-            if (!res.ok) {
-                await Toast.fire({
-                    icon: 'error',
-                    title: '¡Error en el servidor!',
-                    text: 'Error al redirigir a la lista de ordenes.'
-                })
-            } else {
-                window.location.href = `/ordenes/editar/${nroOrden}`
-            }
-        }
-    } catch (error) {
-        Toast.fire({
-            icon: 'error',
-            title: '¡Error!',
-            text: error.message
-        });
-        console.log(error);
-    }
-    
-}
