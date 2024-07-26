@@ -298,7 +298,14 @@ $(document).ready(function () {
                                         window.print();
                                     } else if ($(this).hasClass('delete-muestra-button')) {
                                         console.log("delete muestra");
-                                        const data = await fetchModificarMuestras(id, $(this).data('id'), false);
+                                        const idMues = $(this).data('id');
+                                        let arrayidMuestras;
+                                        if (Array.isArray(idMues)){
+                                            arrayidMuestras = idMues;
+                                        } else {
+                                            arrayidMuestras = [idMues];
+                                        }
+                                        const data = await fetchModificarMuestras(id, arrayidMuestras, false);
                                         if (data) {
                                             swal.fire({
                                                 title: 'Muestra eliminada',
