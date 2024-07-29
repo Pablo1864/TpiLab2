@@ -12,7 +12,7 @@ router.post('/registro',[verificarToken,esAdminOrRecepcionista], pacienteControl
 // solo devuelve la vista de buscar paciente
 router.get('/buscar',[verificarToken,todosMenosPaciente],pacienteController.pacienteBuscarView);
 // actualiza paciente y mantiene ruta de la vista actual
-router.put('/buscar',[verificarToken,todosMenosPaciente], pacienteController.actualizarPaciente);
+router.put('/buscar',[verificarToken,todosMenosPaciente,esAdminOrRecepcionista], pacienteController.actualizarPaciente);
 
 router.get('/buscarPorMail/:mail', pacienteController.buscarPorEmail);
 

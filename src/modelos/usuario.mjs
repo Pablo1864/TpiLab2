@@ -47,6 +47,7 @@ export class Usuario {
         });
     }
 
+
 static async crearUsuario(usuario, pass, rolId) {
    const salt = await bcrypt.genSalt(10);
    const passHash = await bcrypt.hash(pass, salt)

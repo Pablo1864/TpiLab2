@@ -56,6 +56,7 @@ $(document).ready(function () {
   })
 
   const buttonBuscarPaciente = document.getElementById('buscarPaciente');
+ 
   buttonBuscarPaciente.addEventListener('click', () => {
       buscarPaciente(tablePacientes);
   });
@@ -63,10 +64,8 @@ $(document).ready(function () {
     
   $('#table_patients tbody').on('click', 'button.editar', function() {
     const data = tablePacientes.row($(this).parents('tr')).data();
-    
     console.log(data)
     
-   
 // Rellena el formulario de edición con los datos del registro seleccionado
           $('#nombre').val(data.nombre);
           $('#apellido').val(data.apellido);
@@ -84,6 +83,7 @@ $(document).ready(function () {
 
     // Muestra el form de edición
     $('#ContainerAll').show();
+    $("#containerTodoDataTable").hide();
   });
 
   // obtener_data_editar("#table_patients tbody", tablePacientes)
@@ -95,11 +95,13 @@ $(document).ready(function () {
 document.addEventListener("DOMContentLoaded", function() {
   const formularioEdicion = document.getElementById("ContainerAll");
   const btnOcultarFormulario = document.getElementById("btnOcultarFormulario");
-
+  const containerTodoDataTable = document.getElementById("containerTodoDataTable");
   // controlador de eventos al botón
   btnOcultarFormulario.addEventListener("click", function(event) {
     event.preventDefault();
     formularioEdicion.style.display = "none";
+    containerTodoDataTable.style.display = "block";
+    
   });
 });
 

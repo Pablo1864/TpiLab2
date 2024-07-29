@@ -2,27 +2,40 @@
 import{Paciente} from "../modelos/paciente.mjs";
 import {Usuario} from"../modelos/usuario.mjs";
 
+const rolUsuario = async(idUsuario)=>{
+    const user= await Usuario.verificarUsuarioPorId(idUsuario); 
+    console.log('en rolUsuario jaja el rol id: '+user.rol_id);
+    return user.rol_id
+
+}
+
 
 export const registrarPaciente= async (req,res)=>{
     try {
         const { nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado } = req.body;
-
+      
         const verificarSiExistePaciente= await Paciente.verificarPaciente(dni,email);
             if(verificarSiExistePaciente===0) {
-              const pacienteCreado = await Paciente.crearPaciente(nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado);
-              // registro usuario username=email, pass=dni, rol=paciente
-              const registrarUsuario= await Usuario.crearUsuario(email,dni,6)    
-              res.render( 'registrarPaciente', {validacionExitosa: true});                           } 
+              const nuevoPaciente = await Paciente.crearPaciente(nombre, apellido, dni, telefono, sexo, fechaNac, email, provincia, localidad, domicilio, obraSocial, numeroAfiliado);
+              const idUser=req.cookies.id;
+              const user= await Usuario.verificarUsuarioPorId(idUser);
+              console.log('user rol_id controleer paciente : '+user.rol_id+'  respuesta despues de un insert: '+ JSON.stringify(nuevoPaciente));
+
+              res.render( 'registrarPaciente', {validacionExitosa:true, rol:user.rol_id});                           } 
            else{
-              res.render( 'registrarPaciente', {validacionError: true});
+              res.render( 'registrarPaciente', {validacionError:true, rol:user.rol_id});
          }     
     } catch (error) {
              res.status(500).json({status:500, mensaje:"error de servidor"})
     }
                                         }
 export const registro= async (req,res)=>{
-        res.render('registrarPaciente');
+        const idUsuario= req.cookies.id;
+         const rol = await rolUsuario(idUsuario);
+         console.log('rol en registro controler paciente '+rol)
+        res.render('registrarPaciente', {rol:rol});
            }
+
 export const pacienteBuscarView= async (req,res)=>{
         const userId= req.cookies.id
 

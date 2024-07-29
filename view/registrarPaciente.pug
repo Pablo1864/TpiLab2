@@ -1,14 +1,19 @@
 html
   include includes/linkStyles.pug
-  head
-    link(rel="stylesheet", href="../styles/formRegistroPaciente.css")
-    link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.css')
-    script(src='https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert-dev.js')
-    include includes/nav.pug
+    head
+        link(rel="stylesheet", href="../styles/formRegistroPaciente.css")
+        link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.css')
+        script(src='https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert-dev.js')
+    body
+    - if(rol===1)
+        include includes/navAdmin.pug
+    - if(rol===4)
+        include includes/navRecepcionista.pug
+
     div#ContainerAll 
       div#ContainerForm 
         h1#titulo REGISTRO DE PACIENTE
-        section#contact
+        section#contact 
           .content#form
             div#contactForm
               form( method='POST' action='registro' id='formulario')
@@ -16,31 +21,31 @@ html
                     span Nombre
                     input(type='text' id='nombre' name='nombre' placeholder='nombre' tabindex='1')
                     p(class="input-error" id='nombreError') * Nombre debe tener de 2 o más dígitos y no tener números ni caracteres especiales.
-                div
+            
                     span Apellido
                     input(type='text' id='apellido' name='apellido' placeholder='apellido' tabindex='2')
                     p(class="input-error" id='apellidoError') * Apellido debe tener 2 o más dígitos y no tener números ni caracteres especiales.
-                div   
+                  
                     span DNI
                     input(type='number' id='dni' name='dni' placeholder='dni' tabindex='3' 
                     oninput='javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);'
                     maxlength="9")
                     p(class="input-error" id='dniError') * DNI no debe contener letras tampoco caracteres especiales.
-                div
+                
                     span Teléfono
                     input(type='number' id='telefono' name='telefono' placeholder='teléfono' tabindex='4'
                     oninput='javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);'
                     maxlength="15")
                     p(class="input-error" id='telefonoError') * Teléfono debe tener entre 6 y 14 digitos y no incluir caracteres especiales.
-                div
+                
                     span Email
                     input(type='text' id='email' name='email' placeholder='email' tabindex='5')
                     p(class="input-error" id='emailError') * Ingrese un email valido.
-                div
+                
                     span Fecha de Nacimiento
                     input(type='date' id='fechaNac' name='fechaNac' tabindex='6')
                     p(class="input-error" id='fechaNacError') * Ingrese fecha de nacimiento.
-                div
+                
                     span Provincia
                     select(name="provincia" id='provincia' onchange='handleChange(event,`provincia`)')
                               option(value="") seleccione
@@ -69,15 +74,15 @@ html
                               option(value="Tierra del fuego") Tierra del fuego
                               option(value="Tucuman") Tucuman
                     p(class="input-error" id='provinciaError') * Seleccione provincia.    
-                div
+                
                     span Localidad
                     input(type='text' id='localidad' name='localidad' placeholder='localidad' tabindex='8')
                     p(class="input-error" id='localidadError') * Ingrese localidad valida.
-                div
+                
                     span Domicilio
                     input(type='text' id='domicilio' name='domicilio' placeholder='domicilio' tabindex='9')
                     p(class="input-error" id='domicilioError') * Ingrese domicilio valido.
-                div
+                
                     span Obra Social
                     select(name="obraSocial" id='obraSocial' onchange='handleChange(event,`obraSocial`)')
                               option(value="") seleccione
@@ -94,13 +99,13 @@ html
                               option(value="PARTICULAR") PARTICULAR
                               option(value="OTRA") OTRA
                     p(class="input-error" id='obraSocialError') * Seleccione obra social.  
-                div
+                
                     span Nro Afiliado
                     input(type='number' id='numeroAfiliado' name='numeroAfiliado' placeholder='nro afiliado' tabindex='11'
                     oninput='javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);'
                     maxlength="12")
                     p(class="input-error" id='numeroAfiliadoError') * Ingrese número afiliado valido.
-                div    
+                   
                     span Sexo
                     select(name="sexo" id='sexo' onchange='handleChange(event,`sexo`)')
                               option(value="") seleccione

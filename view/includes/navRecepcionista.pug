@@ -1,14 +1,13 @@
 nav.navbar.navbar-expand-lg
     .container
         a.navbar-brand.p-0(href='#')
-            img(src='/img/microscopio.png' alt='Alchemax_Logo' height='70')
-        
+            img(src='/img/microscopio.png' alt='Alchemax_Logo' height='70') 
         button.navbar-toggler(data-bs-toggle='collapse' data-bs-target='#menu')
             span.navbar-toggler-icon
         
         .collapse.navbar-collapse#menu
             ul.navbar-nav
-               li.nav-item
+                li.nav-item
                     a.nav-link(href="/home" title="Home" style="font-size:24px;margin-right:20px") LabII     
                 li.nav-item
                     a.nav-link(href="/paciente/buscar" title="buscar paciente") 
@@ -20,17 +19,11 @@ nav.navbar.navbar-expand-lg
                     a.nav-link(href="/ordenes/administracion" title="administrar ordenes")
                         <svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.25 2h3.5a2.25 2.25 0 0 1 2.236 2h1.764A2.25 2.25 0 0 1 20 6.25v5.248A6.5 6.5 0 0 0 12.81 22H6.25A2.25 2.25 0 0 1 4 19.75V6.25A2.25 2.25 0 0 1 6.25 4h1.764a2.25 2.25 0 0 1 2.236-2Zm3.5 1.5h-3.5a.75.75 0 0 0 0 1.5h3.5a.75.75 0 0 0 0-1.5Zm.528 10.476a2 2 0 0 1-1.441 2.496l-.584.144a5.729 5.729 0 0 0 .006 1.807l.54.13a2 2 0 0 1 1.45 2.51l-.187.632c.44.386.94.699 1.484.922l.494-.52a2 2 0 0 1 2.899.001l.498.525a5.28 5.28 0 0 0 1.483-.913l-.198-.686a2 2 0 0 1 1.441-2.496l.584-.144a5.729 5.729 0 0 0-.006-1.808l-.54-.13a2 2 0 0 1-1.45-2.51l.187-.63a5.28 5.28 0 0 0-1.484-.922l-.493.518a2 2 0 0 1-2.9 0l-.498-.525c-.544.22-1.044.53-1.483.912l.198.687ZM17.5 19c-.8 0-1.45-.672-1.45-1.5S16.7 16 17.5 16c.8 0 1.45.672 1.45 1.5S18.3 19 17.5 19Z" fill="#222F3D"/></svg> Ordenes   
                 li.nav-item
-                    a.nav-link(href="/examen" title="crear examen")
-                        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2v6a2 2 0 0 0 2 2h6v10a2 2 0 0 1-2 2h-6.81A6.5 6.5 0 0 0 4 11.498V4a2 2 0 0 1 2-2h6Z" fill="#212121"/><path d="M13.5 2.5V8a.5.5 0 0 0 .5.5h5.5l-6-6ZM12 17.5a5.5 5.5 0 1 0-11 0 5.5 5.5 0 0 0 11 0ZM7 18l.001 2.503a.5.5 0 1 1-1 0V18H3.496a.5.5 0 0 1 0-1H6v-2.5a.5.5 0 1 1 1 0V17h2.497a.5.5 0 0 1 0 1H7Z" fill="#212121"/></svg> Examen
-                li.nav-item
                     a.nav-link(href="/examen" title="administrar examenes")  
                         <svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.25 2h3.5a2.25 2.25 0 0 1 2.236 2h1.764A2.25 2.25 0 0 1 20 6.25v5.248A6.5 6.5 0 0 0 12.81 22H6.25A2.25 2.25 0 0 1 4 19.75V6.25A2.25 2.25 0 0 1 6.25 4h1.764a2.25 2.25 0 0 1 2.236-2Zm3.5 1.5h-3.5a.75.75 0 0 0 0 1.5h3.5a.75.75 0 0 0 0-1.5Zm.528 10.476a2 2 0 0 1-1.441 2.496l-.584.144a5.729 5.729 0 0 0 .006 1.807l.54.13a2 2 0 0 1 1.45 2.51l-.187.632c.44.386.94.699 1.484.922l.494-.52a2 2 0 0 1 2.899.001l.498.525a5.28 5.28 0 0 0 1.483-.913l-.198-.686a2 2 0 0 1 1.441-2.496l.584-.144a5.729 5.729 0 0 0-.006-1.808l-.54-.13a2 2 0 0 1-1.45-2.51l.187-.63a5.28 5.28 0 0 0-1.484-.922l-.493.518a2 2 0 0 1-2.9 0l-.498-.525c-.544.22-1.044.53-1.483.912l.198.687ZM17.5 19c-.8 0-1.45-.672-1.45-1.5S16.7 16 17.5 16c.8 0 1.45.672 1.45 1.5S18.3 19 17.5 19Z" fill="#222F3D"/></svg> Examenes
                 li.nav-item
                     a.nav-link(href="/paciente/registro" title="registrar paciente") 
                         <svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 17.5a6.47 6.47 0 0 1 1.023-3.5h-7.77a2.249 2.249 0 0 0-2.25 2.25v.919c0 .572.18 1.13.511 1.596C4.056 20.929 6.58 22 10 22c.932 0 1.797-.08 2.592-.24A6.475 6.475 0 0 1 11 17.502ZM15 7.005a5 5 0 1 0-10 0 5 5 0 0 0 10 0Z" fill="#212121"/><path d="M23 17.5a5.5 5.5 0 1 0-11 0 5.5 5.5 0 0 0 11 0Zm-5.59-3.492L17.5 14l.09.008a.5.5 0 0 1 .402.402l.008.09V17h2.504l.09.008a.5.5 0 0 1 .402.402l.008.09-.008.09a.5.5 0 0 1-.402.402l-.09.008H18L18 20.5l-.008.09a.5.5 0 0 1-.402.402L17.5 21l-.09-.008a.5.5 0 0 1-.402-.402L17 20.5V18h-2.496l-.09-.008a.5.5 0 0 1-.402-.402l-.008-.09.008-.09a.5.5 0 0 1 .402-.402l.09-.008H17L17 14.5l.008-.09a.5.5 0 0 1 .402-.402Z" fill="#212121"/></svg> Paciente
                 li.nav-item
-                    a.nav-link(href="/usuario/crear" title="registrar usuario")
-                        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 17.5a6.47 6.47 0 0 1 1.023-3.5h-7.77a2.249 2.249 0 0 0-2.25 2.25v.919c0 .572.18 1.13.511 1.596C4.056 20.929 6.58 22 10 22c.932 0 1.797-.08 2.592-.24A6.475 6.475 0 0 1 11 17.502ZM15 7.005a5 5 0 1 0-10 0 5 5 0 0 0 10 0Z" fill="#212121"/><path d="M23 17.5a5.5 5.5 0 1 0-11 0 5.5 5.5 0 0 0 11 0Zm-5.59-3.492L17.5 14l.09.008a.5.5 0 0 1 .402.402l.008.09V17h2.504l.09.008a.5.5 0 0 1 .402.402l.008.09-.008.09a.5.5 0 0 1-.402.402l-.09.008H18L18 20.5l-.008.09a.5.5 0 0 1-.402.402L17.5 21l-.09-.008a.5.5 0 0 1-.402-.402L17 20.5V18h-2.496l-.09-.008a.5.5 0 0 1-.402-.402l-.008-.09.008-.09a.5.5 0 0 1 .402-.402l.09-.008H17L17 14.5l.008-.09a.5.5 0 0 1 .402-.402Z" fill="#212121"/></svg>  Usuario   
-                li.nav-item
                     a.nav-link(href="/logout" title="cerrar sesión") 
-                        <svg width="28" height="28" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);"><path d="M6.25 2.75a1.5 1.5 0 0 0-1.5 1.5v15.5a1.5 1.5 0 0 0 1.5 1.5h5.94a6.5 6.5 0 0 1 7.06-10.012V4.25a1.5 1.5 0 0 0-1.5-1.5H6.25Zm2.25 10.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm9 9.75a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11Zm3.5-5.5a.5.5 0 0 1-.5.5h-4.793l1.647 1.646a.5.5 0 0 1-.708.708l-2.5-2.5a.5.5 0 0 1 0-.708l2.5-2.5a.5.5 0 0 1 .708.708L15.707 17H20.5a.5.5 0 0 1 .5.5Z" fill="#FDFEFE"/></svg> Salir      
+                        <svg width="28" height="28" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);"><path d="M6.25 2.75a1.5 1.5 0 0 0-1.5 1.5v15.5a1.5 1.5 0 0 0 1.5 1.5h5.94a6.5 6.5 0 0 1 7.06-10.012V4.25a1.5 1.5 0 0 0-1.5-1.5H6.25Zm2.25 10.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm9 9.75a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11Zm3.5-5.5a.5.5 0 0 1-.5.5h-4.793l1.647 1.646a.5.5 0 0 1-.708.708l-2.5-2.5a.5.5 0 0 1 0-.708l2.5-2.5a.5.5 0 0 1 .708.708L15.707 17H20.5a.5.5 0 0 1 .5.5Z" fill="#FDFEFE"/></svg> Salir     

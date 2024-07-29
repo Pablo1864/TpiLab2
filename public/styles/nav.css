@@ -9,3 +9,11 @@ nav.navbar.navbar-expand-lg{
         color: rgb(5, 5, 5);
         font-weight: bold;
         }
+#inicioSesion{
+    float:right;
+    margin-left: 70%;
+}
+#Salir{
+    float:right;
+    margin-left: 20%;
+}

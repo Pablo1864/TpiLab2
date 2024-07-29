@@ -62,11 +62,11 @@ h1#titulo{
 
 #contact #form button.submit {
   cursor: pointer;
-  width:200px;
+  width:255px;
   height:30px;
-  float:right;
+  float:left;
   padding:5px 0px 5px 0px;
-  margin:30px 50px 20px 30px;
+  margin:40px 0px 60px 100px;
   background-color: #FFC300 ;
   color:rgb(5, 0, 0);
   font-weight: bold;

@@ -16,9 +16,9 @@ html
     body 
         - if(rol===1)
             include includes/navAdmin.pug
-        - if(rol===6)
-            include includes/navPaciente.pug
-        .container.cardbg-lightmb-12
+        - if(rol===4)
+            include includes/navRecepcionista.pug
+        .container.cardbg-lightmb-12#containerTodoDataTable
             form#form_ordenes
                 .p-3.pb-0.col-12
 
@@ -46,7 +46,7 @@ html
                             th Nro.Telefono
                             th Email
                             th Obra social
-                            th Nro. Afiliadopameunic@hotmail.com
+                            th Nro. Afiliado
                             th Acciones
                     tbody
 
