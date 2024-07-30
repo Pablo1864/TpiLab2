@@ -2,7 +2,7 @@ import {Router} from 'express'
 
 const router= Router();
 
-import {verificarToken, esAdmin, esAdminOrRecepcionista} from '../middlewares/autorizacion.js';
+import {verificarToken, esAdmin} from '../middlewares/autorizacion.js';
 
 import * as controler_authUsuarios from '../controladores/authUsuarios.controlador.js'
 

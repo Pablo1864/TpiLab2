@@ -30,7 +30,7 @@ export const esAdmin = async(req, res, next)=>{
         console.log('autorizacion.js-> es Admin rol del usuario: '+user.rol_id + ' es admin')
         next()
     }
-    else return false//user
+    else return res.json('usted no esta autorizado a realizar esta acción');
 }
 
 export const esAdminOrRecepcionista = async(req, res, next)=>{

@@ -16,6 +16,10 @@ html
     body 
         - if(rol===1)
             include includes/navAdmin.pug
+        - if(rol===2)
+            include includes/navBioquimico.pug
+        - if(rol===5)
+            include includes/navTecnicoBioq.pug
         - if(rol===4)
             include includes/navRecepcionista.pug
         .container.cardbg-lightmb-12#containerTodoDataTable

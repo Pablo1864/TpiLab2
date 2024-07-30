@@ -1,6 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser'; 
-import cookieParser from 'cookie-parser'//para guardar y consultar el token en cookie navegador
+import cookieParser from 'cookie-parser'//para manejar las cookies del navegador, convierte las cookies entrantes en un objeto JavaScript fácil de usar
 //import { Paciente } from './modelos/paciente.mjs'
 import { Orden } from './modelos/orden.mjs';
 import { Examen } from './modelos/examen.mjs';
@@ -17,9 +17,9 @@ import ordenRutas from './rutas/ordenes.rutas.js'
 
 import methodOverride from 'method-override';
 const app = express();
+
 //Configura method-override para manejar los métodos PUT y DELETE
 app.use(methodOverride('_method'));
-
 
 app.use(bodyParser.json());//body-parser para analizar los datos del formulario formato json
 app.use(bodyParser.urlencoded({ extended: false }));
