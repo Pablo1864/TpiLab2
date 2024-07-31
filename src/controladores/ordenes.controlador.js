@@ -94,6 +94,14 @@ function checkNumeric(value) {
     return true;
 }
 
+export function compareArrayId(arrId1, arrId2) {
+    if (arrId1.length !== arrId2.length) {
+        return false;
+    }
+    const set2 = new Set(arrId2);
+    return arrId1.every((val) => set2.has(val));
+}
+
 // region RENDER
 
 export const renderCreateOrden = async(req, res) => {
@@ -513,6 +521,72 @@ export const buscarOrdenesAdministracion = async (req, res) => {
     }
 }
 
+export const buscarDataParaImprimir = async (req, res) => {
+    const data = req.body; // data = {idOrden, tipoMuestra}
+    try {
+        if (!data || !data.idOrden || !checkNumeric(data.idOrden) || !data.tipoMuestra) {
+            const error = new Error('No se enviaron datos validos!');
+            error.code = 'BAD_REQUEST';
+            throw error;
+        }
+        const result = await Orden.buscarOrdenDataPorOrdenTipo(data.idOrden, data.tipoMuestra);
+        res.json(result);
+    } catch (err) {
+        console.log("en Ordenes buscarDataParaImprimir", err);
+        if (err.code === 'BAD_REQUEST') {
+            res.status(400).json({ error: 'No se enviaron datos validos!' });
+        } else if (err.code === 'ECONNREFUSED') {
+            res.status(500).json({ error: 'No se pudo conectar con la base de datos. Intentelo más tarde.' });
+        } else {
+            res.status(500).json({ error: 'Error al buscar la muestra.' });
+        }
+    }
+};
+
+export const getDetalleOrden = async (req, res) => {
+    const token = req.cookies.token;
+    const id = parseInt(req.params.id, 10);
+    let rol = 0;
+    try{
+        const usuario = jwt.verify(token, config.SECRET);
+        const user = await Usuario.verificarUsuarioPorId(usuario.id);
+        if (!user || user===0 || !token) {
+            const error = new Error('Usuario no encontrado');
+            error.code = 'USER_NOT_FOUND';
+            throw error;
+        } else {
+            if (user.rol_id !== 1 && user.rol_id !== 4) {
+                const error = new Error('Usuario no autorizado');
+                error.code = 'FORBIDDEN';
+                throw error;
+            } else {
+                rol = user.rol_id;
+            }
+        }
+        if (checkNumeric(id) && id > 0 && (rol === 1 || rol === 4)) {
+            const resultado = await agruparData(await Orden.buscarDataOrden(id));
+            res.json(resultado);
+        } else {
+            const error = new Error('No se pudo obtener la orden.');
+            error.code = 'BAD_REQUEST';
+            throw error;
+        }
+    } catch (err) {
+        console.log(err);
+        if (err.code === 'USER_NOT_FOUND' ) {
+            res.status(404).json({ error: 'Usuario no encontrado!' });
+        } else if (err.code === 'FORBIDDEN') {
+            res.status(403).json({ error: err.message || 'Usuario no autorizado!' });
+        } else if (err.code === 'ECONNREFUSED') {
+            res.status(500).json({ error: 'No se pudo conectar con la base de datos. Intentelo mas tarde.' });
+        } else if (err.code === 'BAD_REQUEST') {
+            res.status(400).json({ error: err.message || 'No se enviaron datos validos.' });
+        } else {
+            res.status(500).json({ error: 'Error al obtener la orden.' });
+        }
+    }
+}
+
 // region CREAR/EDITAR/ELIMINAR/GET
 export const crearOrden = async (req, res) => {
     const dataOrden = req.body;
@@ -521,7 +595,7 @@ export const crearOrden = async (req, res) => {
             checkNumeric(dataOrden.idMedico) == false ||
             (
                 dataOrden.estado.toLowerCase() != 'ingresada' && dataOrden.estado.toLowerCase() != 'analitica' &&
-                dataOrden.estado.toLowerCase() != 'analítica' && dataOrden.estado.toLowerCase() != 'esperando toma de muestras')
+                dataOrden.estado.toLowerCase() != 'analítica' && dataOrden.estado.toLowerCase() != 'esperando toma de muestras' && dataOrden.estado.toLowerCase() != 'pre-analitica')
         ) {
             const error = new Error('No se enviaron datos de la orden validos!');
             error.code = 'BAD_REQUEST';
@@ -559,10 +633,8 @@ export const crearOrden = async (req, res) => {
 };
 
 export const modificarMuestras = async (req, res) => {
-    const dataMuestra = req.body; //datos = {arrayidMuestras, idOrden, estado}
+    const dataMuestra = req.body; //datos = {arrayidMuestras, idOrden, estado(true = agregar, false = quitar)}
     try {
-        console.log(dataMuestra);
-        console.log(dataMuestra.arrayidMuestras);
         if (!dataMuestra || !dataMuestra.arrayidMuestras || !dataMuestra.idOrden || dataMuestra.arrayidMuestras.length < 1) {
             const error = new Error('No se enviaron datos validos!');
             error.code = 'BAD_REQUEST';
@@ -576,7 +648,10 @@ export const modificarMuestras = async (req, res) => {
             error.code = 'BAD_REQUEST';
             throw error;
         }
-        const result = await Muestra.actualizarEstadoMuestras(dataMuestra.arrayidMuestras, dataMuestra.estado, dataMuestra.idOrden);
+
+        const ordenRes = await Orden.buscarDataOrden(dataMuestra.idOrden);
+        const orden = await agruparData(ordenRes);
+        const result = await Muestra.actualizarEstadoMuestras(orden[0], dataMuestra.arrayidMuestras, dataMuestra.estado, dataMuestra.idOrden);
         res.json(result);
     } catch (err) {
         console.log(err);
@@ -590,56 +665,36 @@ export const modificarMuestras = async (req, res) => {
     }
 };
 
-export const buscarDataParaImprimir = async (req, res) => {
-    const data = req.body; // data = {idOrden, tipoMuestra}
-    try {
-        if (!data || !data.idOrden || !checkNumeric(data.idOrden) || !data.tipoMuestra) {
-            const error = new Error('No se enviaron datos validos!');
-            error.code = 'BAD_REQUEST';
-            throw error;
-        }
-        const result = await Orden.buscarOrdenDataPorOrdenTipo(data.idOrden, data.tipoMuestra);
-        res.json(result);
-    } catch (err) {
-        console.log("en Ordenes buscarDataParaImprimir", err);
-        if (err.code === 'BAD_REQUEST') {
-            res.status(400).json({ error: 'No se enviaron datos validos!' });
-        } else if (err.code === 'ECONNREFUSED') {
-            res.status(500).json({ error: 'No se pudo conectar con la base de datos. Intentelo más tarde.' });
-        } else {
-            res.status(500).json({ error: 'Error al buscar la muestra.' });
-        }
-    }
-};
-
-export const modificarOrden = async (req, res) => {
+export const modificarOrden = async (req, res) => { //modificar ordenes en estado != 'analitica'(modo no-admin)
     const id = parseInt( req.params.id, 10 );
-    const body = req.body;
-    const ordenNueva = body.ordenNueva;
-    const ordenAnterior = body.ordenAnterior;
+    const ordenNueva = req.body.ordenNueva;
     try {
-        console.log("body: ", body);
         if (!id || !checkNumeric(id)) {
             const error = new Error('No es encontro un ID valido!');
             error.code = 'BAD_REQUEST';
             throw error;
-        } else if (!body || !ordenNueva.idPaciente || !ordenNueva.idMedico || !ordenNueva.idDiagnosticosArr || !ordenNueva.idExamenesArr){
+        } else if (!ordenNueva){
             const error = new Error('No se enviaron los datos de la orden!');
             error.code = 'BAD_REQUEST';
             throw error;
-        } else if (ordenNueva.idDiagnosticosArr.some(e => !checkNumeric(e)) || ordenNueva.idExamenesArr.some(e => !checkNumeric(e))) {
+        } else if (ordenNueva.diagnosticosIds.some(e => !checkNumeric(e)) || ordenNueva.examenesIds.some(e => !checkNumeric(e))) {
             const error = new Error('No se enviaron los examenes o diagnosticos validos!');
             error.code = 'BAD_REQUEST';
             throw error;
-        } else if (ordenNueva.estado.toLowerCase() != 'ingresada' && ordenNueva.estado.toLowerCase() != 'esperando toma de muestras') {
-            const error = new Error('El estado de la orden no es valido!');
+        }
+        const ordenRes = await Orden.buscarDataOrden(id);
+        const orden = await agruparData(ordenRes);
+
+        console.log("ordenAnterior: ", orden, "ordenNueva: ",  ordenNueva);
+        if (orden[0].estado.toLowerCase() == 'analitica' || orden[0].estado.toLowerCase() == 'analítica') {
+            const error = new Error('La orden se encuentra en estado "' + ordenAnterior.estado + '". Contacte con un administrador si desea actualizar esta accion.');
             error.code = 'BAD_REQUEST';
             throw error;
         }
-        console.log(ordenAnterior, ordenNueva);
-        const resultado = await Orden.updateOrden( ordenAnterior, ordenNueva);
+        const resultado = await Orden.updateOrden(orden[0], ordenNueva);
         console.log("resultado: ", resultado);
         res.json(resultado);
+
     } catch (err) {
         console.log(err);
         if (err.code === 'ECONNREFUSED') {
@@ -653,6 +708,46 @@ export const modificarOrden = async (req, res) => {
         }
     }
 };
+
+export const modificarOrdenAdmin = async (req, res) => {
+    const {nroOrden, idPaciente, idMedico, diagnosticosIds, examenesIds} = req.body;
+    console.log(req.body);
+    try {
+        if (!nroOrden || !checkNumeric(nroOrden) || nroOrden <= 0) {
+            const error = new Error('No se encontro el número de la orden!');
+            error.code = 'BAD_REQUEST';
+            throw error;
+        } else if (!idPaciente || !idMedico  || !checkNumeric(idPaciente) || !checkNumeric(idMedico) || idPaciente <= 0 || idMedico <= 0) {
+            const error = new Error('No se encontraron los datos del paciente o medico!');
+            error.code = 'BAD_REQUEST';
+            throw error;
+        } else if (diagnosticosIds.some(e => !checkNumeric(e)) || examenesIds.some(e => !checkNumeric(e))) {
+            const error = new Error('No se encontraron los examenes o diagnosticos validos!');
+            error.code = 'BAD_REQUEST';
+            throw error;
+        }
+        const ordenRes = await Orden.buscarDataOrden(nroOrden);
+        const orden = await agruparData(ordenRes);
+        if (!orden) {
+            const error = new Error('No se encontro la orden!');
+            error.code = 'BAD_REQUEST';
+            throw error;
+        }
+        const resp = await Orden.modificarOrdenAdmin(orden[0], {nroOrden, idPaciente, idMedico, diagnosticosIds, examenesIds});
+        res.json(resp);
+    } catch (err) {
+        console.log(err);
+        if (err.code === 'ECONNREFUSED') {
+            res.status(500).json({ error: 'No se pudo conectar con la base de datos. Intentelo mas tarde.' });
+        } else if (err.code === 'BAD_REQUEST') {
+            res.status(400).json({ error: err.message || 'No se enviaron datos validos.' });
+        } else if (err.code === 'ER_DUP_ENTRY') {
+            res.status(400).json({ error: 'La orden ya tiene esos datos' });
+        } else {
+            res.status(500).json({ error: 'Error al editar la orden.' });
+        }
+    }
+}
 
 export const desactivarOrden = async (req, res) => {
     const token = req.cookies.token;
@@ -706,47 +801,53 @@ export const desactivarOrden = async (req, res) => {
     }
 }
 
-export const getDetalleOrden = async (req, res) => {
-    const token = req.cookies.token;
+export const cambiarEstado = async (req, res) => {
     const id = parseInt(req.params.id, 10);
-    let rol = 0;
-    try{
-        const usuario = jwt.verify(token, config.SECRET);
-        const user = await Usuario.verificarUsuarioPorId(usuario.id);
-        console.log("user: ", user);
-        if (!user || user===0 || !token) {
-            const error = new Error('Usuario no encontrado');
-            error.code = 'USER_NOT_FOUND';
-            throw error;
-        } else {
-            if (user.rol_id !== 1 && user.rol_id !== 4) {
-                const error = new Error('Usuario no autorizado');
-                error.code = 'FORBIDDEN';
-                throw error;
-            } else {
-                rol = user.rol_id;
-            }
-        }
-        if (checkNumeric(id) && id > 0 && (rol === 1 || rol === 4)) {
-            const resultado = await agruparData(await Orden.buscarDataOrden(id));
-            res.json(resultado);
-        } else {
-            const error = new Error('No se pudo obtener la orden.');
+    try {
+        if (!id || !checkNumeric(id) || id <= 0) {
+            const error = new Error('No se encontro la orden!');
             error.code = 'BAD_REQUEST';
             throw error;
         }
+        const ordenRes = await Orden.buscarDataOrden(id);
+        const orden = await agruparData(ordenRes);
+        if (!orden) {
+            const error = new Error('No se encontro la orden!');
+            error.code = 'BAD_REQUEST';
+            throw error;
+        }
+        if (orden[0].muestras.some(m => m.presentada == 0) || orden[0].muestras.length <= 0) {
+            const error = new Error('No se puede cambiar el estado de la orden porque hay muestras pendientes de presentar o no existen');
+            error.code = 'BAD_REQUEST';
+            throw error;
+        }
+        if (orden[0].diagnosticos.length <= 0){
+            const error = new Error('No se puede cambiar el estado de la orden porque no hay diagnosticos');
+            error.code = 'BAD_REQUEST';
+            throw error;
+        } 
+        if (orden[0].examenes.length <= 0){
+            const error = new Error('No se puede cambiar el estado de la orden porque no hay examenes');
+            error.code = 'BAD_REQUEST';
+            throw error;
+        }
+        if (orden[0].estado.toLowerCase() != 'pre-analitica') {
+            const error = new Error('La orden no puede cambiar de estado');
+            error.code = 'BAD_REQUEST';
+            throw error;
+        }
+        const resp = await Orden.cambiarAnalitica(id);
+        res.json(resp);
     } catch (err) {
         console.log(err);
-        if (err.code === 'USER_NOT_FOUND' ) {
-            res.status(404).json({ error: 'Usuario no encontrado!' });
-        } else if (err.code === 'FORBIDDEN') {
-            res.status(403).json({ error: err.message || 'Usuario no autorizado!' });
-        } else if (err.code === 'ECONNREFUSED') {
+        if (err.code === 'ECONNREFUSED') {
             res.status(500).json({ error: 'No se pudo conectar con la base de datos. Intentelo mas tarde.' });
         } else if (err.code === 'BAD_REQUEST') {
             res.status(400).json({ error: err.message || 'No se enviaron datos validos.' });
         } else {
-            res.status(500).json({ error: 'Error al obtener la orden.' });
+            res.status(500).json({ error: 'Error al editar la orden.' });
         }
     }
+
 }
+

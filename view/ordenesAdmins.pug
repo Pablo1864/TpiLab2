@@ -14,7 +14,7 @@ html(lang="en")
         if rol===1
             include includes/navAdmin.pug
         else if rol !== 6
-            include includes/navAdmin.pug
+            include includes/navRecepcionista.pug
         .container-fluid
             
             form#form_ordenes.row-12
@@ -60,5 +60,4 @@ html(lang="en")
         script(type='module' src="/js/ordenesAdmin.js") 
         script. 
             const ordenes = !{JSON.stringify(ordenes || {})};
-            console.log(ordenes);
     include includes/footer.pug

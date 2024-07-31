@@ -19,7 +19,7 @@ html(lang="en")
         if rol===1
             include includes/navAdmin.pug
         else if rol !== 6
-            include includes/navAdmin.pug
+            include includes/navRecepcionista.pug
         .container-fluid
             #container-label.row-12
             form#form_ordenes.row-12
@@ -29,15 +29,20 @@ html(lang="en")
                             .bg-light.p-3.d-flex.rounded
                                 if ordenData && ordenData[0] && ordenData[0].nroOrden && ordenData[0].medico && ordenData[0].paciente
                                     .border.border-secondary.rounded.p-3.mx-auto.flex-fill.col-2
-                                        h3 Orden n&deg; #{ordenData[0].nroOrden + " " + ordenData[0].estado} 
+                                        h3 Orden n&deg; #{ordenData[0].nroOrden + " " + ordenData[0].estado}
+                                        if state === 'edit'
+                                            if ordenData[0].estado.toLowerCase() == 'analitica' || ordenData[0].estado.toLowerCase() == 'analítica'
+                                                p.text-danger Esta orden no puede ser editada.
+                                            else if rol != 1
+                                                p.text-danger Para editar esta orden por completo contacte con un administrador
                                         p Pac. #{ordenData[0].paciente.apellido + ' ' + ordenData[0].paciente.nombre}
                                         p Doc. #{ordenData[0].medico.apellido + ' ' + ordenData[0].medico.nombre}
                                         #acordion.accordion.mx-0.mx-md-5.px-0.px-md-5
                                             .accordion-item
                                                 h2.accordion-header 
-                                                    button(type='button' data-bs-toggle='collapse' data-bs-target='#collapseDiagno' aria-expanded='true' aria-controls='collapseDiagno' disabled=ordenData[0].diagnosticos.length<=0).accordion-button.py-2
+                                                    button(type='button' data-bs-toggle='collapse' data-bs-target='#collapseDiagno' aria-expanded='false' aria-controls='collapseDiagno' disabled=ordenData[0].diagnosticos.length<=0).accordion-button.collapsed.py-2
                                                         |Diagnosticos
-                                                #collapseDiagno.accordion-collapse.collapse.show(data-bs-parent='#acordion')
+                                                #collapseDiagno.accordion-collapse.collapse(data-bs-parent='#acordion')
                                                     .accordion-body.p-3.pb-0
                                                         if ordenData[0].diagnosticos.length>0
                                                             table.table.table-sm.table-striped.table-hover.table-bordered
@@ -66,7 +71,26 @@ html(lang="en")
                                                                     each e in ordenData[0].examenes
                                                                         tr 
                                                                             td= e.nombre 
-                                                                            td= e.tipoAnalisis                                                         
+                                                                            td= e.tipoAnalisis
+                                            .accordion-item 
+                                                h2.accordion-header
+                                                    button(type='button' data-bs-toggle='collapse' data-bs-target='#collapseMuestras' aria-expanded='false' aria-controls='collapseMuestras' disabled=ordenData[0].muestras.length<=0).accordion-button.collapsed.py-2
+                                                        |Muestras
+                                                #collapseMuestras.accordion-collapse.collapse(data-bs-parent='#acordion')
+                                                    .accordion-body.p-3.pb-0
+                                                        if ordenData[0].muestras.length>0 
+                                                            table.table.table-sm.table-striped.table-hover.table-bordered
+                                                                thead
+                                                                    tr 
+                                                                        th Muestras
+                                                                        th Examen
+                                                                        th presentada
+                                                                tbody 
+                                                                    each e in ordenData[0].muestras
+                                                                        tr 
+                                                                            td= e.tipo
+                                                                            td= (ordenData[0].examenes.find(ex => ex.idExamenes == e.idExamenes).nombre)
+                                                                            td= (e.estado?'Si':'No')                                                    
                                 else
                                     .bg-danger-subtle.border.border-danger.rounded.p-3.mx-auto
                                         h3.text-danger.text-center ¡Error!
@@ -153,17 +177,6 @@ html(lang="en")
                                                 button.btn.btn-warning(id='medicoBtn' type='button' aria-label='buscar') 
                                                     i.bi.bi-search
                                             #divMedicosErrores.col-12.text-danger
-                                        //.col-12.ps-0
-                                            h4 Seleccionar el medico:
-                                            #divMedicoError
-                                        //label(for='medicoBuscador').form-label.col-12.col-lg-1.mt-1 Medico:
-                                        //.col-5.p-0
-                                            input.form-control#medicoBuscador(type='text' aria-describedby='medicoHelp')
-                                            .form-text#medicoHelp ingresar dni, apellido o mail del medico, y seleccionar el medico de la tabla.
-                                        //.col-2.p-0
-                                            button(type='button').btn.btn-warning.m-0#buscarMedico 
-                                                |Buscar
-                                                i.bi.bi-search.ms-2
 
                                     .bg-secondary-subtle.p-3.rounded
                                         table(style='width:100%')#table_medics.table.table-striped.table-light.align-middle

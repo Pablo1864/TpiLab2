@@ -64,23 +64,27 @@ export class Muestra {
                 muestrasResp: resp,
                 estadoOrden: estadoResp
             }; */
-    static async actualizarEstadoMuestras(idMuestras, estado, nroOrden){
+    static async actualizarEstadoMuestras(ordenAnterior, idMuestras, estado, nroOrden){
         const con = await getConnection();
         try {
-            await beginTransaction(con); //comienzo transacción
-            let resp = []; //aqui guardo los resultados de cada update(ya que pueden ser mas de un update)
+            await beginTransaction(con);
+            let resp = [];
             for (const idMuestra of idMuestras) {
                 resp.push(await query('UPDATE muestras SET estado = ?, fechaModif = NOW() WHERE idMuestra = ? AND nroOrden = ?', [estado, idMuestra, nroOrden], con));
-                //hago los updates, si llega a fallar uno(lo cual tiraria un error), se rechaza la transacción completa
             }
             const estadoMuestrasOrden = await query('SELECT estado FROM muestras WHERE nroOrden = ?', [nroOrden], con);
             
             const estadosTotalesMuestras1 = estadoMuestrasOrden.every(element => element.estado === 1);
-            const estadoResp = estadosTotalesMuestras1;
-            if (estadosTotalesMuestras1) { //si todas las muestras fueron presentadas, cambia a analitica
-                await query('UPDATE ordenes SET muestrasEnEspera = 0, estado = "Analítica", fechaModificacion = NOW() WHERE nroOrden = ?', [nroOrden], con);
-            } else { //else cambia a esperando muestras
-                await query('UPDATE ordenes SET muestrasEnEspera = 1, estado = "Esperando toma de muestras", fechaModificacion = NOW() WHERE nroOrden = ?', [nroOrden], con);
+            let estadoResp = estadosTotalesMuestras1;
+            if (estadosTotalesMuestras1 && ordenAnterior.diagnosticos.length > 0 && ordenAnterior.examenes.length > 0) { //si todas las muestras fueron presentadas, y hay diagnosticos y examenes, cambia a 'pre-analitica'
+                await query('UPDATE ordenes SET muestrasEnEspera = 0, estado = "Pre-analitica", fechaModificacion = NOW() WHERE nroOrden = ?', [nroOrden], con);
+                estadoResp = 'pre-analitica';
+            } else if (estadosTotalesMuestras1 && (ordenAnterior.diagnosticos.length === 0 || ordenAnterior.examenes.length === 0)){ //else si todas las muestras fueron presentadas, y no hay diagnosticos o no hay examenes, cambia a 'ingresada'
+                await query('UPDATE ordenes SET muestrasEnEspera = 0, estado = "ingresada", fechaModificacion = NOW() WHERE nroOrden = ?', [nroOrden], con);
+                estadoResp = 'ingresada';
+            } else { //else si faltan algunas de las muestras, cambia a 'esperando toma de muestras'
+                await query('UPDATE ordenes SET muestrasEnEspera = 1, estado = "esperando toma de muestras", fechaModificacion = NOW() WHERE nroOrden = ?', [nroOrden], con);
+                estadoResp = 'esperando toma de muestras';
             }
 
             await commit(con); //si no llega a fallar nada, confirmo la transacción(A.K.A. se hacen todos los inserts)  

@@ -37,11 +37,10 @@ $(document).ready(function () {
             {
                 title: 'Acciones', data: null, responsivePriority: 1, orderable: false, searchable: false, render: function (data) {
                     let estado = data.estado.toLowerCase();
-                    let muestrasEditable = estado == 'esperando toma de muestras';
                     return `<div class="d-flex flex-row justify-content-evenly">
-                            <button type="button" class="btn btn-sm btn-primary edit-button" data-id="${data.nroOrden}"><i class="bi bi-pencil-fill" aria-hidden="true"></i><span class="d-none d-lg-inline ms-1">Editar</span></button>
-                            <button type="button" class="btn btn-sm btn-secondary details-button" data-id="${data.nroOrden}"><i class="bi bi-eye-fill" aria-hidden="true"></i><span class="d-none d-lg-inline ms-1">Ver más</span></button>
-                            <button type="button" class="btn btn-sm btn-danger delete-button" data-id="${data.nroOrden}"><i class="bi bi-trash" aria-hidden="true"></i><span class="d-none d-lg-inline ms-1">Eliminar</span></button><div>`;
+                            <button type="button" class="btn btn-sm btn-primary edit-button" data-id="${data.nroOrden}"><i class="bi bi-pencil-fill" innert></i><span class="d-none d-lg-inline ms-1">Editar</span></button>
+                            <button type="button" class="btn btn-sm btn-secondary details-button" data-id="${data.nroOrden}"><i class="bi bi-eye-fill" innert></i><span class="d-none d-lg-inline ms-1">Ver más</span></button>
+                            <button type="button" class="btn btn-sm btn-danger delete-button" data-id="${data.nroOrden}"><i class="bi bi-trash" innert></i><span class="d-none d-lg-inline ms-1">Eliminar</span></button><div>`;
 
                 }
             },
@@ -157,15 +156,37 @@ $(document).ready(function () {
             {{muestras}}
             </table>`;
 
+            //let muestrasHtml = '';
             const arr = agruparMuestrasArr(muestras);
-            muestrasHtml = arr.map(muestra => {
+            console.log("arr: ", arr);
+            arr.forEach(muestra => {
+                let buttons = '';
+                if (muestra.presentada && (estado.toLowerCase() == 'analitica' || estado.toLowerCase() == 'analítica')) {
+                    buttons = `<button type="button" class='btn btn-sm btn-primary imprimir-muestra-button' data-tipo='${muestra.tipo}'>Imprimir</button>`;
+                } else if (muestra.presentada) {
+                    buttons = `<button type="button" class='btn btn-sm btn-primary imprimir-muestra-button' data-tipo='${muestra.tipo}'>Imprimir</button><button type="button" class="btn btn-sm btn-danger delete-muestra-button" data-id="${muestra.idMuestra}">Eliminar</button>`; 
+                } else {
+                    buttons = `<button type="button" class="btn btn-sm btn-primary add-muestra-button" data-id="${muestra.idMuestra}">agregar</button>`;
+                }
+                muestrasHtml += `<tr>
+                <td>${muestra.tipo}</td>
+                <td>${muestra.idMuestra.join(', ')}</td>
+                <td>${muestra.idExamenes.join(', ')}</td>
+                <td>${muestra.presentada ? 'Si' : 'No'}</td>
+                <td>
+                ${buttons}
+                </td>
+                </tr>
+                `
+            });
+            /*muestrasHtml = arr.map(muestra => {
                 let buttons = '';
                 if (muestra.presentada && (estado.toLowerCase() == 'analitica' || estado.toLowerCase() == 'analítica')) {
                     buttons = `<button type="button" class='btn btn-sm btn-primary imprimir-muestra-button' data-tipo='${muestra.tipoAnalisis}'>Imprimir</button>`;
                 } else if (muestra.presentada) {
-                    buttons = `<button type="button" class='btn btn-sm btn-primary imprimir-muestra-button' data-tipo='${muestra.tipoAnalisis}'>Imprimir</button><button type="button" class="btn btn-sm btn-danger delete-muestra-button" data-id="${muestra.idMuestras}")">Eliminar</button>`; 
+                    buttons = `<button type="button" class='btn btn-sm btn-primary imprimir-muestra-button' data-tipo='${muestra.tipoAnalisis}'>Imprimir</button><button type="button" class="btn btn-sm btn-danger delete-muestra-button" data-id="${muestra.idMuestras}">Eliminar</button>`; 
                 } else {
-                    buttons = `<button type="button" class="btn btn-sm btn-primary add-muestra-button" data-id="${muestra.idMuestras}")">agregar</button>`;
+                    buttons = `<button type="button" class="btn btn-sm btn-primary add-muestra-button" data-id="${muestra.idMuestras}">agregar</button>`;
                 }
                 return `<tr>
                 <td>${muestra.tipoAnalisis}</td>
@@ -177,7 +198,7 @@ $(document).ready(function () {
                 </td>
                 </tr>
                 `;
-            }).join('');
+            }).join('');*/
             console.log("muestras: ",muestras, estado, nroOrden);
         }
         return html.replace("{{muestras}}", muestrasHtml);
@@ -188,7 +209,7 @@ $(document).ready(function () {
         let htmlDiagnosticos = '';
         let htmlExamenes = '';
         let htmlMuestras = '';
-        html = `<div class='row p-0 m-0'> 
+        html = `<div class='row p-0 m-0'>
                     <div class='col-12'>
                         <p>Estado: {{estado}}</p>
                         <p>Fecha de creación: {{date}}</p>
@@ -250,6 +271,17 @@ $(document).ready(function () {
             .replace('{{estado}}', data.estado);
     }
 
+    function actualizarRow(nroOrden){
+        let dataRow = ''
+        console.log("actualizando row: ", nroOrden);
+        $('table_ordenes').DataTable().each(function () {
+            if (this.data()[0].nroOrden === nroOrden) {
+                dataRow = this.data()[0];
+            }
+        })
+        console.log("dataRow: ", dataRow);
+    }
+
     async function detailsOrder(id) {
         if (checkNumeric(id) && id>0) {
             let loading = swal.fire({
@@ -262,13 +294,18 @@ $(document).ready(function () {
             try {
                 const res = await fetch(`/ordenes/detalle/${id}`);
                 const data = await res.json();
+                let preAnalitica = data[0].estado.toLowerCase() == 'pre-analitica' || data[0].estado.toLowerCase() == 'pre-analítica';
+                let btnChangeEstado = `<button type="button" class="btn btn-sm btn-success change-estado-button" data-id="${data.nroOrden}"><i class="bi bi-check-circle-fill innert"></i><span class="d-none d-lg-inline ms-1"></span></button>`;
+                
                 if (res.ok && data) {
                     if (data.length > 0) {
-                        swal.fire({
+                        const resModal = await swal.fire({
                             title: 'Detalles de la orden n &deg;'+id,
                             html: generateTable(data[0]),
                             width: '80%',
                             padding: '2em',
+                            showDenyButton: preAnalitica, //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! terminar esto
+                            denyButtonText:'Cambiar orden a analítica!',
                             onOpen: () => {
                                 if (data[0].muestras && data[0].muestras.length > 0) {
                                     $('#table_muestras').on('click', 'button', async function () {
@@ -289,6 +326,8 @@ $(document).ready(function () {
                                                 icon: 'success',
                                                 allowOutsideClick: false
                                             })
+                                            console.log(dataMuestra);
+                                            actualizarRow(dataMuestra.estadoOrden);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! terminar esto
                                         }
                                     } else if ($(this).hasClass('imprimir-muestra-button')) {
                                         console.log("imprimir muestra");
@@ -312,15 +351,69 @@ $(document).ready(function () {
                                                 icon: 'success',
                                                 allowOutsideClick: false
                                             })
-                                            if (data[0].muestras && data[0].muestras.length > 0) {
-                                                //handle changing order status on table
-                                            }
-                                            
+                                            console.log(dataMuestra);
+                                            actualizarRow(dataMuestra.estadoOrden);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! terminar esto    
+                                            //TODO: cambiar row content en base a la add/del muestra                                  
                                         }
                                     }
                                 });}
                             }
                         })
+                        if (resModal.isConfirmed) {
+                            console.log("Confirmed");
+                        } else if (resModal.isDenied) {
+                            console.log("Denied");
+                            if (preAnalitica) {
+                                const resChange = await swal.fire({
+                                    title: '¿Desea cambiar el estado de la orden?',
+                                    text: 'Se cambiara el estado de la orden a "analítica", pasando a ser procesada y analizada por un bioquimico. Esta operación no se puede deshacer',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Si, cambiar',
+                                    cancelButtonText: 'No, mantener',
+                                })
+                                if (resChange.isConfirmed) {
+                                    try {
+                                        const cambiar = await fetch(`/ordenes/cambiarEstado/${id}`, {
+                                            method: 'PATCH',
+                                            headers: {
+                                                'Content-Type': 'application/json'
+                                            }
+                                        })
+                                        const cambiarData = await cambiar.json();
+                                        if (cambiar.ok) {
+                                            let title = 'Orden actualizada con exito';
+                                            if (cambiarData.affectedRows > 0){
+                                                actualizarRow(id);
+                                            } else {
+                                                title = 'No hubo cambios';
+                                            }
+                                            swal.fire({
+                                                icon: 'success',
+                                                title: 'Orden actualizada con exito',
+                                                text: 'Se ha cambiado el estado de la orden a "Analítica". La orden sera procesada y analizada por un bioquimico, y los resultados estaran disponibles en ',//+cambiarData.orden.fechaAprox+' día(s).',// Los resultados estarán disponibles en '+cambiarData.orden.fechaAprox+' día(s).',
+                                                allowOutsideClick: false
+                                            })
+                                            console.log("done:", cambiarData);
+                                        } else if (!cambiar.ok) {
+                                            if (cambiarData.error) {
+                                                throw new Error(cambiarData.error);
+                                            } else {
+                                                throw new Error(cambiarData);
+                                            }
+                                        }
+                                    } catch (err) {
+                                        console.log(err);
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: 'Error',
+                                            text: err.message || 'Sucedio un error inesperado'
+                                        });
+                                    }
+                                }
+                            }
+                        } else if (resModal.isDismissed) {
+                            console.log("Dismissed");
+                        }
                         
                     }
                 } else {

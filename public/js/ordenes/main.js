@@ -364,6 +364,7 @@ $(document).ready(function () {
             {
                 title: 'Presentada', data: null, responsivePriority: 3, name: 'presentada', render: function (data) {
                     return data.presentada ? 'Si' : 'No';
+                    //return data.presentada.some(d => d == 0) ? 'No' : 'Sí';
                 }
             },
             { title: 'idExamenes', data: 'idExamenes', responsivePriority: 2, orderable: false, searchable: false, name: 'idExamenes' },

@@ -62,9 +62,39 @@ export function disableTableSelection(table) {
 
 export function llenarTableMuestras(muestrasData, examenesArr, idOrden) {
     console.log("llenando table muestras");
-    let dataArray = [];
-    let tipoMuestra = [];
-    examenesArr.forEach(element => {
+    console.log(muestrasData, examenesArr, idOrden);
+    //muestrasData 0: estado:1, idExamenes:1, idMuestra:221, tipo:"Analisis de sangre"
+    //examenesArr 0: diasDemora:24, idExamenes:1, nombre:"Analisis de sangre", otrosNombres:"Sangre", requerimiento:"Analisis de sangre", tipoAnalisis:"Analisis de sangre"
+    //let dataArray = [];
+    //let tipoMuestra = [];
+    if (muestrasData.length != examenesArr.length) {
+        throw new Error('La lista de muestras no coincide con la lista de examenes');
+    }
+    if (!checkNumeric(idOrden) || idOrden <= 0) {
+        throw new Error('ID de orden inválido');
+    }
+
+    const finalArrayToAdd = [];
+    const dataAgrupada = muestrasData.reduce((acc, muestra) => {
+        const key = `${muestra.tipo}-${muestra.estado}`;
+        if (!acc[key]) {
+            acc[key] = {idMuestra: [], idExamenes: [], tipo: muestra.tipo, presentada: muestra.estado};
+        }
+        acc[key].idMuestra.push(muestra.idMuestra);
+        acc[key].idExamenes.push(muestra.idExamenes);
+        return acc;
+    }, {});
+    
+    for (const key in dataAgrupada) {
+        finalArrayToAdd.push({
+            idMuestra: dataAgrupada[key].idMuestra,
+            tipo: dataAgrupada[key].tipo,
+            presentada: dataAgrupada[key].presentada,
+            idExamenes: dataAgrupada[key].idExamenes
+        });
+    }
+
+    /*examenesArr.forEach(element => {
         if (!tipoMuestra.includes(element.tipoAnalisis)) {
             tipoMuestra.push(element.tipoAnalisis);
         }
@@ -73,10 +103,10 @@ export function llenarTableMuestras(muestrasData, examenesArr, idOrden) {
         dataArray.push({
             idMuestra: muestrasData.filter(m => m.tipo == element).map(m => m.idMuestra),
             tipo: element,
-            presentada: muestrasData.filter(m => m.tipo == element).map(m => m.estado)[0], //All values should technically be the same, thus I just take the first
+            presentada: muestrasData.filter(m => m.tipo == element).map(m => m.estado),//[0], //All values should technically be the same, thus I just take the first
             idExamenes: examenesArr.filter(e => e.tipoAnalisis == element).map(e => e.idExamenes), //idExamenes
         });
-    })
+    })*/
 
     const table = $('#table_muestras').DataTable();
 
@@ -137,7 +167,8 @@ export function llenarTableMuestras(muestrasData, examenesArr, idOrden) {
     });
 
     table.clear();
-    table.rows.add(dataArray).draw();
+    //table.rows.add(dataArray).draw();
+    table.rows.add(finalArrayToAdd).draw();
     table.columns.adjust().draw();
     table.responsive.recalc().draw();
 
@@ -222,7 +253,7 @@ export async function irAEditarOrden(nroOrden) {
     console.log("ir a editar orden: ", nroOrden);
     try {
         if (!checkNumeric(nroOrden)) {
-            throw new Error( 'El nro. de orden debe ser un valor numérico');
+            throw new Error('El nro. de orden debe ser un valor numérico');
         };
         if (nroOrden && nroOrden > 0) {
             const res = await fetch(`/ordenes/editar/${nroOrden}`, {
@@ -239,6 +270,7 @@ export async function irAEditarOrden(nroOrden) {
             }
         }
     } catch (error) {
+        console.log(error);
         const res = await Swal.fire({
             icon: 'error',
             title: '¡Error al redirigir a la edición de la orden '+nroOrden+'!',
@@ -248,9 +280,29 @@ export async function irAEditarOrden(nroOrden) {
         if (res.isConfirmed) {
             window.location.href = `/ordenes/editar/${nroOrden}`;
         }
-        console.log(error);
+        
     }
     
+}
+
+export async function redirigirAdministracion() {
+    try {
+        const res = await fetch(`/ordenes/administracion`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            window.location.href = '/ordenes/administracion';
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        console.log(error);
+        swal.fire({ icon: 'error', title: 'Hubo un error al redirigir. ', text: 'Ocurrio un error. '+error.message || '' });
+    }
 }
 
 //throw new Error(data.error);
@@ -286,17 +338,21 @@ async function modificarMuestras(tableMuestras, idOrden, row, estado, examenesAr
             tableMuestras.responsive.recalc();
             
             if (data.estadoOrden){
-                let totalDays = 0; 
-                examenesArr.map((row) => { if (row.diasDemora > totalDays) { totalDays = row.diasDemora } });
+                let msg = 'La orden ya casi esta lista!';
+                if (data.estadoOrden == 'pre-analitica'){
+                    msg = 'La orden ya puede ser actualizada a estado "Analítica"!';
+                }
+                //let totalDays = 0; 
+                //examenesArr.map((row) => { if (row.diasDemora > totalDays) { totalDays = row.diasDemora } });
                 await Swal.fire({
                     icon: 'success',
                     title: `Orden n.&deg ${idOrden} actualizada`,
-                    text: `Todas las muestras han sido agregadas. Los resultados de la orden estarán disponibles en ${totalDays} días.`,
+                    text: `Todas las muestras han sido agregadas. ${msg}`,
                 })
             }
             Toast.fire({ icon: 'success', title: `Muestra ${estado? "agregada" : "eliminada"} con exito.` });
             
-            return data.estadoOrden ? true : false; //estadoOrden es null si no hubo cambio de estado en la orden
+            return data.muestrasResp.length>0 ? true : false;
         }
     } catch (error) {
         console.log(error);
@@ -371,8 +427,53 @@ export function initBtnEditar(dataOld){
     });
 }
 
-function compareArrayId(arrId1, arrId2) {
-    if (arrId1.length != arrId2.length) {
+export async function updateOrderFun(nroOrden, idPaciente, idMedico, diagnosticosIds, examenesIds) {
+    if (!nroOrden || !checkNumeric(nroOrden) || nroOrden <= 0) {
+        throw new Error('Ocurrio un error al recuperar los datos, por favor recargue la pagina y vuelva a intentarlo');
+    }
+    if (!idPaciente || !idMedico || !checkNumeric(idPaciente) || !checkNumeric(idMedico) || idPaciente <= 0 || idMedico <= 0) {
+        throw new Error('Por favor, seleccione un paciente y un medico');
+    } 
+    if (!diagnosticosIds || !examenesIds || diagnosticosIds.some(d => !checkNumeric(d)) || examenesIds.some(e => !checkNumeric(e))) {
+        throw new Error('Ocurrio un error al recuperar los datos de los diagnosticos o examenes, por favor recargue la pagina y vuelva a intentarlo');
+    }
+    try {
+        const res = await updateOrder(nroOrden, idPaciente, idMedico, diagnosticosIds, examenesIds);
+        return res
+    } catch (error) {
+        throw error
+    }
+}
+
+async function updateOrder(nroOrden, idPaciente, idMedico, diagnosticosIds, examenesIds) {
+    try {
+        const res = await fetch('',{
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                nroOrden: nroOrden,
+                idPaciente: idPaciente,
+                idMedico: idMedico,
+                diagnosticosIds: diagnosticosIds,
+                examenesIds: examenesIds
+            })
+        })
+        const jsonRes = await res.json();
+        console.log('updateOrder: ', jsonRes);
+        if (res.ok) {
+            return jsonRes
+        } else {
+            throw new Error(jsonRes.error)
+        }
+    } catch (error) {
+        throw error
+    }
+}
+
+export function compareArrayId(arrId1, arrId2) {
+    if (arrId1.length !== arrId2.length) {
         return false;
     }
     const set2 = new Set(arrId2);
@@ -397,8 +498,27 @@ function switchBtn(paciente, medico, examenes, diagnosticos, idBtn, btnTextAll, 
     }
 }
 
-export function agruparMuestrasArr ( muestrasArr){
-    const obj = muestrasArr.reduce((obj, item) => {
+export function agruparMuestrasArr ( muestrasData){
+    const finalArrayToAdd = [];
+    const dataAgrupada = muestrasData.reduce((acc, muestra) => {
+        const key = `${muestra.tipo}-${muestra.estado}`;
+        if (!acc[key]) {
+            acc[key] = {idMuestra: [], idExamenes: [], tipo: muestra.tipo, presentada: muestra.estado};
+        }
+        acc[key].idMuestra.push(muestra.idMuestra);
+        acc[key].idExamenes.push(muestra.idExamenes);
+        return acc;
+    }, {});
+    
+    for (const key in dataAgrupada) {
+        finalArrayToAdd.push({
+            idMuestra: dataAgrupada[key].idMuestra,
+            tipo: dataAgrupada[key].tipo,
+            presentada: dataAgrupada[key].presentada,
+            idExamenes: dataAgrupada[key].idExamenes
+        });
+    }
+    /*const obj = muestrasArr.reduce((obj, item) => {
         if (!obj[item.tipo]) {
             obj[item.tipo] = {idMuestras:[], idExamenes:[], tipoAnalisis:item.tipo, presentada:true};
         }
@@ -409,7 +529,8 @@ export function agruparMuestrasArr ( muestrasArr){
         }
         return obj
     }, {});
-    return Object.values(obj);
+    return Object.values(obj);*/
+    return finalArrayToAdd
 }
 
 export const llenarTableConData = (table, data) => {

@@ -23,10 +23,11 @@ router.post('/crear', [verificarToken, esAdminOrRecepcionista], ordenController.
 router.patch('/modificarMuestras', [verificarToken, esAdminOrRecepcionista], ordenController.modificarMuestras);
 router.post('/imprimir/datasample', [verificarToken, esAdminOrRecepcionista], ordenController.buscarDataParaImprimir);
 router.post('/editar/:id', [verificarToken, esAdminOrRecepcionista], ordenController.modificarOrden);//se encarga de modificar una orden
+router.post('/editar/admin/:id', [verificarToken, esAdmin], ordenController.modificarOrdenAdmin);
 
 router.get('/detalle/:id', [verificarToken, esAdminOrRecepcionista], ordenController.getDetalleOrden);//se encarga de returnar el detalle de una orden
 router.patch('/desactivar/:id', [verificarToken, esAdminOrRecepcionista], ordenController.desactivarOrden);//se encarga de desactivar una orden
-
+router.patch('/cambiarEstado/:id', [verificarToken, esAdminOrRecepcionista], ordenController.cambiarEstado);//se encarga de cambiar el estado de una orden
 
 // importar el controlador que se utilice
 //import * as controler_usuario from '../controladores/usuario.controlador.js'

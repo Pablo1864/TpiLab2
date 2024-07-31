@@ -229,10 +229,19 @@ WHERE
         const con = await getConnection();
         try {
             await beginTransaction(con);
-            let muestrasEnEspera = 1;
-            if (estado.toLowerCase() == 'analitica' || estado.toLowerCase() == 'analítica') {
-                muestrasEnEspera = 0;
+            let muestrasEnEspera = 1
+            let newEstado = '';
+            if (idMedico == 0 || idPaciente == 0) {
+                throw new Error('Debe seleccionar un medico y un paciente');
             }
+            if (idDiagnosticosArr.length == 0 || examenesArr.length == 0) {
+                newEstado = 'Ingresada';
+                muestrasEnEspera = 0
+            } else { 
+                muestrasEnEspera = 1
+                newEstado = 'Esperando toma de muestras';
+            }
+            
             const sql = 'INSERT INTO ordenes (nroOrden, idMedico, idPaciente, estado, muestrasEnEspera, fechaModificacion, razonCancelacion) VALUES (NULL,?,?,?,?, NOW(), NULL)';
             const res1 = await query(sql, [idMedico, idPaciente, estado, muestrasEnEspera], con);
             let resDiag = 0;
@@ -268,7 +277,7 @@ WHERE
                             resExams += res.affectedRows;
                             let res2 = await query(sqlMuestra, [idOrden, examenesArr[i].idExamen, examenesArr[i].tipo, 0], con); //0 porque aun no estan presentadas 
                             console.log("Inner muestras insert successful: ", res2.insertId);
-                            resMuestras.push({ idMuestra: res2.insertId, tipo: examenesArr[i].tipo, estado: false});
+                            resMuestras.push({ idMuestra: res2.insertId, tipo: examenesArr[i].tipo, estado: false, idExamenes: examenesArr[i].idExamen });
                         } catch (err) {
                             console.log(err);
                             throw err;
@@ -312,6 +321,18 @@ WHERE
         }
     }
 
+    static async cambiarAnalitica(idOrden) {
+        const con = await getConnection();
+        try {
+            const sql = 'UPDATE ordenes SET estado = ?, muestrasEnEspera = 0, fechaModificacion = NOW() WHERE nroOrden = ?';
+            const res = await query(sql, ['Analitica', idOrden], con);
+            return res;
+        } catch (err) {
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
+    }
     static async cambiarEstado(idOrden, estado) {
         const con = await getConnection();
         try {
@@ -322,7 +343,7 @@ WHERE
             } else {
                 muestras = 1;
             }
-            const sql = `UPDATE ordenes SET estado = ? , muestrasEnEspera = ? WHERE nroOrden = ?`;
+            const sql = `UPDATE ordenes SET estado = ? , muestrasEnEspera = ?, fechaModificacion = NOW() WHERE nroOrden = ?`;
 
             const res = await query(sql, [estado, muestras, idOrden], con);
             return res;
@@ -333,104 +354,352 @@ WHERE
         }
     }
 
-    //only works for ingresada and esperando toma de muestras(since those are the only 'editables' ones in normal circumstances)
-    static async updateOrden (oldOrden, newOrden) { //oldOrden {idPaciente, idMedico, idDiagnosticosArr, idExamenesArr, estado}, newOrden {idPaciente, idMedico, idDiagnosticosArr, idExamenesArr, estado}
+    //only works for "ingresada" state, since it's the only editable state in normal operation
+    static async updateOrden (ordenAnterior, ordenNueva) {
         const con = await getConnection();
         try {
+            
             await beginTransaction(con);
-            const respuestas = {
-                rowsAffectedExamenesAdd: 0,
-                rowsAffectedDiagnosticosAdd: 0,
-                rowsAffectedMuestrasAdd: 0,
-                rowsAffectedDiagnosticosDel: 0,
+            const res = {
+                rowsAffectedOrdenUpdate: 0,
                 rowsAffectedExamenesDel: 0,
-                rowsAffectedMuestrasDel: 0
-            };
-            let muestras = 0;
-            if (newOrden.estado.toLowerCase() == 'esperando toma de muestras'){
-                muestras = 1;
-            } else if (newOrden.estado.toLowerCase() == 'ingresada') {
-                muestras = 0;
-            } else {
-                throw new Error('El estado de la orden no es valido');
+                rowsAffectedExamenesAdd: 0,
+                rowsAffectedDiagnosticosDel: 0,
+                rowsAffectedDiagnosticosAdd: 0,
+                rowsAffectedMuestrasDel: 0,
+                rowsAffectedMuestrasAdd: 0,
+                anychanges: false,
+                estado: ordenAnterior.estado
             }
-            const IdsToDeleteExamenes = oldOrden.idExamenesArr.filter(x => !newOrden.idExamenesArr.includes(x));
-            const IdsToDeleteDiagnosticos = oldOrden.idDiagnosticosArr.filter(x => !newOrden.idDiagnosticosArr.includes(x));
-            const IdsToAddExamenes = newOrden.idExamenesArr.filter(x => !oldOrden.idExamenesArr.includes(x));
-            const IdsToAddDiagnosticos = newOrden.idDiagnosticosArr.filter(x => !oldOrden.idDiagnosticosArr.includes(x));
-            const sqlToDeleteEx = 'DELETE FROM ordenes_examenes WHERE nroOrden = ? AND idExamenes = ?';
-            const sqlToDeleteDiag = 'DELETE FROM ordenes_diagnosticos WHERE nroOrden = ? AND idDiagnostico = ?';
-            const sqlToDeleteMuestra = 'DELETE FROM muestras WHERE nroOrden = ? AND idExamenes = ?';
 
-            const sqlToAddEx = 'INSERT INTO ordenes_examenes (nroOrden, idExamenes) VALUES (?, ?)';
-            const sqlToAddDiag = 'INSERT INTO ordenes_diagnosticos (nroOrden, idDiagnostico) VALUES (?, ?)';
-            const sqlToAddMuestra = 'INSERT INTO muestras (nroOrden, tipo, estado, idExamenes, fechaCreacion, fechaModif) VALUES (?, ?, ?, ?, NOW(), NOW())';
-            if (IdsToDeleteExamenes.length > 0) {
-                
-                for (let i = 0; i < IdsToDeleteExamenes.length; i++) {
-                    const res = await query(sqlToDeleteEx, [oldOrden.nroOrden, IdsToDeleteExamenes[i]], con);
-                    const resMuestra = await query(sqlToDeleteMuestra, [oldOrden.nroOrden, IdsToDeleteExamenes[i]], con);
-                    if (res.affectedRows > 0) {
-                        respuestas.rowsAffectedExamenesDel++;
+            console.log("ordenAnterior: ", ordenAnterior);
+            const idsExamenesToAdd = ordenNueva.examenesIds.filter(x => !ordenAnterior.examenes.map(e=>e.idExamenes).includes(x)) || [];
+            console.log("examenes a agregar", idsExamenesToAdd);
+            const idsExamenesToDelete = ordenAnterior.examenes.map(e => e.idExamenes).filter(x => !ordenNueva.examenesIds.includes(x)) || [];
+            console.log("examenes a borrar",idsExamenesToDelete);
+            const idsDiagnosticosToAdd = ordenNueva.diagnosticosIds.filter(x => !ordenAnterior.diagnosticos.map(e=>e.idDiagnostico).includes(x)) || [];
+            console.log("diagnosticos a agregar", idsDiagnosticosToAdd);
+            const idsDiagnosticosToDelete = ordenAnterior.diagnosticos.map(e => e.idDiagnostico).filter(x => !ordenNueva.diagnosticosIds.includes(x)) || [];
+            console.log("diagnosticos a borrar",idsDiagnosticosToDelete);
+            const idsExamenesMuestrasToAdd = ordenNueva.examenesIds.filter(x => !ordenAnterior.muestras.map(e=>e.idExamenes).includes(x)) || [];
+            console.log("muestras a agregar para los examenes", idsExamenesMuestrasToAdd);
+            const idsExamenesMuestrasToDelete = ordenAnterior.muestras.map(e => e.idExamenes).filter(x => !ordenNueva.examenesIds.includes(x)) || [];
+            console.log("muestras a borrar para los examenes",idsExamenesMuestrasToDelete);
+
+            if (idsExamenesToDelete.length > 0) {
+                for (let i = 0; i < idsExamenesToDelete.length; i++) {
+                    const sqlDelEx = `DELETE FROM ordenes_examenes WHERE idExamenes = ? AND nroOrden = ?`;
+                    const resDelEx = await query(sqlDelEx, [idsExamenesToDelete[i], ordenAnterior.nroOrden], con);
+                    if (resDelEx.affectedRows > 0) {
+                        res.rowsAffectedExamenesDel++;
+                        res.anychanges = true;
                     } else {
                         throw new Error('No se pudo borrar el examen');
                     }
-                    if (resMuestra.affectedRows > 0) {
-                        respuestas.rowsAffectedMuestrasDel++;
+                }
+            }
+
+            if (idsExamenesToAdd.length > 0) {
+                for (let i = 0; i < idsExamenesToAdd.length; i++) {
+                    const sqlAddEx = `INSERT INTO ordenes_examenes (nroOrden, idExamenes) VALUES (?, ?)`;
+                    const resAddEx = await query(sqlAddEx, [ordenAnterior.nroOrden, idsExamenesToAdd[i]], con);
+                    if (resAddEx.affectedRows > 0) {
+                        res.rowsAffectedExamenesAdd++;
+                        res.anychanges = true;
+                    } else {
+                        throw new Error('No se pudo agregar el examen');
+                    }
+                }
+            }
+
+            if (idsDiagnosticosToDelete.length > 0) {
+                for (let i = 0; i < idsDiagnosticosToDelete.length; i++) {
+                    const sqlDelDiag = `DELETE FROM ordenes_diagnosticos WHERE idDiagnostico = ? AND nroOrden = ?`;
+                    const resDelDiag = await query(sqlDelDiag, [idsDiagnosticosToDelete[i], ordenAnterior.nroOrden], con);
+                    if (resDelDiag.affectedRows > 0) {
+                        res.rowsAffectedDiagnosticosDel++;
+                        res.anychanges = true;
+                    } else {
+                        throw new Error('No se pudo borrar el diagnostico');
+                    }
+                }
+            }
+
+            if (idsDiagnosticosToAdd.length > 0) {
+                for (let i = 0; i < idsDiagnosticosToAdd.length; i++) {
+                    const sqlAddDiag = `INSERT INTO ordenes_diagnosticos (nroOrden, idDiagnostico) VALUES (?, ?)`;
+                    const resAddDiag = await query(sqlAddDiag, [ordenAnterior.nroOrden, idsDiagnosticosToAdd[i]], con);
+                    if (resAddDiag.affectedRows > 0) {
+                        res.rowsAffectedDiagnosticosAdd++;
+                        res.anychanges = true;
+                    } else {
+                        throw new Error('No se pudo agregar el diagnostico');
+                    }
+                }
+            }
+
+            if (idsExamenesMuestrasToDelete.length > 0) {
+                for (let i = 0; i < idsExamenesMuestrasToDelete.length; i++) {
+                    const sqlDelMue = `DELETE FROM muestras WHERE idExamenes = ? AND nroOrden = ?`;
+                    const resDelMue = await query(sqlDelMue, [idsExamenesMuestrasToDelete[i], ordenAnterior.nroOrden], con);
+                    if (resDelMue.affectedRows > 0) {   
+                        res.rowsAffectedMuestrasDel++;
+                        res.anychanges = true;
                     } else {
                         throw new Error('No se pudo borrar la muestra');
                     }
                 }
             }
 
-            if (IdsToDeleteDiagnosticos.length > 0) {
-                for (let i = 0; i < IdsToDeleteDiagnosticos.length; i++) {
-                    const res = await query(sqlToDeleteDiag, [oldOrden.nroOrden, IdsToDeleteDiagnosticos[i]], con);
-                    if (res.affectedRows > 0) {
-                        respuestas.rowsAffectedDiagnosticosDel++;
-                    } else {
-                        throw new Error('No se pudo borrar el diagnóstico');
-                    }
-                }
-            }
-
-            if (IdsToAddExamenes.length > 0) {
-                const dataExa = await query('SELECT idExamenes, tipoAnalisis FROM examenes WHERE idExamenes IN (?)', [IdsToAddExamenes], con);
-                if (dataExa.length != IdsToAddExamenes.length) {
-                    throw new Error('No se pudieron agregar los examenes');
-                }
-                for (let i = 0; i < IdsToAddExamenes.length; i++) {
-                    const res = await query(sqlToAddEx, [oldOrden.nroOrden, IdsToAddExamenes[i]], con);
-                    const resMuestra = await query(sqlToAddMuestra, [oldOrden.nroOrden, dataExa.find(x => x.idExamenes == IdsToAddExamenes[i]).tipoAnalisis, 0, IdsToAddExamenes[i]], con);
-                    if (res.affectedRows > 0) {
-                        respuestas.rowsAffectedExamenesAdd++;
-                    } else {
-                        throw new Error('No se pudo agregar el examen');
-                    }
-                    if (resMuestra.affectedRows > 0) {
-                        respuestas.rowsAffectedMuestrasAdd++;
+            if (idsExamenesMuestrasToAdd.length > 0) {
+                for (let i = 0; i < idsExamenesMuestrasToAdd.length; i++) {
+                    const sqlAddMue = `INSERT INTO muestras (nroOrden, idExamenes, estado, fechaCreacion, fechaModif, tipo) VALUES (?, ?, 0, NOW(), NOW(), (SELECT tipoAnalisis FROM examenes WHERE idExamenes = ?))`;
+                    const resAddMue = await query(sqlAddMue, [ordenAnterior.nroOrden, idsExamenesMuestrasToAdd[i], idsExamenesMuestrasToAdd[i]], con);
+                    if (resAddMue.affectedRows > 0) {
+                        res.rowsAffectedMuestrasAdd++;
+                        res.anychanges = true;
                     } else {
                         throw new Error('No se pudo agregar la muestra');
                     }
                 }
             }
-            if (IdsToAddDiagnosticos.length > 0) {
-                for (let i = 0; i < IdsToAddDiagnosticos.length; i++) {
-                    const res = await query(sqlToAddDiag, [oldOrden.nroOrden, IdsToAddDiagnosticos[i]], con);
-                    if (res.affectedRows > 0) {
-                        respuestas.rowsAffectedDiagnosticosAdd++;
+            
+            
+
+            let newEstado = ordenAnterior.estado.toLowerCase();
+            let muestrasPresentadas = ordenAnterior.muestras.filter(muestra => muestra.estado == 1).length;
+            let muestrasTotales = ordenAnterior.muestras.length + idsExamenesMuestrasToAdd.length - idsExamenesMuestrasToDelete.length;
+            let diagnosticosTotales = ordenAnterior.diagnosticos.length + idsDiagnosticosToAdd.length - idsDiagnosticosToDelete.length;
+            let examenesTotales = ordenAnterior.examenes.length + idsExamenesToAdd.length - idsExamenesToDelete.length;
+            console.log('muestrasPresentadas', muestrasPresentadas, 'muestrasTotales', muestrasTotales, 'diagnosticosTotales', diagnosticosTotales, 'examenesTotales', examenesTotales);
+            if (ordenAnterior.paciente.idPaciente && ordenAnterior.medico.idMedico) { //ingresada
+                if (diagnosticosTotales > 0 && examenesTotales > 0 && muestrasTotales == muestrasPresentadas) {
+                    newEstado = 'pre-analitica';
+                } else if (diagnosticosTotales <= 0 || examenesTotales <= 0){
+                    newEstado = 'ingresada'
+                } else {
+                    newEstado = 'esperando toma de muestras';
+                }
+            }
+
+            if (newEstado != ordenAnterior.estado) {
+                const sqlOrden = 'UPDATE ordenes SET estado = ?, muestrasEnEspera = ? WHERE nroOrden = ?';
+                const resOrden = await query(sqlOrden, [newEstado, (newEstado == 'esperando toma de muestras') ? 1 : 0, ordenAnterior.nroOrden], con);
+                if (resOrden.affectedRows > 0) {
+                    res.rowsAffectedOrdenUpdate++;
+                    res.anychanges = true;
+                } else {
+                    throw new Error('No se pudo actualizar el estado de la orden');
+                }
+            }
+
+            if (newEstado != ordenAnterior.estado || idsDiagnosticosToAdd.length > 0 || idsDiagnosticosToDelete.length > 0 || idsExamenesMuestrasToAdd.length > 0 || idsExamenesMuestrasToDelete.length > 0 || idsExamenesToAdd.length > 0 || idsExamenesToDelete.length > 0) {
+                //si hubo cambios en la orden, se actualiza la fecha de actualizacion
+                const sqlUpdate = 'UPDATE ordenes SET fechaModificacion = NOW() WHERE nroOrden = ?';
+                const resUpdate = await query(sqlUpdate, [ordenAnterior.nroOrden], con);
+                if (resUpdate.affectedRows > 0) {
+                    res.rowsAffectedOrdenUpdate++;
+                    res.anychanges = true;
+                } else {
+                    throw new Error('No se pudo actualizar la fecha de actualizacion de la orden');
+                }
+            }
+
+            res.estado = newEstado;
+            await commit(con);
+            return {res};
+        } catch (err) {
+            console.log("Error: ", err);
+            await rollback(con);
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
+    }
+
+    static async modificarOrdenAdmin (ordenAnterior, ordenNueva) {
+        const con = await getConnection();
+        const res = {
+            rowsAffectedOrdenUpdate: 0,
+            rowsUpdatePaciente: 0,
+            rowsUpdateMedico: 0,
+            rowsAffectedExamenesDel: 0,
+            rowsAffectedExamenesAdd: 0,
+            rowsAffectedDiagnosticosDel: 0,
+            rowsAffectedDiagnosticosAdd: 0,
+            rowsAffectedMuestrasDel: 0,
+            rowsAffectedMuestrasAdd: 0,
+            anychanges: false,
+            estado: ordenAnterior.estado
+        }
+        try {
+            await beginTransaction(con);
+            console.log("ordenAnterior: ", ordenAnterior);
+            const idsExamenesToAdd = ordenNueva.examenesIds.filter(x => !ordenAnterior.examenes.map(e=>e.idExamenes).includes(x)) || [];
+            console.log("examenes a agregar", idsExamenesToAdd);
+            const idsExamenesToDelete = ordenAnterior.examenes.map(e => e.idExamenes).filter(x => !ordenNueva.examenesIds.includes(x)) || [];
+            console.log("examenes a borrar",idsExamenesToDelete);
+            const idsDiagnosticosToAdd = ordenNueva.diagnosticosIds.filter(x => !ordenAnterior.diagnosticos.map(e=>e.idDiagnostico).includes(x)) || [];
+            console.log("diagnosticos a agregar", idsDiagnosticosToAdd);
+            const idsDiagnosticosToDelete = ordenAnterior.diagnosticos.map(e => e.idDiagnostico).filter(x => !ordenNueva.diagnosticosIds.includes(x)) || [];
+            console.log("diagnosticos a borrar",idsDiagnosticosToDelete);
+            const idsExamenesMuestrasToAdd = ordenNueva.examenesIds.filter(x => !ordenAnterior.muestras.map(e=>e.idExamenes).includes(x)) || [];
+            console.log("muestras a agregar para los examenes", idsExamenesMuestrasToAdd);
+            const idsExamenesMuestrasToDelete = ordenAnterior.muestras.map(e => e.idExamenes).filter(x => !ordenNueva.examenesIds.includes(x)) || [];
+            console.log("muestras a borrar para los examenes",idsExamenesMuestrasToDelete);
+
+            if (ordenAnterior.idPaciente != ordenNueva.idPaciente) {
+                const sqlPaciente = `UPDATE ordenes SET idPaciente = ? WHERE nroOrden = ?`;
+                const resPaciente = await query(sqlPaciente, [ordenNueva.idPaciente, ordenAnterior.nroOrden], con);
+                res.rowsUpdatePaciente = resPaciente.affectedRows;
+                res.anychanges = true;
+            } 
+            if (ordenAnterior.idMedico != ordenNueva.idMedico) {
+                const sqlMedico = `UPDATE ordenes SET idMedico = ? WHERE nroOrden = ?`;
+                const resMedico = await query(sqlMedico, [ordenNueva.idMedico, ordenAnterior.nroOrden], con);
+                res.rowsUpdateMedico = resMedico.affectedRows;
+                res.anychanges = true;
+            }
+
+            if (idsExamenesToDelete.length > 0) {
+                for (let i = 0; i < idsExamenesToDelete.length; i++) {
+                    const sqlDelEx = `DELETE FROM ordenes_examenes WHERE idExamenes = ? AND nroOrden = ?`;
+                    const resDelEx = await query(sqlDelEx, [idsExamenesToDelete[i], ordenAnterior.nroOrden], con);
+                    if (resDelEx.affectedRows > 0) {
+                        res.rowsAffectedExamenesDel++;
+                        res.anychanges = true;
                     } else {
-                        throw new Error('No se pudo agregar el diagnóstico');
+                        throw new Error('No se pudo borrar el examen');
                     }
                 }
             }
-            console.log("Respuestas array: ", respuestas);
-            const sql = `UPDATE ordenes SET estado = ? , muestrasEnEspera = ?, fechaModificacion = NOW() WHERE nroOrden = ?`;
-            const res = await query(sql, [newOrden.estado, muestras, oldOrden.nroOrden], con);
+
+            if (idsExamenesToAdd.length > 0) {
+                for (let i = 0; i < idsExamenesToAdd.length; i++) {
+                    const sqlAddEx = `INSERT INTO ordenes_examenes (nroOrden, idExamenes) VALUES (?, ?)`;
+                    const resAddEx = await query(sqlAddEx, [ordenAnterior.nroOrden, idsExamenesToAdd[i]], con);
+                    if (resAddEx.affectedRows > 0) {
+                        res.rowsAffectedExamenesAdd++;
+                        res.anychanges = true;
+                    } else {
+                        throw new Error('No se pudo agregar el examen');
+                    }
+                }
+            }
+
+            if (idsDiagnosticosToDelete.length > 0) {
+                for (let i = 0; i < idsDiagnosticosToDelete.length; i++) {
+                    const sqlDelDiag = `DELETE FROM ordenes_diagnosticos WHERE idDiagnostico = ? AND nroOrden = ?`;
+                    const resDelDiag = await query(sqlDelDiag, [idsDiagnosticosToDelete[i], ordenAnterior.nroOrden], con);
+                    if (resDelDiag.affectedRows > 0) {
+                        res.rowsAffectedDiagnosticosDel++;
+                        res.anychanges = true;
+                    } else {
+                        throw new Error('No se pudo borrar el diagnostico');
+                    }
+                }
+            }
+
+            if (idsDiagnosticosToAdd.length > 0) {
+                for (let i = 0; i < idsDiagnosticosToAdd.length; i++) {
+                    const sqlAddDiag = `INSERT INTO ordenes_diagnosticos (nroOrden, idDiagnostico) VALUES (?, ?)`;
+                    const resAddDiag = await query(sqlAddDiag, [ordenAnterior.nroOrden, idsDiagnosticosToAdd[i]], con);
+                    if (resAddDiag.affectedRows > 0) {
+                        res.rowsAffectedDiagnosticosAdd++;
+                        res.anychanges = true;
+                    } else {
+                        throw new Error('No se pudo agregar el diagnostico');
+                    }
+                }
+            }
+
+            if (idsExamenesMuestrasToDelete.length > 0) {
+                for (let i = 0; i < idsExamenesMuestrasToDelete.length; i++) {
+                    const sqlDelMue = `DELETE FROM muestras WHERE idExamenes = ? AND nroOrden = ?`;
+                    const resDelMue = await query(sqlDelMue, [idsExamenesMuestrasToDelete[i], ordenAnterior.nroOrden], con);
+                    if (resDelMue.affectedRows > 0) {   
+                        res.rowsAffectedMuestrasDel++;
+                        res.anychanges = true;
+                    } else {
+                        throw new Error('No se pudo borrar la muestra');
+                    }
+                }
+            }
+
+            if (idsExamenesMuestrasToAdd.length > 0) {
+                for (let i = 0; i < idsExamenesMuestrasToAdd.length; i++) {
+                    const sqlAddMue = `INSERT INTO muestras (nroOrden, idExamenes, estado, fechaCreacion, fechaModif, tipo) VALUES (?, ?, 0, NOW(), NOW(), (SELECT tipoAnalisis FROM examenes WHERE idExamenes = ?))`;
+                    const resAddMue = await query(sqlAddMue, [ordenAnterior.nroOrden, idsExamenesMuestrasToAdd[i], idsExamenesMuestrasToAdd[i]], con);
+                    if (resAddMue.affectedRows > 0) {
+                        res.rowsAffectedMuestrasAdd++;
+                        res.anychanges = true;
+                    } else {
+                        throw new Error('No se pudo agregar la muestra');
+                    }
+                }
+            }
+
+
+
+            let newEstado = ordenAnterior.estado.toLowerCase();
+            let muestrasPresentadas = ordenAnterior.muestras.filter(muestra => muestra.estado == 1).length;
+            let muestrasTotales = ordenAnterior.muestras.length + idsExamenesMuestrasToAdd.length - idsExamenesMuestrasToDelete.length;
+            let diagnosticosTotales = ordenAnterior.diagnosticos.length + idsDiagnosticosToAdd.length - idsDiagnosticosToDelete.length;
+            let examenesTotales = ordenAnterior.examenes.length + idsExamenesToAdd.length - idsExamenesToDelete.length;
+            console.log('muestrasPresentadas', muestrasPresentadas, 'muestrasTotales', muestrasTotales, 'diagnosticosTotales', diagnosticosTotales, 'examenesTotales', examenesTotales);
+            if (ordenAnterior.paciente.idPaciente && ordenAnterior.medico.idMedico) { //ingresada
+                if (diagnosticosTotales > 0 && examenesTotales > 0 && muestrasTotales == muestrasPresentadas) {
+                    newEstado = 'pre-analitica';
+                } else if (diagnosticosTotales <= 0 || examenesTotales <= 0){
+                    newEstado = 'ingresada'
+                } else {
+                    newEstado = 'esperando toma de muestras';
+                }
+            }
+            /*if (muestrasTotales > 0 && diagnosticosTotales > 0 && examenesTotales > 0 && newEstado == 'ingresada') {
+                newEstado = 'esperando toma de muestras';
+            }
+            if (idsExamenesMuestrasToAdd.length > 0 && (ordenAnterior.diagnosticos.length > 0 || idsDiagnosticosToAdd.length > 0)){
+                newEstado = 'esperando toma de muestras';
+            } else if ((idsExamenesMuestrasToDelete.length == ordenAnterior.examenes.length && idsExamenesMuestrasToAdd.length == 0) 
+                || (idsDiagnosticosToAdd.length == 0 && idsDiagnosticosToDelete.length == ordenAnterior.diagnosticos.length) 
+                || ((ordenAnterior.examenes.length == 0 && idsExamenesMuestrasToDelete.length == 0 && idsExamenesMuestrasToAdd.length == 0) || (ordenAnterior.diagnosticos.length == 0 && idsDiagnosticosToAdd.length == 0 && idsDiagnosticosToDelete.length == 0))) {
+                //si se eliminan todas las muestras(en otras palabras, se eliminan todos los examenes) y no se agrega ninguna nueva(no se agrega ningun examen), no hay muestras en espera, ni examenes. 
+                //De la misma forma, si no se agrega ningun diagnostico nuevo, y se eliminan todos, no hay diagnosticos
+                //Arregla: caso en que no se haya actualizado el estado anterior
+                //por lo que el estado de la orden es 'ingresada'
+                newEstado = 'ingresada';
+            } */
+
+            if (newEstado != ordenAnterior.estado.toLowerCase()) {
+                const sqlOrden = 'UPDATE ordenes SET estado = ?, muestrasEnEspera = ? WHERE nroOrden = ?';
+                const resOrden = await query(sqlOrden, [newEstado, (newEstado == 'esperando toma de muestras') ? 1 : 0, ordenAnterior.nroOrden], con);
+                if (resOrden.affectedRows > 0) {
+                    res.rowsAffectedOrdenUpdate++;
+                    res.anychanges = true;
+                } else {
+                    throw new Error('No se pudo actualizar el estado de la orden');
+                }
+            }
+
+            if (newEstado != ordenAnterior.estado || idsDiagnosticosToAdd.length > 0 || idsDiagnosticosToDelete.length > 0 || idsExamenesMuestrasToAdd.length > 0 || idsExamenesMuestrasToDelete.length > 0 || ordenAnterior.idPaciente != ordenNueva.idPaciente || ordenAnterior.idMedico != ordenNueva.idMedico || idsExamenesToAdd.length > 0 || idsExamenesToDelete.length > 0) {
+                //si hubo cambios en la orden, se actualiza la fecha de actualizacion
+                const sqlUpdate = 'UPDATE ordenes SET fechaModificacion = NOW() WHERE nroOrden = ?';
+                const resUpdate = await query(sqlUpdate, [ordenAnterior.nroOrden], con);
+                if (resUpdate.affectedRows > 0) {
+                    res.rowsAffectedOrdenUpdate++;
+                    res.anychanges = true;
+                } else {
+                    throw new Error('No se pudo actualizar la fecha de actualizacion de la orden');
+                }
+            }
+
+            res.estado = newEstado;
             await commit(con);
-            return true;
+            return {res};
+
         } catch (err) {
-            console.log("Error: ", err);
+            console.log(err);
             await rollback(con);
             throw err;
         } finally {
