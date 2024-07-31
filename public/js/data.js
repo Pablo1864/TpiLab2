@@ -367,47 +367,8 @@ $(document).ready(function () {
             });
     });
 
-    // Actualiza la función de clic en el botón "Agregar Valor de Referencia" para incluir el ID del valor de referencia si está disponible
-    $('#determinantsContainer').on('click', '.btnAddValorReferencia', function () {
-        idDeterminanteSeleccionado = $(this).closest('.determinant').data('id-determinante');
-        const container = $('#valoresReferenciaContainer');
-        container.empty();
 
-        fetch(`/obtener-valores-referencia/${idDeterminanteSeleccionado}`)
-            .then(response => response.json())
-            .then(valoresReferencia => {
-                valoresReferencia.forEach(valor => {
-                    const valorReferenciaHtml = `
-                        <div class="form-group valor-referencia" data-id-valor-referencia="${valor.idValorReferencia}">
-                            <label for="valorMin">Valor de Referencia Mínimo:</label>
-                            <input type="number" step="0.01" class="form-control valorMin" name="valorMin[]" value="${valor.valorMin}" required>
-                            <label for="valorMax">Valor de Referencia Máximo:</label>
-                            <input type="number" step="0.01" class="form-control valorMax" name="valorMax[]" value="${valor.valorMax}" required>
-                            <label for="edadMin">Edad Mínima:</label>
-                            <input type="number" class="form-control edadMin" name="edadMin[]" value="${valor.edadMin}" required>
-                            <label for="edadMax">Edad Máxima:</label>
-                            <input type="number" class="form-control edadMax" name="edadMax[]" value="${valor.edadMax}" required>
-                            <label for="sexo">Sexo:</label>
-                            <select class="form-control sexo" name="sexo[]" required>
-                                <option value="masculino" ${valor.sexo === 'masculino' ? 'selected' : ''}>Masculino</option>
-                                <option value="femenino" ${valor.sexo === 'femenino' ? 'selected' : ''}>Femenino</option>
-                                <option value="ambos" ${valor.sexo === 'ambos' ? 'selected' : ''}>Ambos</option>
-                            </select>
-                            <label for="embarazada">Embarazada:</label>
-                            <select class="form-control embarazada" name="embarazada[]">
-                                <option value="0" ${valor.embarazada === 0 ? 'selected' : ''}>No</option>
-                                <option value="1" ${valor.embarazada === 1 ? 'selected' : ''}>Sí</option>
-                            </select>
-                            <button type="button" class="btn btn-danger btnRemoveValorReferencia">Quitar</button>
-                        </div>
-                    `;
-                    container.append(valorReferenciaHtml);
-                });
 
-                $('#modalValoresReferencia').modal('show');
-            })
-            .catch(error => console.error('Error al cargar valores de referencia:', error));
-    });
 
 
     // Manejo del clic en el botón "Quitar" de un determinante
