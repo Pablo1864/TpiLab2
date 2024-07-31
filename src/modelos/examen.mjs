@@ -337,26 +337,40 @@ export class Examen {
             });
         });
     }
-    static async agregarValorReferencia(idDeterminante, valorReferencia) {
+    static async agregarValoresReferencia(nuevosValoresReferencia, idDeterminante) {
         return new Promise((resolve, reject) => {
-            const sql = 'INSERT INTO valorreferencias (idDeterminantes, valorMin, valorMax, edadMin, edadMax, sexo) VALUES (?, ?, ?, ?, ?, ?)';
-            const valores = [idDeterminante, valorReferencia.valorMin, valorReferencia.valorMax, valorReferencia.edadMin, valorReferencia.edadMax, valorReferencia.sexo];
+            const sql = `
+                INSERT INTO valorreferencias(valorMin, valorMax, edadMin, edadMax, sexo, embarazada, idDeterminantes) VALUES ?
+            `;
 
-            conexion.query(sql, valores, (err, res) => {
+            const values = nuevosValoresReferencia.map(val => [
+                val.valorMin,
+                val.valorMax,
+                val.edadMin,
+                val.edadMax,
+                val.sexo,
+                val.embarazada,
+                idDeterminante
+            ]);
+
+            console.log('Valores a insertar:', values); // Log para verificar los datos a insertar
+
+            conexion.query(sql, [values], (err, res) => {
                 if (err) {
-                    console.error('Error al agregar valor de referencia:', err);
                     reject(err);
                 } else {
-                    console.log('Valor de referencia agregado con éxito:', res);
                     resolve(res);
                 }
             });
         });
     }
+
+
+
     static async obtenerValoresReferenciaPorIdDeterminante(idDeterminante) {
         return new Promise((resolve, reject) => {
             const sql = `
-                SELECT valorMin, valorMax, edadMin, edadMax, sexo
+                SELECT valorMin, valorMax, edadMin, edadMax, sexo, embarazada
                 FROM valorreferencias
                 WHERE idDeterminantes = ?
             `;
@@ -396,6 +410,41 @@ export class Examen {
                 .catch(err => reject(err));
         });
     }
+
+    static async actualizarValoresReferencia(valoresReferenciaActualizados) {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                UPDATE ValorReferencias
+                SET valorMin = ?, valorMax = ?, edadMin = ?, edadMax = ?, sexo = ?, embarazada = ?
+                WHERE idValorReferencias = ?
+            `;
+
+            const promises = valoresReferenciaActualizados.map(valorReferencia => {
+                return new Promise((resolve, reject) => {
+                    conexion.query(sql, [
+                        valorReferencia.valorMin,
+                        valorReferencia.valorMax,
+                        valorReferencia.edadMin,
+                        valorReferencia.edadMax,
+                        valorReferencia.sexo,
+                        valorReferencia.embarazada,
+                        valorReferencia.idValorReferencias
+                    ], (err, res) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(res);
+                        }
+                    });
+                });
+            });
+
+            Promise.all(promises)
+                .then(results => resolve(results))
+                .catch(err => reject(err));
+        });
+    }
+
 
 
 

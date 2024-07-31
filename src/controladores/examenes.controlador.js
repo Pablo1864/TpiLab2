@@ -199,27 +199,32 @@ export const agregarDeterminantes = async (req, res) => {
         res.status(500).json({ message: 'Error al agregar/actualizar determinantes', error: error.message });
     }
 };
-export const agregarValorReferencia = async (req, res) => {
-    const { idDeterminante, valorMin, valorMax, edadMin, edadMax, sexo } = req.body;
-
-    if (!idDeterminante || valorMin == null || valorMax == null || edadMin == null || edadMax == null || !sexo) {
-        return res.status(400).json({ error: 'Todos los campos son obligatorios' });
-    }
+export const agregarValoresReferencia = async (req, res) => {
+    const { idDeterminante, nuevosValoresReferencia, valoresReferenciaActualizados } = req.body;
 
     try {
-        const valorReferencia = {
-            valorMin: valorMin,
-            valorMax: valorMax,
-            edadMin: edadMin,
-            edadMax: edadMax,
-            sexo: sexo
-        };
+        console.log('Datos recibidos:', { idDeterminante, nuevosValoresReferencia, valoresReferenciaActualizados });
 
-        const resultado = await Examen.agregarValorReferencia(idDeterminante, valorReferencia);
-        res.status(200).json({ message: 'Valor de referencia agregado con éxito', data: resultado });
-    } catch (err) {
-        console.error('Error al agregar el valor de referencia:', err);
-        res.status(500).json({ error: 'Error al agregar el valor de referencia' });
+        const parsedNuevosValoresReferencia = JSON.parse(nuevosValoresReferencia);
+        const parsedValoresReferenciaActualizados = JSON.parse(valoresReferenciaActualizados);
+
+        if (!Array.isArray(parsedNuevosValoresReferencia) || !Array.isArray(parsedValoresReferenciaActualizados)) {
+            throw new Error('El campo valores de referencia no es un arreglo');
+        }
+
+        if (parsedNuevosValoresReferencia.length === 0) {
+            // Solo actualizar los valores de referencia existentes
+            await Examen.actualizarValoresReferencia(parsedValoresReferenciaActualizados);
+        } else {
+            // Actualizar los valores de referencia existentes y agregar nuevos valores de referencia
+            await Examen.actualizarValoresReferencia(parsedValoresReferenciaActualizados);
+            await Examen.agregarValoresReferencia(parsedNuevosValoresReferencia, idDeterminante);
+        }
+
+        res.status(200).json({ message: 'Valores de referencia agregados/actualizados exitosamente' });
+    } catch (error) {
+        console.error('Error al agregar/actualizar valores de referencia:', error);
+        res.status(500).json({ message: 'Error al agregar/actualizar valores de referencia', error: error.message });
     }
 };
 export const obtenerValoresReferenciaPorDeterminante = async (req, res) => {

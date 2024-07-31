@@ -176,16 +176,13 @@ $(document).ready(function () {
     });
 
 
-    // Manejo del clic en el botón de carga de determinantes
     $('#datatable_exams tbody').on('click', 'button.cargaDeterminante', function () {
         const data = dataTable.row($(this).parents('tr')).data();
-        idExamenSeleccionado = data.idExamenes; // Obtener el ID del examen seleccionado
+        idExamenSeleccionado = data.idExamenes;
 
-        // Limpiar el contenedor de determinantes antes de agregar los existentes
         const container = $('#determinantsContainer');
-        container.empty(); // Limpiar el contenedor antes de añadir los determinantes existentes
+        container.empty();
 
-        // Obtener los determinantes existentes y mostrarlos en el modal
         fetch(`/obtener-determinantes/${idExamenSeleccionado}`)
             .then(response => response.json())
             .then(determinantes => {
@@ -196,6 +193,7 @@ $(document).ready(function () {
                             <input class="determinantName form-control" type="text" name="determinantes[][nombre]" value="${det.nombre}" required>
                             <label for="determinantValue">Unidad de Medida:</label>
                             <input class="determinantValue form-control" type="text" name="determinantes[][unidadMedida]" value="${det.unidadMedida}" required>
+                            <button class="btn btn-success btnAddValorReferencia" type="button">Agregar Valor de Referencia</button>
                             <button class="btn btn-danger btnRemoveDeterminant" type="button">Quitar</button>
                         </div>
                     `;
@@ -204,9 +202,7 @@ $(document).ready(function () {
 
                 $('#modalDeterminantes').modal('show');
             })
-            .catch(error => {
-                console.error('Error al cargar determinantes:', error);
-            });
+            .catch(error => console.error('Error al cargar determinantes:', error));
     });
 
     // Manejo del clic en el botón "Añadir Determinante"
@@ -218,43 +214,228 @@ $(document).ready(function () {
                 <input class="determinantName form-control" type="text" name="determinantes[][nombre]" required>
                 <label for="determinantValue">Unidad de Medida:</label>
                 <input class="determinantValue form-control" type="text" name="determinantes[][unidadMedida]" required>
+                <button class="btn btn-success btnAddValorReferencia" type="button">Agregar Valor de Referencia</button>
                 <button class="btn btn-danger btnRemoveDeterminant" type="button">Quitar</button>
             </div>
         `;
         container.append(determinantHtml);
     });
 
+    // Manejo del clic en el botón "Agregar Valor de Referencia" de un determinante
+    $('#determinantsContainer').on('click', '.btnAddValorReferencia', function () {
+        idDeterminanteSeleccionado = $(this).closest('.determinant').data('id-determinante');
+        $('#modalValoresReferencia').modal('show');
+    });
+
+    // Manejo del clic en el botón "Añadir Valor de Referencia" en el modal
+    $('#btnAddDeterminant').on('click', function () {
+        const container = $('#determinantsContainer');
+        const determinantHtml = `
+            <div class="form-group determinant">
+                <label for="determinantName">Nombre del Determinante:</label>
+                <input class="determinantName form-control" type="text" name="determinantes[][nombre]" required>
+                <label for="determinantValue">Unidad de Medida:</label>
+                <input class="determinantValue form-control" type="text" name="determinantes[][unidadMedida]" required>
+                <button class="btn btn-success btnAddValorReferencia" type="button">Agregar Valor de Referencia</button>
+                <button class="btn btn-danger btnRemoveDeterminant" type="button">Quitar</button>
+            </div>
+        `;
+        container.append(determinantHtml);
+    });
+
+    // Manejo del clic en el botón "Agregar Valor de Referencia" de un determinante
+    $('#determinantsContainer').on('click', '.btnAddValorReferencia', function () {
+        idDeterminanteSeleccionado = $(this).closest('.determinant').data('id-determinante');
+        const container = $('#valoresReferenciaContainer');
+        container.empty();
+
+        fetch(`/obtener-valores-referencia/${idDeterminanteSeleccionado}`)
+
+            .then(response => response.json())
+            .then(valoresReferencia => {
+                valoresReferencia.forEach(valor => {
+                    const valorReferenciaHtml = `
+                        <div class="form-group valor-referencia">
+                            <label for="valorMin">Valor de Referencia Mínimo:</label>
+                            <input type="number" step="0.01" class="form-control valorMin" name="valorMin[]" value="${valor.valorMin}" required>
+                            <label for="valorMax">Valor de Referencia Máximo:</label>
+                            <input type="number" step="0.01" class="form-control valorMax" name="valorMax[]" value="${valor.valorMax}" required>
+                            <label for="edadMin">Edad Mínima:</label>
+                            <input type="number" class="form-control edadMin" name="edadMin[]" value="${valor.edadMin}" required>
+                            <label for="edadMax">Edad Máxima:</label>
+                            <input type="number" class="form-control edadMax" name="edadMax[]" value="${valor.edadMax}" required>
+                            <label for="sexo">Sexo:</label>
+                            <select class="form-control sexo" name="sexo[]" required>
+                                <option value="masculino" ${valor.sexo === 'masculino' ? 'selected' : ''}>Masculino</option>
+                                <option value="femenino" ${valor.sexo === 'femenino' ? 'selected' : ''}>Femenino</option>
+                                <option value="ambos" ${valor.sexo === 'ambos' ? 'selected' : ''}>Ambos</option>
+                            </select>
+                            <label for="embarazada">Embarazada:</label>
+                            <select class="form-control embarazada" name="embarazada[]">
+                                <option value="0" ${valor.embarazada === 0 ? 'selected' : ''}>No</option>
+                                <option value="1" ${valor.embarazada === 1 ? 'selected' : ''}>Sí</option>
+                            </select>
+                            <button type="button" class="btn btn-danger btnRemoveValorReferencia">Quitar</button>
+                        </div>
+                    `;
+                    container.append(valorReferenciaHtml);
+                });
+
+                $('#modalValoresReferencia').modal('show');
+            })
+            .catch(error => console.error('Error al cargar valores de referencia:', error));
+    });
+
+    // Manejo del clic en el botón "Añadir Valor de Referencia" en el modal
+    $('#btnAddValorReferencia').on('click', function () {
+        const container = $('#valoresReferenciaContainer');
+        const valorReferenciaHtml = `
+            <div class="form-group valor-referencia">
+                <label for="valorMin">Valor de Referencia Mínimo:</label>
+                <input type="number" step="0.01" class="form-control valorMin" name="valorMin[]" required>
+                <label for="valorMax">Valor de Referencia Máximo:</label>
+                <input type="number" step="0.01" class="form-control valorMax" name="valorMax[]" required>
+                <label for="edadMin">Edad Mínima:</label>
+                <input type="number" class="form-control edadMin" name="edadMin[]" required>
+                <label for="edadMax">Edad Máxima:</label>
+                <input type="number" class="form-control edadMax" name="edadMax[]" required>
+                <label for="sexo">Sexo:</label>
+                <select class="form-control sexo" name="sexo[]" required>
+                    <option value="masculino">Masculino</option>
+                    <option value="femenino">Femenino</option>
+                    <option value="ambos">Ambos</option>
+                </select>
+                <label for="embarazada">Embarazada:</label>
+                <select class="form-control embarazada" name="embarazada[]">
+                    <option value="0">No</option>
+                    <option value="1">Sí</option>
+                </select>
+                <button type="button" class="btn btn-danger btnRemoveValorReferencia">Quitar</button>
+            </div>
+        `;
+        container.append(valorReferenciaHtml);
+    });
+
+    // Manejo del clic en el botón "Quitar" de un valor de referencia
+    $('#valoresReferenciaContainer').on('click', '.btnRemoveValorReferencia', function () {
+        $(this).closest('.valor-referencia').remove();
+    });
+
+    // Manejo del clic en el botón "Guardar" del modal de valores de referencia
+    $('#btnGuardarValoresReferencia').on('click', function () {
+        const nuevosValoresReferencia = [];
+        const valoresReferenciaActualizados = [];
+
+        $('#valoresReferenciaContainer .valor-referencia').each(function () {
+            const valorMin = $(this).find('.valorMin').val();
+            const valorMax = $(this).find('.valorMax').val();
+            const edadMin = $(this).find('.edadMin').val();
+            const edadMax = $(this).find('.edadMax').val();
+            const sexo = $(this).find('.sexo').val();
+            const embarazada = $(this).find('.embarazada').val();
+            const idValorReferencia = $(this).data('id-valor-referencia');
+
+            if (idValorReferencia) {
+                valoresReferenciaActualizados.push({ idValorReferencia, valorMin, valorMax, edadMin, edadMax, sexo, embarazada });
+            } else {
+                nuevosValoresReferencia.push({ valorMin, valorMax, edadMin, edadMax, sexo, embarazada });
+            }
+        });
+
+        const params = new URLSearchParams();
+        params.append('idDeterminante', idDeterminanteSeleccionado);
+        params.append('nuevosValoresReferencia', JSON.stringify(nuevosValoresReferencia));
+        params.append('valoresReferenciaActualizados', JSON.stringify(valoresReferenciaActualizados));
+
+        console.log('Datos a enviar:', params.toString()); // Verificar los datos antes de enviarlos
+
+        fetch('/agregarValoresReferencia', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: params.toString(),
+        })
+            .then(response => response.json())
+            .then(data => {
+                alert('Valores de referencia agregados/actualizados exitosamente');
+                $('#modalValoresReferencia').modal('hide');
+            })
+            .catch(error => {
+                console.error('Error al agregar/actualizar valores de referencia:', error);
+                alert('Error al agregar/actualizar valores de referencia');
+            });
+    });
+
+    // Actualiza la función de clic en el botón "Agregar Valor de Referencia" para incluir el ID del valor de referencia si está disponible
+    $('#determinantsContainer').on('click', '.btnAddValorReferencia', function () {
+        idDeterminanteSeleccionado = $(this).closest('.determinant').data('id-determinante');
+        const container = $('#valoresReferenciaContainer');
+        container.empty();
+
+        fetch(`/obtener-valores-referencia/${idDeterminanteSeleccionado}`)
+            .then(response => response.json())
+            .then(valoresReferencia => {
+                valoresReferencia.forEach(valor => {
+                    const valorReferenciaHtml = `
+                        <div class="form-group valor-referencia" data-id-valor-referencia="${valor.idValorReferencia}">
+                            <label for="valorMin">Valor de Referencia Mínimo:</label>
+                            <input type="number" step="0.01" class="form-control valorMin" name="valorMin[]" value="${valor.valorMin}" required>
+                            <label for="valorMax">Valor de Referencia Máximo:</label>
+                            <input type="number" step="0.01" class="form-control valorMax" name="valorMax[]" value="${valor.valorMax}" required>
+                            <label for="edadMin">Edad Mínima:</label>
+                            <input type="number" class="form-control edadMin" name="edadMin[]" value="${valor.edadMin}" required>
+                            <label for="edadMax">Edad Máxima:</label>
+                            <input type="number" class="form-control edadMax" name="edadMax[]" value="${valor.edadMax}" required>
+                            <label for="sexo">Sexo:</label>
+                            <select class="form-control sexo" name="sexo[]" required>
+                                <option value="masculino" ${valor.sexo === 'masculino' ? 'selected' : ''}>Masculino</option>
+                                <option value="femenino" ${valor.sexo === 'femenino' ? 'selected' : ''}>Femenino</option>
+                                <option value="ambos" ${valor.sexo === 'ambos' ? 'selected' : ''}>Ambos</option>
+                            </select>
+                            <label for="embarazada">Embarazada:</label>
+                            <select class="form-control embarazada" name="embarazada[]">
+                                <option value="0" ${valor.embarazada === 0 ? 'selected' : ''}>No</option>
+                                <option value="1" ${valor.embarazada === 1 ? 'selected' : ''}>Sí</option>
+                            </select>
+                            <button type="button" class="btn btn-danger btnRemoveValorReferencia">Quitar</button>
+                        </div>
+                    `;
+                    container.append(valorReferenciaHtml);
+                });
+
+                $('#modalValoresReferencia').modal('show');
+            })
+            .catch(error => console.error('Error al cargar valores de referencia:', error));
+    });
+
+
     // Manejo del clic en el botón "Quitar" de un determinante
     $('#determinantsContainer').on('click', '.btnRemoveDeterminant', function () {
-        determinantElement = $(this).closest('.determinant');
+        const determinantElement = $(this).closest('.determinant');
         $('#modalEliminarDeterminante').modal('show');
+        $('#btnConfirmarEliminarDeterminante').data('id-determinante', determinantElement.data('id-determinante'));
     });
 
     // Confirmación de eliminación de determinante
     $('#btnConfirmarEliminarDeterminante').on('click', function () {
-        const idDeterminanteAEliminar = determinantElement.data('id-determinante');
+        const idDeterminanteAEliminar = $(this).data('id-determinante');
 
         if (idDeterminanteAEliminar) {
             $.ajax({
                 type: 'POST',
-                url: `/eliminarDetermintes/${idDeterminanteAEliminar}`,
+                url: `/eliminarDeterminantes/${idDeterminanteAEliminar}`,
                 success: function (response) {
                     $('#modalEliminarDeterminante').modal('hide');
-                    determinantElement.remove();
+                    $(`[data-id-determinante="${idDeterminanteAEliminar}"]`).remove();
                 },
                 error: function (error) {
-                    console.log('Error al eliminar el determinantessss:', error);
+                    console.log('Error al eliminar el determinante:', error);
                 }
             });
         } else {
-            determinantElement.remove();
             $('#modalEliminarDeterminante').modal('hide');
         }
-    });
-
-    // Cancelar eliminación
-    $('#btnCancelarEliminar').on('click', function () {
-        $('#modalEliminarDeterminante').modal('hide');
     });
 
     // Manejo del clic en el botón "Guardar" del modal de determinantes

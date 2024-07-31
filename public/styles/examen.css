@@ -52,3 +52,12 @@ body {
     color: #212121;
     /* Ajusta el color del icono */
 }
+
+.form-group.valor-referencia input[type="checkbox"] {
+    width: 16px;
+    /* Ajusta el tamaño según tus necesidades */
+    height: 16px;
+    /* Ajusta el tamaño según tus necesidades */
+    vertical-align: middle;
+    /* Alinea verticalmente con el texto */
+}
