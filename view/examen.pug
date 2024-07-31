@@ -1,100 +1,139 @@
 html(lang="en")
-  head
-    meta(charset="UTF-8")
-    meta(http-equiv="X-UA-Compatible", content="IE=edge")
-    meta(name="viewport", content="width=device-width, initial-scale=1.0")
-    title= titulo
-    link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css", integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi", crossorigin="anonymous")
-    link(rel="stylesheet", href="https://cdn.datatables.net/1.12.1/css/dataTables.bootstrap5.min.css")
-    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css", integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==", crossorigin="anonymous", referrerpolicy="no-referrer")
-    link(rel="stylesheet", href="../styles/examen.css")
-    include includes/linkStyles.pug
-    script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js", integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3", crossorigin="anonymous")
-    script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js")
-    script(src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js")
-    script(src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js")
-  body
-    include includes/nav.pug
-    div.container.my-4
-      h1.text-center Lista de Exámenes
-      button.btn.btn-primary(data-bs-toggle="modal", data-bs-target="#modalCrearExamen") Crear Examen
-      div.row
-        div.col-sm-12.col-md-12.col-lg-12.col-xl-12
-          table#datatable_exams.table.table-striped
-            caption DataTable.js Demo
-            thead
-              tr
-                th Codigo del examen
-                th Nombre
-                th Requerimiento
-                th Horas demora
-                th Tipo de analisis
-                th Acciones
-            tbody#tableBody_exams
-          
+    head
+      meta(charset="UTF-8")
+      meta(http-equiv="X-UA-Compatible", content="IE=edge")
+      meta(name="viewport", content="width=device-width, initial-scale=1.0")
+      title= titulo
+      link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css", integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi", crossorigin="anonymous")
+      link(rel="stylesheet", href="https://cdn.datatables.net/1.12.1/css/dataTables.bootstrap5.min.css")
+      link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css", integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==", crossorigin="anonymous", referrerpolicy="no-referrer")
+      link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css")
+      link(rel="stylesheet", href="../styles/examen.css")
+      include includes/linkStyles.pug
+      script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js", integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3", crossorigin="anonymous")
+      script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js")
+      script(src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js")
+      script(src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js")
+    body
+      include includes/nav.pug
 
-          
-          // Modal para editar examen
-          div.modal.fade#modalEditar(tabindex="-1", aria-labelledby="modalEditarLabel", aria-hidden="true")
-            div.modal-dialog
-              div.modal-content
-                div.modal-header
-                  h5.modal-title#modalEditarLabel Editar Examen
-                  button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
-                div.modal-body
-                  form#editarExamenForm
-                    input#idExamen(type="hidden", name="idExamen")
-                    div.form-group
-                      label(for="nombre") Nombre:
-                      input#nombre.form-control(type="text", name="nombre", required)
-                    div.form-group
-                      label(for="requerimiento") Requerimiento:
-                      textarea#requerimiento.form-control(name="requerimiento", rows="4", required)
-                    div.form-group
-                      label(for="horaDemora") Horas de Demora:
-                      input#horaDemora.form-control(type="number", name="horaDemora", required)
-                    div.form-group
-                      label(for="tipoAnalisis") Tipo de Análisis:
-                      input#tipoAnalisis.form-control(type="text", name="tipoAnalisis", required)
-                    div.modal-footer
-                      button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cerrar
-                      button.btn.btn-primary#btnGuardarCambios(type="submit") Guardar Cambios
+      div.container.my-4
+        h1.text-center Lista de Exámenes
+        button.btn.btn-primary(data-bs-toggle="modal", data-bs-target="#modalCrearExamen") Crear Examen
+        div.row
+          div.col-12
+            table#datatable_exams.table.table-striped
+              caption DataTable.js Demo
+              thead
+                tr
+                  th Código del examen
+                  th Nombre
+                  th Requerimiento
+                  th Horas demora
+                  th Tipo de análisis
+                  th Acciones
+              tbody#tableBody_exams
 
-          // Modal para eliminar examen
-          div.modal.fade#modalEliminar(tabindex="-1", aria-labelledby="modalEliminarLabel", aria-hidden="true")
-            div.modal-dialog
-              div.modal-content
-                div.modal-header
-                  h5.modal-title#modalEliminarLabel Confirmar Eliminación
-                  button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
-                div.modal-body
-                  p ¿Está seguro que desea eliminar este examen?
-                div.modal-footer
-                  button.btn.btn-secondary#btnCancelarEliminar(type="button", data-bs-dismiss="modal") Cancelar
-                  button.btn.btn-danger#btnConfirmarEliminar(type="button") Eliminar
-          // Modal para crear examen
-          div.modal.fade#modalCrearExamen(tabindex="-1", aria-labelledby="modalCrearExamenLabel", aria-hidden="true")
-            div.modal-dialog
-              div.modal-content
-                div.modal-header
-                  h5.modal-title#modalCrearExamenLabel Crear Examen
-                  button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
-                div.modal-body
-                  form#crearExamenForm(action="/nuevo-examen", method="POST")
-                    div.form-group
-                      label(for="nombreExamen") Nombre del Examen:
-                      input#nombreExamen.form-control(type="text", name="nombreExamen", required)
-                    div.form-group
-                      label(for="requerimiento") Requerimiento:
-                      textarea#requerimiento.form-control(name="requerimiento", rows="4", required)
-                    div.form-group
-                      label(for="diasDemora") Horas de Demora:
-                      input#diasDemora.form-control(type="number", name="diasDemora", required)
-                    div.form-group
-                      label(for="tipoAnalisis") Tipo de Análisis:
-                      input#tipoAnalisis.form-control(type="text", name="tipoAnalisis", required)
-                    div.modal-footer
-                      button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cerrar
-                      button.btn.btn-primary(type="submit") Crear Examen                  
+            // Modal para editar examen
+            div.modal.fade#modalEditar(tabindex="-1", aria-labelledby="modalEditarLabel", aria-hidden="true")
+              div.modal-dialog
+                div.modal-content
+                  div.modal-header
+                    h5.modal-title#modalEditarLabel Editar Examen
+                    button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+                  div.modal-body
+                    form#editarExamenForm
+                      input#idExamen(type="hidden", name="idExamen")
+                      div.form-group
+                        label(for="nombre") Nombre:
+                        input#nombre.form-control(type="text", name="nombre", required)
+                      div.form-group
+                        label(for="requerimiento") Requerimiento:
+                        textarea#requerimiento.form-control(name="requerimiento", rows="4", required)
+                      div.form-group
+                        label(for="diasDemora") Horas de Demora:
+                        input#diasDemora.form-control(type="number", name="diasDemora", required)
+                      div.form-group
+                        label(for="tipoAnalisis") Tipo de Análisis:
+                        input#tipoAnalisis.form-control(type="text", name="tipoAnalisis", required)
+                      div.modal-footer
+                        button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cerrar
+                        button.btn.btn-primary#btnGuardarCambios(type="submit") Guardar Cambios
+
+            // Modal para eliminar examen
+            div.modal.fade#modalEliminar(tabindex="-1", aria-labelledby="modalEliminarLabel", aria-hidden="true")
+              div.modal-dialog
+                div.modal-content
+                  div.modal-header
+                    h5.modal-title#modalEliminarLabel Confirmar Eliminación
+                    button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+                  div.modal-body
+                    p ¿Está seguro que desea eliminar este examen?
+                  div.modal-footer
+                    button.btn.btn-secondary#btnCancelarEliminar(type="button", data-bs-dismiss="modal") Cancelar
+                    button.btn.btn-danger#btnConfirmarEliminar(type="button") Eliminar
+
+            // Modal para crear examen
+            div.modal.fade#modalCrearExamen(tabindex="-1", aria-labelledby="modalCrearExamenLabel", aria-hidden="true")
+              div.modal-dialog
+                div.modal-content
+                  div.modal-header
+                    h5.modal-title#modalCrearExamenLabel Crear Examen
+                    button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+                  div.modal-body
+                    form#crearExamenForm(action="/nuevo-examen", method="POST")
+                      div.form-group
+                        label(for="nombreExamen") Nombre del Examen:
+                        input#nombreExamen.form-control(type="text", name="nombreExamen", required)
+                      div.form-group
+                        label(for="requerimiento") Requerimiento:
+                        textarea#requerimiento.form-control(name="requerimiento", rows="4", required)
+                      div.form-group
+                        label(for="diasDemora") Horas de Demora:
+                        input#diasDemora.form-control(type="number", name="diasDemora", required)
+                      div.form-group
+                        label(for="tipoAnalisis") Tipo de Análisis:
+                        input#tipoAnalisis.form-control(type="text", name="tipoAnalisis", required)
+                      div.modal-footer
+                        button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cerrar
+                        button.btn.btn-primary(type="submit") Crear Examen
+
+            // Modal para agregar determinantes
+            div.modal.fade#modalDeterminantes(tabindex="-1", aria-labelledby="modalDeterminantesLabel", aria-hidden="true")
+              div.modal-dialog
+                div.modal-content
+                  div.modal-header
+                    h5.modal-title#modalDeterminantesLabel Agregar Determinantes
+                    button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+                  div.modal-body
+                    form#agregarDeterminantesForm
+                      input#idExamenDeterminantes(type="hidden", name="idExamen")
+                      div#determinantsContainer
+                        div.form-group.determinant
+                          label(for="determinantName") Nombre del Determinante:
+                          input.determinantName.form-control(type="text", name="determinantes[][nombre]", required)
+                          label(for="determinantValue") Unidad de Medida:
+                          input.determinantValue.form-control(type="text", name="determinantes[][unidadMedida]", required)
+                      button#btnAddDeterminant.btn.btn-secondary(type="button") Añadir Determinante
+                      div.modal-footer
+                        button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cerrar
+                        button.btn.btn-primary#btnGuardarDeterminantes(type="button") Guardar Determinantes
+
+            // Modal para eliminar determinante
+            div.modal.fade#modalEliminarDeterminante(tabindex="-1", aria-labelledby="modalEliminarDeterminanteLabel", aria-hidden="true")
+              div.modal-dialog
+                div.modal-content
+                  div.modal-header
+                    h5.modal-title#modalEliminarDeterminanteLabel Confirmar Eliminación
+                    button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+                  div.modal-body
+                    p ¿Está seguro que desea eliminar esta determinante?
+                  div.modal-footer
+                    button.btn.btn-secondary#btnCancelarEliminarDeterminante(type="button", data-bs-dismiss="modal") Cancelar
+                    button.btn.btn-danger#btnConfirmarEliminarDeterminante(type="button") Eliminar
 
     script(src="js/data.js")
+
+
+
+

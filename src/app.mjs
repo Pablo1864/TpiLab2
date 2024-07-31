@@ -1,5 +1,5 @@
 import express from 'express';
-import bodyParser from 'body-parser'; 
+import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser'//para manejar las cookies del navegador, convierte las cookies entrantes en un objeto JavaScript fácil de usar
 //import { Paciente } from './modelos/paciente.mjs'
 import { Orden } from './modelos/orden.mjs';
@@ -14,6 +14,7 @@ import pacienteRutas from './rutas/pacientes.rutas.js'
 import authRutas from './rutas/auth.rutas.js'
 import homeRutas from './rutas/home.rutas.js'
 import ordenRutas from './rutas/ordenes.rutas.js'
+import examenesRutas from './rutas/examenes.rutas.js';
 
 import methodOverride from 'method-override';
 const app = express();
@@ -28,14 +29,16 @@ app.use(cookieParser());
 app.listen(3000, function () {
     console.log('La aplicación se inició en el puerto 3000');
 });
-
+app.use(express.static('./public'));
 app.set('views', './view');
 app.set('view engine', 'pug');
-app.use('/paciente',pacienteRutas);
-app.use('/usuario',authRutas);
-app.use('/ordenes',ordenRutas);
-app.use('/',homeRutas);
-app.use(express.static('./public'));
+app.use('/paciente', pacienteRutas);
+app.use('/usuario', authRutas);
+app.use('/ordenes', ordenRutas);
+app.use('/', homeRutas);
+
+app.use('/', examenesRutas);
+
 
 
 
@@ -125,7 +128,7 @@ app.get('/Ordenes/buscarOrdenesTodas', async (req, res) => {  //check
         } else {
             res.status(500).json({ error: 'Error al obtener las ordenes.' });
         }
-        
+
     }
 });
 
@@ -182,97 +185,97 @@ app.patch('/ordenes/updateEstado/:id', async (req, res) => {
 
 ////////////////////////////////////////////////////////////////////////////////
 //region examen
-app.get('/examen', (req, res) => {
-    res.render('examen', { titulo: 'Gestión de Exámenes' });
-});
-app.get('/resultados', (req, res) => {
-    res.render('resultados', { titulo: 'Carga de resultados' });
-});
+// app.get('/examen', (req, res) => {
+//     res.render('examen', { titulo: 'Gestión de Exámenes' });
+// });
+// app.get('/resultados', (req, res) => {
+//     res.render('resultados', { titulo: 'Carga de resultados' });
+// });
 
-app.post('/nuevo-examen', (req, res) => {
-    const nuevoExamen = {
-        nombre: req.body.nombreExamen,
-        requerimiento: req.body.requerimiento,
-        horaDemora: req.body.diasDemora,
-        tipoAnalisis: req.body.tipoAnalisis,
-        fechaCreacion: new Date(),
-        fechaModificacion: new Date(),
-        estado: 1
-    };
+// app.post('/nuevo-examen', (req, res) => {
+//     const nuevoExamen = {
+//         nombre: req.body.nombreExamen,
+//         requerimiento: req.body.requerimiento,
+//         horaDemora: req.body.diasDemora,
+//         tipoAnalisis: req.body.tipoAnalisis,
+//         fechaCreacion: new Date(),
+//         fechaModificacion: new Date(),
+//         estado: 1
+//     };
 
-    Examen.insertarExamen(nuevoExamen, (error, results) => {
-        if (error) {
-            console.error('Error al insertar el examen:', error);
-            res.status(500).json({ message: 'Error al crear el examen' });
-        } else {
-            console.log('Examen insertado con éxito');
-            res.status(200).json({ message: 'Examen creado exitosamente' });
-        }
-    });
-});
+//     Examen.insertarExamen(nuevoExamen, (error, results) => {
+//         if (error) {
+//             console.error('Error al insertar el examen:', error);
+//             res.status(500).json({ message: 'Error al crear el examen' });
+//         } else {
+//             console.log('Examen insertado con éxito');
+//             res.status(200).json({ message: 'Examen creado exitosamente' });
+//         }
+//     });
+// });
 
-app.get('/buscarexamen', async (req, res) => {
-    try {
-        const exams = await Examen.obtenerTodosLosExamenes();
-        res.json(exams);
-    } catch (error) {
-        console.error('Error al obtener los exámenes:', error);
-        res.status(500).send('Error al obtener los exámenes de la base de datos');
-    }
-});
+// app.get('/buscarexamen', async (req, res) => {
+//     try {
+//         const exams = await Examen.obtenerTodosLosExamenes();
+//         res.json(exams);
+//     } catch (error) {
+//         console.error('Error al obtener los exámenes:', error);
+//         res.status(500).send('Error al obtener los exámenes de la base de datos');
+//     }
+// });
 
-app.post('/editarExamen/:idExamen', async (req, res) => {
-    try {
-        const idExamen = req.params.idExamen;
-        const datosActualizados = {
-            nombre: req.body.nombre,
-            requerimiento: req.body.requerimiento,
-            horaDemora: req.body.horaDemora,
-            tipoAnalisis: req.body.tipoAnalisis,
-            fechaModificacion: new Date()
-        };
+// app.post('/editarExamen/:idExamen', async (req, res) => {
+//     try {
+//         const idExamen = req.params.idExamen;
+//         const datosActualizados = {
+//             nombre: req.body.nombre,
+//             requerimiento: req.body.requerimiento,
+//             horaDemora: req.body.horaDemora,
+//             tipoAnalisis: req.body.tipoAnalisis,
+//             fechaModificacion: new Date()
+//         };
 
-        await Examen.actualizarExamen(idExamen, datosActualizados);
-        res.json({ message: 'Cambios guardados exitosamente' });
-    } catch (error) {
-        console.error('Error al actualizar el examen:', error);
-        res.status(500).json({ message: 'Error al actualizar el examen' });
-    }
-});
+//         await Examen.actualizarExamen(idExamen, datosActualizados);
+//         res.json({ message: 'Cambios guardados exitosamente' });
+//     } catch (error) {
+//         console.error('Error al actualizar el examen:', error);
+//         res.status(500).json({ message: 'Error al actualizar el examen' });
+//     }
+// });
 
-app.post('/eliminarExamen/:idExamen', async (req, res) => {
-    try {
-        const idExamen = req.params.idExamen;
-        await Examen.actualizarEstadoExamen(idExamen, 0);
-        res.json({ message: 'Examen eliminado exitosamente' });
-    } catch (error) {
-        console.error('Error al eliminar el examen:', error);
-        res.status(500).json({ message: 'Error al eliminar el examen' });
-    }
-});
-app.get('/ordenesanalitica', async (req, res) => {
-    try {
-        const ordenes = await Orden.obtenerOrdenesAnalitica();
-        res.render('listaOrdenes', { titulo: 'Órdenes en Analítica', ordenes });
-    } catch (error) {
-        console.error('Error al obtener las órdenes:', error);
-        res.status(500).send('Error al obtener las órdenes');
-    }
-});
-app.get('/detalles-orden/:nroOrden', async (req, res) => {
-    const nroOrden = parseInt(req.params.nroOrden, 10);
+// app.post('/eliminarExamen/:idExamen', async (req, res) => {
+//     try {
+//         const idExamen = req.params.idExamen;
+//         await Examen.actualizarEstadoExamen(idExamen, 0);
+//         res.json({ message: 'Examen eliminado exitosamente' });
+//     } catch (error) {
+//         console.error('Error al eliminar el examen:', error);
+//         res.status(500).json({ message: 'Error al eliminar el examen' });
+//     }
+// });
+// app.get('/ordenesanalitica', async (req, res) => {
+//     try {
+//         const ordenes = await Orden.obtenerOrdenesAnalitica();
+//         res.render('listaOrdenes', { titulo: 'Órdenes en Analítica', ordenes });
+//     } catch (error) {
+//         console.error('Error al obtener las órdenes:', error);
+//         res.status(500).send('Error al obtener las órdenes');
+//     }
+// });
+// app.get('/detalles-orden/:nroOrden', async (req, res) => {
+//     const nroOrden = parseInt(req.params.nroOrden, 10);
 
-    try {
-        const ordenDetalles = await Orden.buscarDetallesOrden(nroOrden);
+//     try {
+//         const ordenDetalles = await Orden.buscarDetallesOrden(nroOrden);
 
-        if (ordenDetalles) {
-            res.render('detallesOrden', { orden: ordenDetalles });
-        } else {
-            res.status(404).json({ error: 'Orden no encontrada' });
-        }
-    } catch (error) {
-        console.error('Error al obtener los detalles de la orden:', error);
-        res.status(500).json({ error: 'Error al obtener los detalles de la orden' });
-    }
-});
+//         if (ordenDetalles) {
+//             res.render('detallesOrden', { orden: ordenDetalles });
+//         } else {
+//             res.status(404).json({ error: 'Orden no encontrada' });
+//         }
+//     } catch (error) {
+//         console.error('Error al obtener los detalles de la orden:', error);
+//         res.status(500).json({ error: 'Error al obtener los detalles de la orden' });
+//     }
+// });
 

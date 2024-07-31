@@ -1,0 +1,56 @@
+/* styles/style.css */
+
+/* Estilos generales para pantalla */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    color: #333;
+}
+
+/* Estilos específicos para impresión */
+@media print {
+    body {
+        background-color: white;
+        color: black;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        color: black;
+    }
+
+    /* Ocultar elementos no deseados en impresión */
+    .no-print {
+        display: none !important;
+    }
+
+    /* Asegurarse de que los márgenes y el tamaño de la página sean apropiados */
+    @page {
+        margin: 20mm;
+    }
+
+    /* Ajustar el tamaño del contenido para que se vea bien en una página */
+    .container {
+        width: 100%;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        border: 1px solid black;
+        padding: 5px;
+    }
+}

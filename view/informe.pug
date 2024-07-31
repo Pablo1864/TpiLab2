@@ -1,0 +1,45 @@
+html(lang='es')
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Informe de Orden #{orden.nroOrden}
+    link(rel="stylesheet", href="/styles/impresion.css")
+  body
+    h1 Informe de Orden #{orden.nroOrden}
+    p Paciente: #{orden.nombrePaciente} #{orden.apellidoPaciente}
+    p Sexo: #{orden.sexo}
+    p Edad: #{orden.edad}
+    p
+      strong Fecha de Creación:
+      span.fecha-orden #{orden.fechaCreacion}
+    p Medico solicitante: #{orden.nombreMedico} #{orden.apellidoMedico}
+    p Exámenes solicitados:
+    ul
+      each examen in orden.examenes
+        li #{examen.nombreExamen}
+
+    h2 Resultados
+    each examen in orden.examenes
+      h3 #{examen.nombreExamen}
+      table
+        thead
+          tr
+            th Determinante
+            th Unidad de Medida
+            th Valor
+            th Valor Mínimo
+            th Valor Máximo
+        tbody
+          each determinante in examen.determinantes
+            tr
+              td #{determinante.nombre}
+              td #{determinante.unidadMedida}
+              td #{determinante.valor}
+              td #{determinante.valorMin}
+              td #{determinante.valorMax}
+
+    // Botón para imprimir
+    button.no-print(onclick="window.print()") Imprimir Informe
+
+    // Incluyendo el script externo
+    script(src="/js/listaOrdenes.js")

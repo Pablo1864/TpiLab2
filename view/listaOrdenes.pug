@@ -8,6 +8,11 @@ html(lang='es')
     link(rel="stylesheet", href="../styles/style.css")
     // Incluir jQuery desde un CDN
     script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+    // Incluir SweetAlert2 desde un CDN
+    link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css")
+    script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js")
+    // Incluir FontAwesome para los íconos
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
   body
     include includes/nav.pug
     .container
@@ -31,6 +36,10 @@ html(lang='es')
                 td= orden.estado
                 td
                   a.btn.btn-outline-secondary(data-bs-toggle="modal", data-bs-target="#modalDetalles", href=`/detalles-orden/${orden['nroOrden']}`) Ver Detalles
+                  - if (orden.estado === 'informada')
+                    a.btn.btn-outline-secondary.ml-2(href=`/imprimir-informe/${orden['nroOrden']}`, target="_blank")
+                      i.fas.fa-print
+
           - else
             tr
               td(colspan='5') No hay órdenes con estado "Analítica"
@@ -38,14 +47,15 @@ html(lang='es')
     // Modal para mostrar los detalles de la orden
     div.modal.fade#modalDetalles(tabindex="-1", aria-labelledby="modalDetallesLabel", aria-hidden="true")
       div.modal-dialog.modal-lg
-        div.modal-content
-          div.modal-header
-            h5.modal-title#modalDetallesLabel Detalles de la Orden
-            button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
-          div.modal-body
-            iframe#modalIframe(style="width:100%;height:500px;", frameborder="0")
-          div.modal-footer
-            button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cerrar
+        div.modal-dialog.modal-dialog-centered
+          div.modal-content
+            div.modal-header
+              h5.modal-title#modalDetallesLabel Detalles de la Orden
+              button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+            div.modal-body
+              iframe#modalIframe(style="width:100%;height:800px;", frameborder="1")
+            div.modal-footer
+              button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cerrar
 
     // Incluye el archivo JavaScript para formatear las fechas y manejar el modal
     script(src="js/listaOrdenes.js")

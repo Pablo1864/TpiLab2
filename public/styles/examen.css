@@ -11,3 +11,44 @@ body {
     text-align: center !important;
     vertical-align: middle !important;
 }
+
+.cargaDeterminante.btn {
+    background-color: transparent;
+    border: none;
+    /* Opcional: Elimina el borde si no es necesario */
+}
+
+.cargaDeterminante.btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.cargaDeterminante.btn {
+    background-color: transparent;
+    border: none;
+    /* Opcional: Elimina el borde si no es necesario */
+    font-size: 16px;
+    /* Ajusta el tamaño del icono */
+    color: #212121;
+    /* Ajusta el color del icono */
+}
+
+.eliminar.btn {
+    background-color: transparent;
+    border: none;
+    /* Opcional: Elimina el borde si no es necesario */
+    font-size: 12px;
+    /* Ajusta el tamaño del icono */
+    color: #212121;
+    /* Ajusta el color del icono */
+}
+
+.editar.btn {
+    background-color: transparent;
+    border: none;
+    /* Opcional: Elimina el borde si no es necesario */
+    font-size: 12px;
+    /* Ajusta el tamaño del icono */
+    color: #212121;
+    /* Ajusta el color del icono */
+}

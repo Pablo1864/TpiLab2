@@ -1,14 +1,25 @@
-import {Router} from 'express'
+import express from 'express';
+import * as examenesController from '../controladores/examenes.controlador.js'; // Asegúrate de que la ruta es correcta
 
-const router= Router();
+const router = express.Router();
 
-// importar el controlador que se utilice
-//import * as controler_usuario from '../controladores/usuario.controlador.js'
+router.get('/examen', examenesController.renderExamen);
+router.post('/nuevo-examen', examenesController.nuevoExamen);
+router.get('/buscarexamen', examenesController.buscarExamen);
+router.post('/editarExamen/:idExamen', examenesController.editarExamen);
+router.post('/eliminarExamen/:idExamen', examenesController.eliminarExamen);
+router.get('/ordenesanalitica', examenesController.obtenerOrdenesAnalitica);
+router.get('/detalles-orden/:nroOrden', examenesController.detallesOrden);
+router.get('/obtener-determinantes/:idExamen', examenesController.obtenerDeterminantes);
+router.post('/cargar-resultado', examenesController.cargarResultado);
+router.get('/valores-referencia', examenesController.obtenervaloresReferencia);
+router.get('/obtenerResultados/:idMuestra', examenesController.obtenerResultados);
+router.post('/agregarDeterminantes', examenesController.agregarDeterminantes);
+router.post('/eliminarDetermintes/:idDeterminante', examenesController.eliminarDeterminante);
+router.get('/obtener-valores-referencia/:idDeterminante', examenesController.obtenerValoresReferenciaPorDeterminante);
+router.post('/agregarValoresReferencia', examenesController.agregarValorReferencia);
+router.post('/obtener-valores-referencia/:idDeterminante', examenesController.obtenerValoresReferenciaPorDeterminante);
+router.post('/validar-resultado', examenesController.validarResultado);
+router.get('/imprimir-informe/:nroOrden', examenesController.imprimirInforme);
 
-/* Ejemplo misma ruta post y get
-// solo devuelve la vista registro de paciente
-router.get('/registro', pacienteController.registro);
-// registra al paciente
-router.post('/registro', pacienteController.registrarPaciente);
-*/
 export default router;
