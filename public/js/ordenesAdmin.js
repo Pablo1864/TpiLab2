@@ -9,7 +9,15 @@ $(document).ready(function () {
         rowId: 'nroOrden',
         columns: [
             { title: 'Orden', data: 'nroOrden', responsivePriority: 1 },
-            { title: 'Estado', data: 'estado', responsivePriority: 3 },
+            { title: 'Estado', data:null, responsivePriority: 3, render: function (data, type, row, meta) {
+                if (data.estado.toLowerCase() == 'analitica' || data.estado.toLowerCase() == 'analítica') {
+                    return `<span class="text-success-emphasis">${data.estado}</span>`;
+                } else if (data.estado.toLowerCase() == 'pre-analitica' || data.estado.toLowerCase() == 'pre-analítica') {
+                    return `<span class="bg-warning-subtle rounded text-warning-emphasis"><strong>${data.estado}</strong></span>`;
+                } else {
+                    return `<span class="text-danger-emphasis">${data.estado}</span>`;
+                }
+            }},
             {
                 title: 'Paciente', data: null,
                 render: function (data) {
@@ -47,6 +55,53 @@ $(document).ready(function () {
         ]
     });
 
+    
+    async function actualizarRow(nroOrden){
+        try {
+            let dataRow = '';
+            const table = $('#table_ordenes').DataTable();
+            let row = table.row(function (idx, data, node) {
+                return data.nroOrden == nroOrden
+            });
+            dataRow = row.data();
+            console.log(dataRow);
+            if (!dataRow) {
+                return;
+            }
+            const newData = await fetch(`/ordenes/detalle/${nroOrden}`);
+            const data = await newData.json();
+            console.log(data);
+            if (newData.ok) {
+                if (data.length > 0){
+                    row.data({
+                        estado: data[0].estado,
+                        nroOrden: data[0].nroOrden,
+                        apellidoPaciente: data[0].paciente.apellido,
+                        nombrePaciente: data[0].paciente.nombre,
+                        dni: data[0].paciente.dni,
+                        apellidoMedico: data[0].medico.apellido,
+                        nombreMedico: data[0].medico.nombre,
+                        fechaCreacion: data[0].fechaCreacion,
+                    }).draw();
+                } else {
+                    throw new Error('No se encontro la orden');
+                }
+            } else {
+                console.log(data.error);
+                throw new Error(data.error);
+            }
+            
+        } catch (error) {
+            console.log(error);
+            Toast.fire({
+                icon: 'error',
+                title: 'Error al actualizar la orden en la vista con sus detalles!',
+                text: error.message || 'Error inesperado, por favor intentelo de nuevo'
+            });
+        }
+    }
+
+    
     async function deleteOrder(id) {
         console.log("deleteOrder: ", id);
         //const container = $(`#orden-${id}`);
@@ -96,7 +151,6 @@ $(document).ready(function () {
                             title: `Orden n.&deg ${id} cancelada con exito.`,
                         });
                         return true;
-                        //container.remove();
                     } else {
                         throw new Error(data.error || 'Error al cancelar la orden');
                     }
@@ -145,7 +199,7 @@ $(document).ready(function () {
         let html = '';
         let muestrasHtml = '';
         if (muestras && muestras.length > 0) {
-            html += `<div id='container-label' class='.row-12'></div><table class="table table-sm table-striped table-responsive nowrap caption-top" id="table_muestras"><caption>Lista de muestras</caption>
+            html += `<div id='container-label' class='.row-12 text-start'></div><table class="table table-sm table-striped table-responsive nowrap caption-top" id="table_muestras"><caption>Lista de muestras</caption>
             <tr>
             <th>Tipo de muestra</th>
             <th>Muestra</th>
@@ -170,8 +224,8 @@ $(document).ready(function () {
                 }
                 muestrasHtml += `<tr>
                 <td>${muestra.tipo}</td>
-                <td>${muestra.idMuestra.join(', ')}</td>
-                <td>${muestra.idExamenes.join(', ')}</td>
+                <td>${muestra.idMuestra}</td>
+                <td>${muestra.idExamenes}</td>
                 <td>${muestra.presentada ? 'Si' : 'No'}</td>
                 <td>
                 ${buttons}
@@ -271,16 +325,6 @@ $(document).ready(function () {
             .replace('{{estado}}', data.estado);
     }
 
-    function actualizarRow(nroOrden){
-        let dataRow = ''
-        console.log("actualizando row: ", nroOrden);
-        $('table_ordenes').DataTable().each(function () {
-            if (this.data()[0].nroOrden === nroOrden) {
-                dataRow = this.data()[0];
-            }
-        })
-        console.log("dataRow: ", dataRow);
-    }
 
     async function detailsOrder(id) {
         if (checkNumeric(id) && id>0) {
@@ -294,11 +338,11 @@ $(document).ready(function () {
             try {
                 const res = await fetch(`/ordenes/detalle/${id}`);
                 const data = await res.json();
-                let preAnalitica = data[0].estado.toLowerCase() == 'pre-analitica' || data[0].estado.toLowerCase() == 'pre-analítica';
-                let btnChangeEstado = `<button type="button" class="btn btn-sm btn-success change-estado-button" data-id="${data.nroOrden}"><i class="bi bi-check-circle-fill innert"></i><span class="d-none d-lg-inline ms-1"></span></button>`;
                 
                 if (res.ok && data) {
                     if (data.length > 0) {
+                        let preAnalitica = data[0].estado.toLowerCase() == 'pre-analitica' || data[0].estado.toLowerCase() == 'pre-analítica';
+
                         const resModal = await swal.fire({
                             title: 'Detalles de la orden n &deg;'+id,
                             html: generateTable(data[0]),
@@ -317,18 +361,27 @@ $(document).ready(function () {
                                         if (Array.isArray(idMues)){
                                             arrayidMuestras = idMues;
                                         } else {
-                                            arrayidMuestras = [idMues];
+                                            if (typeof idMues === 'string' && idMues.includes(',')) {
+                                                arrayidMuestras = idMues.split(',');
+                                            } else {
+                                                arrayidMuestras = [idMues];
+                                            }
                                         }
-                                        const dataMuestra = await fetchModificarMuestras(id, arrayidMuestras, true);
-                                        if (dataMuestra) {
-                                            swal.fire({
-                                                title: 'Muestra agregada',
-                                                icon: 'success',
-                                                allowOutsideClick: false
-                                            })
-                                            console.log(dataMuestra);
-                                            actualizarRow(dataMuestra.estadoOrden);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! terminar esto
+                                        try {
+                                            const dataMuestra = await fetchModificarMuestras(id, arrayidMuestras, true);
+                                            if (dataMuestra) {
+                                                swal.fire({
+                                                    title: 'Muestra agregada',
+                                                    icon: 'success',
+                                                    allowOutsideClick: false
+                                                })
+                                                console.log(dataMuestra);
+                                                await actualizarRow(id);
+                                            }
+                                        } catch (error) {
+                                            console.log(error);
                                         }
+                                        
                                     } else if ($(this).hasClass('imprimir-muestra-button')) {
                                         console.log("imprimir muestra");
                                         const tipoMuestra = $(this).data('tipo');
@@ -339,21 +392,31 @@ $(document).ready(function () {
                                         console.log("delete muestra");
                                         const idMues = $(this).data('id');
                                         let arrayidMuestras;
+                                        console.log(typeof idMues);
                                         if (Array.isArray(idMues)){
+                                            console.log("Array");
                                             arrayidMuestras = idMues;
                                         } else {
-                                            arrayidMuestras = [idMues];
+                                            if (typeof idMues === 'string' && idMues.includes(',')) {
+                                                arrayidMuestras = idMues.split(',');
+                                            } else {
+                                                arrayidMuestras = [idMues];
+                                            }
                                         }
-                                        const dataMuestra = await fetchModificarMuestras(id, arrayidMuestras, false);
-                                        if (dataMuestra) {
-                                            swal.fire({
-                                                title: 'Muestra eliminada',
-                                                icon: 'success',
-                                                allowOutsideClick: false
-                                            })
-                                            console.log(dataMuestra);
-                                            actualizarRow(dataMuestra.estadoOrden);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! terminar esto    
-                                            //TODO: cambiar row content en base a la add/del muestra                                  
+                                        try {
+                                            console.log(arrayidMuestras); //unexpected: ['236,237'] with an array of a string instead of an array of numbers
+                                            const dataMuestra = await fetchModificarMuestras(id, arrayidMuestras, false);
+                                            if (dataMuestra) {
+                                                swal.fire({
+                                                    title: 'Muestra eliminada',
+                                                    icon: 'success',
+                                                    allowOutsideClick: false
+                                                })
+                                                console.log(dataMuestra);
+                                                await actualizarRow(id);
+                                            }
+                                        } catch (error) {
+                                            console.log(error);
                                         }
                                     }
                                 });}
@@ -485,7 +548,7 @@ $(document).ready(function () {
 
     if (tableOrdenes && ordenes) {
         try { 
-            llenarTableConData($('#table_ordenes').DataTable(), ordenes) 
+            llenarTableConData($('#table_ordenes').DataTable(), ordenes)
         } catch (err) {
             swal.fire({
                 icon: 'error',
