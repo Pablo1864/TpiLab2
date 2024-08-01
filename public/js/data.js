@@ -133,18 +133,30 @@ $(document).ready(function () {
         e.preventDefault();
         const formData = $('#editarExamenForm').serialize();
 
-        $.ajax({
-            type: 'POST',
-            url: `/editarExamen/${$('#idExamen').val()}`,
-            data: formData,
-            success: function (response) {
-                alert('Cambios guardados exitosamente');
-                $('#modalEditar').modal('hide');
-                window.location.reload();
-            },
-            error: function (error) {
-                console.error('Error al guardar cambios:', error);
-                alert('Error al guardar cambios');
+        Swal.fire({
+            title: 'Confirmar',
+            text: '¿Estás seguro de que deseas guardar los cambios?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, guardar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: 'POST',
+                    url: `/editarExamen/${$('#idExamen').val()}`,
+                    data: formData,
+                    success: function (response) {
+                        Swal.fire('Guardado', 'Cambios guardados exitosamente', 'success').then(() => {
+                            $('#modalEditar').modal('hide');
+                            window.location.reload();
+                        });
+                    },
+                    error: function (error) {
+                        console.error('Error al guardar cambios:', error);
+                        Swal.fire('Error', 'Error al guardar cambios', 'error');
+                    }
+                });
             }
         });
     });
@@ -158,22 +170,46 @@ $(document).ready(function () {
         e.preventDefault();
         const formData = $(this).serialize();
 
-        $.ajax({
-            type: 'POST',
-            url: '/nuevo-examen',
-            data: formData,
-            success: function (response) {
-                alert(response.message);
-                $('#modalCrearExamen').modal('hide');
-                window.location.reload();
-            },
-            error: function (error) {
-                console.error('Error al crear el examen:', error);
-                const errorMessage = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Error al crear el examen';
-                alert(errorMessage);
+        Swal.fire({
+            title: 'Confirmar',
+            text: '¿Estás seguro de que deseas crear este examen?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, crear',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: 'POST',
+                    url: '/nuevo-examen',
+                    data: formData,
+                    success: function (response) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Examen creado',
+                            text: response.message,
+                            confirmButtonText: 'Aceptar'
+                        }).then(() => {
+                            $('#modalCrearExamen').modal('hide');
+                            window.location.reload();
+                        });
+                    },
+                    error: function (error) {
+                        console.error('Error al crear el examen:', error);
+                        const errorMessage = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Error al crear el examen';
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: errorMessage,
+                            confirmButtonText: 'Aceptar'
+                        });
+                    }
+                });
             }
         });
     });
+
+
 
 
     $('#datatable_exams tbody').on('click', 'button.cargaDeterminante', function () {
@@ -227,35 +263,117 @@ $(document).ready(function () {
         $('#modalValoresReferencia').modal('show');
     });
 
-    // Manejo del clic en el botón "Añadir Valor de Referencia" en el modal
-    $('#btnAddDeterminant').on('click', function () {
-        const container = $('#determinantsContainer');
-        const determinantHtml = `
-            <div class="form-group determinant">
-                <label for="determinantName">Nombre del Determinante:</label>
-                <input class="determinantName form-control" type="text" name="determinantes[][nombre]" required>
-                <label for="determinantValue">Unidad de Medida:</label>
-                <input class="determinantValue form-control" type="text" name="determinantes[][unidadMedida]" required>
-                <button class="btn btn-success btnAddValorReferencia" type="button">Agregar Valor de Referencia</button>
-                <button class="btn btn-danger btnRemoveDeterminant" type="button">Quitar</button>
-            </div>
-        `;
-        container.append(determinantHtml);
+
+
+
+
+
+
+
+
+
+    // Manejo del clic en el botón "Quitar" de un determinante
+    $('#determinantsContainer').on('click', '.btnRemoveDeterminant', function () {
+        const determinantElement = $(this).closest('.determinant');
+
+        // Verificar si el elemento tiene un ID válido o está vacío
+        if (determinantElement.data('id-determinante') || determinantElement.find('.determinantName').val() || determinantElement.find('.determinantValue').val()) {
+            $('#modalEliminarDeterminante').modal('show');
+            $('#btnConfirmarEliminarDeterminante').data('id-determinante', determinantElement.data('id-determinante'));
+        } else {
+            // Si el elemento no tiene un ID o está vacío, eliminarlo directamente
+            determinantElement.remove();
+        }
     });
 
-    // Manejo del clic en el botón "Agregar Valor de Referencia" de un determinante
+    // Confirmación de eliminación de determinante
+    $('#btnConfirmarEliminarDeterminante').on('click', function () {
+        const idDeterminanteAEliminar = $(this).data('id-determinante');
+
+        if (idDeterminanteAEliminar) {
+            $.ajax({
+                type: 'POST',
+                url: `/eliminarDeterminantes/${idDeterminanteAEliminar}`,
+                success: function (response) {
+                    $('#modalEliminarDeterminante').modal('hide');
+                    $(`[data-id-determinante="${idDeterminanteAEliminar}"]`).remove();
+                },
+                error: function (error) {
+                    console.log('Error al eliminar el determinante:', error);
+                }
+            });
+        } else {
+            $('#modalEliminarDeterminante').modal('hide');
+            // Si no hay ID, eliminar directamente del DOM
+            $('.determinant[data-id-determinante=""]').remove();
+        }
+    });
+
+    // Manejo del clic en el botón "Guardar" del modal de determinantes
+    $('#btnGuardarDeterminantes').on('click', function () {
+        const nuevosDeterminantes = [];
+        const determinantesActualizados = [];
+
+        $('#determinantsContainer .determinant').each(function () {
+            const nombre = $(this).find('.determinantName').val();
+            const unidadMedida = $(this).find('.determinantValue').val();
+            const idDeterminante = $(this).data('id-determinante');
+
+            if (idDeterminante) {
+                determinantesActualizados.push({ idDeterminante, nombre, unidadMedida });
+            } else {
+                nuevosDeterminantes.push({ nombre, unidadMedida });
+            }
+        });
+
+        const params = new URLSearchParams();
+        params.append('idExamen', idExamenSeleccionado);
+        params.append('nuevosDeterminantes', JSON.stringify(nuevosDeterminantes));
+        params.append('determinantesActualizados', JSON.stringify(determinantesActualizados));
+
+        Swal.fire({
+            title: 'Confirmar',
+            text: '¿Estás seguro de que deseas guardar los determinantes?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, guardar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('/agregarDeterminantes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: params.toString(),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        Swal.fire('Guardado', 'Determinantes agregados/actualizados exitosamente', 'success').then(() => {
+                            $('#modalDeterminantes').modal('hide');
+                            window.location.reload();
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error al agregar/actualizar determinantes:', error);
+                        Swal.fire('Error', 'Error al agregar/actualizar determinantes', 'error');
+                    });
+            }
+        });
+    });
+
+
     $('#determinantsContainer').on('click', '.btnAddValorReferencia', function () {
         idDeterminanteSeleccionado = $(this).closest('.determinant').data('id-determinante');
         const container = $('#valoresReferenciaContainer');
         container.empty();
 
         fetch(`/obtener-valores-referencia/${idDeterminanteSeleccionado}`)
-
             .then(response => response.json())
             .then(valoresReferencia => {
                 valoresReferencia.forEach(valor => {
                     const valorReferenciaHtml = `
-                        <div class="form-group valor-referencia">
+                        <div class="form-group valor-referencia" data-id-valor-referencia="${valor.idValorReferencias}">
                             <label for="valorMin">Valor de Referencia Mínimo:</label>
                             <input type="number" step="0.01" class="form-control valorMin" name="valorMin[]" value="${valor.valorMin}" required>
                             <label for="valorMax">Valor de Referencia Máximo:</label>
@@ -367,76 +485,4 @@ $(document).ready(function () {
             });
     });
 
-
-
-
-
-    // Manejo del clic en el botón "Quitar" de un determinante
-    $('#determinantsContainer').on('click', '.btnRemoveDeterminant', function () {
-        const determinantElement = $(this).closest('.determinant');
-        $('#modalEliminarDeterminante').modal('show');
-        $('#btnConfirmarEliminarDeterminante').data('id-determinante', determinantElement.data('id-determinante'));
-    });
-
-    // Confirmación de eliminación de determinante
-    $('#btnConfirmarEliminarDeterminante').on('click', function () {
-        const idDeterminanteAEliminar = $(this).data('id-determinante');
-
-        if (idDeterminanteAEliminar) {
-            $.ajax({
-                type: 'POST',
-                url: `/eliminarDeterminantes/${idDeterminanteAEliminar}`,
-                success: function (response) {
-                    $('#modalEliminarDeterminante').modal('hide');
-                    $(`[data-id-determinante="${idDeterminanteAEliminar}"]`).remove();
-                },
-                error: function (error) {
-                    console.log('Error al eliminar el determinante:', error);
-                }
-            });
-        } else {
-            $('#modalEliminarDeterminante').modal('hide');
-        }
-    });
-
-    // Manejo del clic en el botón "Guardar" del modal de determinantes
-    $('#btnGuardarDeterminantes').on('click', function () {
-        const nuevosDeterminantes = [];
-        const determinantesActualizados = [];
-
-        $('#determinantsContainer .determinant').each(function () {
-            const nombre = $(this).find('.determinantName').val();
-            const unidadMedida = $(this).find('.determinantValue').val();
-            const idDeterminante = $(this).data('id-determinante');
-
-            if (idDeterminante) {
-                determinantesActualizados.push({ idDeterminante, nombre, unidadMedida });
-            } else {
-                nuevosDeterminantes.push({ nombre, unidadMedida });
-            }
-        });
-
-        const params = new URLSearchParams();
-        params.append('idExamen', idExamenSeleccionado);
-        params.append('nuevosDeterminantes', JSON.stringify(nuevosDeterminantes));
-        params.append('determinantesActualizados', JSON.stringify(determinantesActualizados));
-
-        fetch('/agregarDeterminantes', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: params.toString(),
-        })
-            .then(response => response.json())
-            .then(data => {
-                alert('Determinantes agregados/actualizados exitosamente');
-                $('#modalDeterminantes').modal('hide');
-                window.location.reload();
-            })
-            .catch(error => {
-                console.error('Error al agregar/actualizar determinantes:', error);
-                alert('Error al agregar/actualizar determinantes');
-            });
-    });
 });

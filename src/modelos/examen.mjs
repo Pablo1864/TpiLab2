@@ -1,4 +1,4 @@
-import { conexion, getConnection, beginTransaction, commit, rollback, query } from '../mysql.conexion.mjs';
+import { conexion } from '../mysql.conexion.mjs';
 
 export class Examen {
 
@@ -44,19 +44,6 @@ export class Examen {
         });
     }
 
-    static async buscarExamenesActivosPorNombre(nombre) {
-        const con = await getConnection();
-        try {
-            const sql = 'SELECT * FROM examenes WHERE (nombre LIKE ? OR otrosNombres LIKE ?) AND habilitado = 1';
-            const res = await query(sql, ['%' + nombre + '%', '%' + nombre + '%'], con);
-            return res;
-        } catch (err) {
-            console.error(err);
-            throw err;
-        } finally {
-            if (con) con.release();
-        }
-    }
 
     static async buscarExamenPorNombre(nombre) {
         return new Promise((resolve, reject) => {
@@ -154,7 +141,45 @@ export class Examen {
                 SELECT o.nroOrden, p.nombre AS nombrePaciente, p.apellido AS apellidoPaciente, o.fechaCreacion, o.estado 
                 FROM ordenes o
                 JOIN pacientes p ON o.idPaciente = p.idPaciente
-                WHERE o.estado IN ('Analítica', 'Pre informe', 'Para Validar', 'informada')
+                WHERE o.estado IN ('Analítica', 'Pre informe')
+            `;
+            conexion.query(query, (err, res) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(res);
+                }
+            });
+        });
+
+    }
+    static async obtenerOrdenesInformes() { //rol bioquimico
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT o.nroOrden, p.nombre AS nombrePaciente, p.apellido AS apellidoPaciente, o.fechaCreacion, o.estado 
+                FROM ordenes o
+                JOIN pacientes p ON o.idPaciente = p.idPaciente
+                WHERE o.estado IN ('para validar', 'informada')
+            `;
+            conexion.query(query, (err, res) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(res);
+                }
+            });
+        });
+
+    }
+
+
+    static async obtenerOrdenes() { //rol bioquimico
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT o.nroOrden, p.nombre AS nombrePaciente, p.apellido AS apellidoPaciente, o.fechaCreacion, o.estado 
+                FROM ordenes o
+                JOIN pacientes p ON o.idPaciente = p.idPaciente
+                WHERE o.estado IN ('Analítica', 'Pre informe')
             `;
             conexion.query(query, (err, res) => {
                 if (err) {
@@ -350,40 +375,14 @@ export class Examen {
             });
         });
     }
-    static async agregarValoresReferencia(nuevosValoresReferencia, idDeterminante) {
-        return new Promise((resolve, reject) => {
-            const sql = `
-                INSERT INTO valorreferencias(valorMin, valorMax, edadMin, edadMax, sexo, embarazada, idDeterminantes) VALUES ?
-            `;
 
-            const values = nuevosValoresReferencia.map(val => [
-                val.valorMin,
-                val.valorMax,
-                val.edadMin,
-                val.edadMax,
-                val.sexo,
-                val.embarazada,
-                idDeterminante
-            ]);
-
-            console.log('Valores a insertar:', values); // Log para verificar los datos a insertar
-
-            conexion.query(sql, [values], (err, res) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(res);
-                }
-            });
-        });
-    }
 
 
 
     static async obtenerValoresReferenciaPorIdDeterminante(idDeterminante) {
         return new Promise((resolve, reject) => {
             const sql = `
-                SELECT valorMin, valorMax, edadMin, edadMax, sexo, embarazada
+                SELECT idValorReferencias,valorMin, valorMax, edadMin, edadMax, sexo, embarazada
                 FROM valorreferencias
                 WHERE idDeterminantes = ?
             `;
@@ -424,10 +423,41 @@ export class Examen {
         });
     }
 
+
+    static async agregarValoresReferencia(nuevosValoresReferencia, idDeterminante) {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                INSERT INTO valorreferencias(valorMin, valorMax, edadMin, edadMax, sexo, embarazada, idDeterminantes) VALUES ?
+            `;
+
+            const values = nuevosValoresReferencia.map(val => [
+                val.valorMin,
+                val.valorMax,
+                val.edadMin,
+                val.edadMax,
+                val.sexo,
+                val.embarazada,
+                idDeterminante
+            ]);
+
+            console.log('Valores a insertar:', values); // Log para verificar los datos a insertar
+
+            conexion.query(sql, [values], (err, res) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(res);
+                }
+            });
+        });
+    }
+
+
+
     static async actualizarValoresReferencia(valoresReferenciaActualizados) {
         return new Promise((resolve, reject) => {
             const sql = `
-                UPDATE ValorReferencias
+                UPDATE valorreferencias
                 SET valorMin = ?, valorMax = ?, edadMin = ?, edadMax = ?, sexo = ?, embarazada = ?
                 WHERE idValorReferencias = ?
             `;
@@ -441,9 +471,10 @@ export class Examen {
                         valorReferencia.edadMax,
                         valorReferencia.sexo,
                         valorReferencia.embarazada,
-                        valorReferencia.idValorReferencias
+                        valorReferencia.idValorReferencia
                     ], (err, res) => {
                         if (err) {
+                            console.error('Error en la consulta SQL de actualización:', err);
                             reject(err);
                         } else {
                             resolve(res);
@@ -457,6 +488,7 @@ export class Examen {
                 .catch(err => reject(err));
         });
     }
+
 
 
 
