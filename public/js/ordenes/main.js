@@ -217,6 +217,12 @@ $(document).ready(function () {
         if (validar(input , divErrores, type, filter)) {
             const url = `/ordenes${confg.url}?${confg.params[filter]}=${encodeURIComponent(input.val())}`;
             const respuesta = await manejarFetch2(url);
+            if (respuesta.length == 0){
+                Toast.fire({
+                    icon: 'error',
+                    title: 'No se encontraron resultados!'
+                })
+            }
             if (respuesta.length == 0 && filter == 'apellido' && type == 'pacientes') { //si no hay resultados, mostrar btn para crear paciente
                 const divSearchPatient = $('#search');
                 divSearchPatient.append( `<div id='divBtnCrearPaciente' class='col px-3'><h5 class="text-center">No se encontraron resultados para el apellido: <span class="text-primary">${input.val()}</span> </h5><div class="col text-center my-2"> <button class="btn btn-primary" id="crearPaciente">ir a Crear Paciente nuevo</button></div></div>`);
@@ -358,6 +364,7 @@ $(document).ready(function () {
         language: config('muestra', 'muestras'),
         responsive: true,
         //rowId: 'idMuestra',
+        order: [],
         columns: [
             { title: '', data: 'idMuestra', visible: false, orderable: false, searchable: false, name: 'idMuestra', responsivePriority: 1 },
             { title: 'Muestra', data: 'tipo', responsivePriority: 1, name: 'tipoDeMuestra' },

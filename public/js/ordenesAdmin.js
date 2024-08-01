@@ -11,11 +11,11 @@ $(document).ready(function () {
             { title: 'Orden', data: 'nroOrden', responsivePriority: 1 },
             { title: 'Estado', data:null, responsivePriority: 3, render: function (data, type, row, meta) {
                 if (data.estado.toLowerCase() == 'analitica' || data.estado.toLowerCase() == 'analítica') {
-                    return `<span class="text-success-emphasis">${data.estado}</span>`;
+                    return `<span class="bg-success-subtle rounded text-success-emphasis"><strong>${data.estado}</strong></span>`;
                 } else if (data.estado.toLowerCase() == 'pre-analitica' || data.estado.toLowerCase() == 'pre-analítica') {
                     return `<span class="bg-warning-subtle rounded text-warning-emphasis"><strong>${data.estado}</strong></span>`;
                 } else {
-                    return `<span class="text-danger-emphasis">${data.estado}</span>`;
+                    return `<span class="bg-danger-subtle rounded text-danger-emphasis"><strong>${data.estado}</strong></span>`;
                 }
             }},
             {
@@ -45,10 +45,15 @@ $(document).ready(function () {
             {
                 title: 'Acciones', data: null, responsivePriority: 1, orderable: false, searchable: false, render: function (data) {
                     let estado = data.estado.toLowerCase();
+                    let cancelada = data.razonCancelacion == null ? false : true;
+                    let activateOrdenBtn = `<button type="button" class="btn btn-sm btn-primary activate-button" data-id="${data.nroOrden}"><i class="bi bi-play" innert></i><span class="d-none d-lg-inline ms-1">Reactivar</span></button>`;
+                    let deleteButton = `<button type="button" class="btn btn-sm btn-danger delete-button" data-id="${data.nroOrden}"><i class="bi bi-trash" innert></i><span class="d-none d-lg-inline ms-1">Eliminar</span></button>`;
                     return `<div class="d-flex flex-row justify-content-evenly">
                             <button type="button" class="btn btn-sm btn-primary edit-button" data-id="${data.nroOrden}"><i class="bi bi-pencil-fill" innert></i><span class="d-none d-lg-inline ms-1">Editar</span></button>
                             <button type="button" class="btn btn-sm btn-secondary details-button" data-id="${data.nroOrden}"><i class="bi bi-eye-fill" innert></i><span class="d-none d-lg-inline ms-1">Ver más</span></button>
-                            <button type="button" class="btn btn-sm btn-danger delete-button" data-id="${data.nroOrden}"><i class="bi bi-trash" innert></i><span class="d-none d-lg-inline ms-1">Eliminar</span></button><div>`;
+                            ${cancelada ? '' : deleteButton}
+                            ${cancelada ? activateOrdenBtn :'' }
+                            <div>`
 
                 }
             },
@@ -233,29 +238,29 @@ $(document).ready(function () {
                 </tr>
                 `
             });
-            /*muestrasHtml = arr.map(muestra => {
-                let buttons = '';
-                if (muestra.presentada && (estado.toLowerCase() == 'analitica' || estado.toLowerCase() == 'analítica')) {
-                    buttons = `<button type="button" class='btn btn-sm btn-primary imprimir-muestra-button' data-tipo='${muestra.tipoAnalisis}'>Imprimir</button>`;
-                } else if (muestra.presentada) {
-                    buttons = `<button type="button" class='btn btn-sm btn-primary imprimir-muestra-button' data-tipo='${muestra.tipoAnalisis}'>Imprimir</button><button type="button" class="btn btn-sm btn-danger delete-muestra-button" data-id="${muestra.idMuestras}">Eliminar</button>`; 
-                } else {
-                    buttons = `<button type="button" class="btn btn-sm btn-primary add-muestra-button" data-id="${muestra.idMuestras}">agregar</button>`;
-                }
-                return `<tr>
-                <td>${muestra.tipoAnalisis}</td>
-                <td>${muestra.idMuestras.join(', ')}</td>
-                <td>${muestra.idExamenes.join(', ')}</td>
-                <td>${muestra.presentada ? 'Si' : 'No'}</td>
-                <td>
-                ${buttons}
-                </td>
-                </tr>
-                `;
-            }).join('');*/
             console.log("muestras: ",muestras, estado, nroOrden);
         }
         return html.replace("{{muestras}}", muestrasHtml);
+    }
+
+    function getFechaEntregaAproximada(fechaCreacion, estadoOrden, dataExamenes){
+        console.log(dataExamenes);
+        const maxDays = dataExamenes.map(examen => {
+            return examen.diasDemora;  
+        }).reduce((max, days) => Math.max(max, days), 0);
+        if (maxDays) {
+            let date;
+            if (estadoOrden.toLowerCase() == 'analitica' || estadoOrden.toLowerCase() == 'analítica') {
+                date = new Date(fechaCreacion);
+            } else {
+                date = new Date();
+            }
+            const aproxDate = date.setDate(date.getDate() + maxDays);
+            return `<p>Fecha de entrega aprox. en ${maxDays} día(s)(${new Date(aproxDate).toLocaleDateString()})</p>`;
+        } else {
+            return '';
+        }
+        
     }
 
     function generateTable(data) {
@@ -265,9 +270,11 @@ $(document).ready(function () {
         let htmlMuestras = '';
         html = `<div class='row p-0 m-0'>
                     <div class='col-12'>
+                        {{cancelada}}
                         <p>Estado: {{estado}}</p>
                         <p>Fecha de creación: {{date}}</p>
                         <p>Última fecha de modif.: {{dateModif}}</p>
+                        {{fechaEntregaAproximada}}
                     </div>    
                     <div class='col-6'>
                         <p>Pac.: {{paciente}}</p>
@@ -310,7 +317,18 @@ $(document).ready(function () {
         if (data.muestras && data.muestras.length > 0 && data.examenes && data.examenes.length > 0) {
             htmlMuestras = getMuestrasHtml(data.muestras, data.estado, data.nroOrden);
         }
+        let razon = '';
+        console.log("data.razonCancelacion: ", data);
+        if (data.razonCancelacion){
+            razon = `<p><strong>Razon cancelación: </strong>"${data.razonCancelacion}"</p>`;
+        }
+        let fechaAprox = '';
+        if (data.examenes && data.examenes.length>0){
+            fechaAprox = getFechaEntregaAproximada(data.fechaCreacion, data.estado, data.examenes);
+        }
         return html
+            .replace('{{cancelada}}', razon)
+            .replace('{{fechaEntregaAproximada}}', fechaAprox)
             .replace('{{examenesTable}}', htmlExamenes)
             .replace('{{muestrasTable}}', htmlMuestras)
             .replace('{{diagnosticosTable}}', htmlDiagnosticos)
@@ -344,11 +362,14 @@ $(document).ready(function () {
                         let preAnalitica = data[0].estado.toLowerCase() == 'pre-analitica' || data[0].estado.toLowerCase() == 'pre-analítica';
 
                         const resModal = await swal.fire({
-                            title: 'Detalles de la orden n &deg;'+id,
+                            title: `Detalles de la orden n&deg; ${id}${!data[0].razonCancelacion? '': '(Cancelada)'}`,
                             html: generateTable(data[0]),
                             width: '80%',
                             padding: '2em',
-                            showDenyButton: preAnalitica, //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! terminar esto
+                            customClass: {
+                                popup: !data[0].razonCancelacion ? '' : 'bg-danger-subtle',
+                            },
+                            showDenyButton: preAnalitica,
                             denyButtonText:'Cambiar orden a analítica!',
                             onOpen: () => {
                                 if (data[0].muestras && data[0].muestras.length > 0) {
@@ -428,8 +449,12 @@ $(document).ready(function () {
                             console.log("Denied");
                             if (preAnalitica) {
                                 const resChange = await swal.fire({
+                                    icon: 'warning',
                                     title: '¿Desea cambiar el estado de la orden?',
-                                    text: 'Se cambiara el estado de la orden a "analítica", pasando a ser procesada y analizada por un bioquimico. Esta operación no se puede deshacer',
+                                    text: '¡Esta operación no se puede deshacer! Se cambiara el estado de la orden a "analítica", pasando a ser procesada y analizada por un bioquimico.',
+                                    customClass: {
+                                        
+                                    },
                                     showCancelButton: true,
                                     confirmButtonText: 'Si, cambiar',
                                     cancelButtonText: 'No, mantener',
@@ -495,6 +520,49 @@ $(document).ready(function () {
         }
     }
 
+    async function activateOrder(id) {
+        
+        try {
+            if (!id || id <= 0) {
+                throw new Error("No se encontro la orden");
+            }
+            const activate = await Swal.fire({
+                icon: 'warning',
+                title: '¿Esta seguro que desea reactivar esta orden?',
+                text: '¡Esta operación borrara la razon de cancelacion de la orden ' + id + ' y pasara a estar activa otra vez!',
+                showCancelButton: true,
+                confirmButtonText: 'Si, reactivar',
+                cancelButtonText: 'No, dejar inactiva',
+            });
+            if (activate.isConfirmed) {
+                const res = await fetch(`/ordenes/activar/${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                const data = await res.json();
+                if (res.ok) {
+                    console.log("done:", data);
+                    await actualizarRow(id);
+                } else if (!res.ok) {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    } else {
+                        throw new Error(data);
+                    }
+                }
+            }
+        } catch (error) {
+            console.log(error);
+            const res = await Swal.fire({
+                icon: 'error',
+                title: '¡Error al reactivar la orden '+id+'!',
+                text: error.message || 'Error inesperado, por favor intentelo de nuevo en otro momento'
+            });
+        }
+    }
+
     $('#table_ordenes tbody').on('click', 'button', async function () {
         if ($(this).hasClass('delete-button')) {
             const id = $(this).data('id');
@@ -507,6 +575,9 @@ $(document).ready(function () {
         } else if ($(this).hasClass('details-button')) {
             const id = $(this).data('id');
             await detailsOrder(id);
+        } else if ($(this).hasClass('activate-button')) {
+            const id = $(this).data('id');
+            await activateOrder(id);
         }
     });
 

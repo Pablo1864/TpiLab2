@@ -749,6 +749,55 @@ export const modificarOrdenAdmin = async (req, res) => {
     }
 }
 
+export const activarOrden = async (req, res) => {
+    const token = req.cookies.token;
+    const id = parseInt(req.params.id, 10);
+    try{
+        const usuario = jwt.verify(token, config.SECRET);
+        const user = await Usuario.verificarUsuarioPorId(usuario.id);
+        if (!user || user===0 || !token) {
+            const error = new Error('Usuario no encontrado');
+            error.code = 'USER_NOT_FOUND';
+            throw error;
+        } else {
+            if (user.rol_id !== 1) {
+                const error = new Error('Usuario no autorizado');
+                error.code = 'FORBIDDEN';
+                throw error;
+            }
+        }
+        if (checkNumeric(id) && id > 0) {
+            const ordenRes = await Orden.buscarDataOrden(id);
+            const orden = await agruparData(ordenRes);
+            if (!orden) {
+                const error = new Error('No se encontro la orden!');
+                error.code = 'BAD_REQUEST';
+                throw error;
+            }
+            const actualizacion = await Orden.modificarOrdenAdmin(orden[0], { nroOrden: orden[0].nroOrden, idPaciente: orden[0].idPaciente, idMedico: orden[0].idMedico, diagnosticosIds: orden[0].diagnosticos.map(d => d.idDiagnostico), examenesIds: orden[0].examenes.map(e => e.idExamenes)});
+            const resp = await Orden.activarOrden(id);
+            res.json(resp);
+        } else {
+            const error = new Error('No se encontro la orden');
+            error.code = 'BAD_REQUEST';
+            throw error;
+        }
+    } catch (err) {
+        console.log(err);
+        if (err.code === 'ECONNREFUSED') {
+            res.status(500).json({ error: 'No se pudo conectar con la base de datos. Intentelo mas tarde.' });
+        } else if (err.code === 'USER_NOT_FOUND') { 
+            res.status(401).json({ error: 'No se encontraron los datos del usuario. Intentelo mas tarde.' });
+        } else if (err.code === 'FORBIDDEN') {
+            res.status(403).json({ error: 'No tiene permisos para realizar esta accion. Intentelo mas tarde.' });
+        } else if (err.code === 'BAD_REQUEST') {
+            res.status(400).json({ error: err.message || 'No se enviaron datos validos.' });
+        } else {
+            res.status(500).json({ error: 'Error al activar la orden.' });
+        }
+    }
+}
+
 export const desactivarOrden = async (req, res) => {
     const token = req.cookies.token;
     const id = parseInt(req.params.id, 10);

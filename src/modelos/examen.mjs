@@ -1,4 +1,4 @@
-import { conexion } from '../mysql.conexion.mjs';
+import { conexion, getConnection, beginTransaction, commit, rollback, query } from '../mysql.conexion.mjs';
 
 export class Examen {
 
@@ -44,6 +44,19 @@ export class Examen {
         });
     }
 
+    static async buscarExamenesActivosPorNombre(nombre) {
+        const con = await getConnection();
+        try {
+            const sql = 'SELECT * FROM examenes WHERE (nombre LIKE ? OR otrosNombres LIKE ?) AND habilitado = 1';
+            const res = await query(sql, ['%' + nombre + '%', '%' + nombre + '%'], con);
+            return res;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
+    }
 
     static async buscarExamenPorNombre(nombre) {
         return new Promise((resolve, reject) => {

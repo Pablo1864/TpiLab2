@@ -2,6 +2,20 @@ import { conexion, query, getConnection, beginTransaction, commit, rollback } fr
 
 export class Orden {
 
+    static async activarOrden(nroOrden) {
+        const con = await getConnection();
+        try {
+            const sql = 'UPDATE ordenes SET razonCancelacion = NULL, fechaModificacion = NOW() WHERE nroOrden = ?';
+            const res = await query(sql, [nroOrden], con);
+            return res;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            if (con) con.release();
+        }
+    }
+
     //para mostrar en /ordenes/administracion
     static async buscarDatasOrdenesActivas(filters) {
         /*filters = {
@@ -310,7 +324,7 @@ WHERE
     static async desactivarOrden(idOrden, razon) {
         const con = await getConnection();
         try {
-            const sql = 'UPDATE ordenes SET razonCancelacion = ? WHERE nroOrden = ?';
+            const sql = 'UPDATE ordenes SET razonCancelacion = ?, fechaModificacion = NOW() WHERE nroOrden = ?';
 
             const res = await query(sql, [razon, idOrden], con);
             return res;

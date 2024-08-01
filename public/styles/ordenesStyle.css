@@ -34,7 +34,7 @@
 }
 
 .disable-table {
-  pointer-events: none;
+  pointer-events: none !important;
   opacity: 0.7;
 }
 
@@ -136,7 +136,6 @@ button.accordion-button:disabled {
   cursor: not-allowed;
   pointer-events: all !important;
   opacity: 0.7;
-
 }
 
 /* #table_patients tbody td:first-child {

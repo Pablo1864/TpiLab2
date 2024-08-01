@@ -28,7 +28,7 @@ router.post('/editar/admin/:id', [verificarToken, esAdmin], ordenController.modi
 router.get('/detalle/:id', [verificarToken, esAdminOrRecepcionista], ordenController.getDetalleOrden);//se encarga de returnar el detalle de una orden
 router.patch('/desactivar/:id', [verificarToken, esAdminOrRecepcionista], ordenController.desactivarOrden);//se encarga de desactivar una orden
 router.patch('/cambiarEstado/:id', [verificarToken, esAdminOrRecepcionista], ordenController.cambiarEstado);//se encarga de cambiar el estado de una orden
-
+router.patch('/activar/:id', [verificarToken, esAdmin], ordenController.activarOrden);//se encarga de activar una orden
 // importar el controlador que se utilice
 //import * as controler_usuario from '../controladores/usuario.controlador.js'
 

@@ -57,7 +57,7 @@ export function disableTableSelection(table) {
     table.select.style('api');
     table.off('select');
     table.off('deselect');
-    //table.table().node().classList.add('disable-table');
+    
 }
 
 export function llenarTableMuestras(muestrasData, examenesArr, idOrden) {
@@ -330,7 +330,6 @@ async function modificarMuestras(tableMuestras, idOrden, row, estado, examenesAr
     try {
         const data = await fetchModificarMuestras(idOrden, row.data().idMuestra, estado);
         if (data) {
-            
             let updatedRow = row.data();
             updatedRow.presentada = estado;
             tableMuestras.row(row).data(updatedRow).draw();
@@ -347,12 +346,12 @@ async function modificarMuestras(tableMuestras, idOrden, row, estado, examenesAr
                 await Swal.fire({
                     icon: 'success',
                     title: `Orden n.&deg ${idOrden} actualizada`,
-                    text: `Todas las muestras han sido agregadas. ${msg}`,
+                    text: `las muestras han sido agregadas. ${msg}`,
                 })
             }
             Toast.fire({ icon: 'success', title: `Muestra ${estado? "agregada" : "eliminada"} con exito.` });
             
-            return data.muestrasResp.length>0 ? true : false;
+            return data.estadoOrden == 'pre-analitica' ? true : false;
         }
     } catch (error) {
         console.log(error);
@@ -557,6 +556,7 @@ export function agregarRow(row, tablaAddRow, id) {
 
 export function disableInputsAndButtons(array, estado = true) {
     for (let i = 0; i < array.length; i++) {
+        $(array[i]).attr('tabindex', '-1');
         $(array[i]).prop('disabled', estado);
     }
 }

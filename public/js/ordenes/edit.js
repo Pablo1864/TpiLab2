@@ -244,7 +244,8 @@ $(document).ready(async function () {
                 $('#nav-muestras-tab').removeClass('d-none');
                 if (oldOrden[0].estado.toLowerCase() == 'esperando toma de muestras') {
                     $('#nav-muestras-tab').click();
-                } else if (oldOrden[0].estado.toLowerCase() == 'analitica') {
+                } else if (oldOrden[0].estado.toLowerCase() == 'analitica' || oldOrden[0].estado.toLowerCase() == 'analítica') {
+                    disableDiagnosisAndExams();
                     disableMuestras();
                 }
                 //show hovering message above tab: "Please, modify the order to add or delete samples"
